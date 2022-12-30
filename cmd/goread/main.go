@@ -18,7 +18,7 @@ func main() {
 	}
 
 	// Create the main model
-	model := model.New(backend.FakeBackend{})
+	model := model.New(backend.NewWebBackend())
 
 	// Start the program
 	p := tea.NewProgram(model)

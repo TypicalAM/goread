@@ -17,6 +17,7 @@ import (
 // Create a fake backed for testing
 type FakeBackend struct{}
 
+// Name returns the name of the backend
 func (b FakeBackend) Name() string {
 	return "FakeBackend"
 }
@@ -58,7 +59,7 @@ func (b FakeBackend) FetchArticles(feedName string) tea.Cmd {
 		file, err := os.Open("rss.rss")
 		if err != nil {
 			return FetchErrorMessage{
-				description: "Could not open file",
+				Description: "Could not open file",
 				Err:         err,
 			}
 		}
@@ -68,7 +69,7 @@ func (b FakeBackend) FetchArticles(feedName string) tea.Cmd {
 		feed, err := fp.Parse(file)
 		if err != nil {
 			return FetchErrorMessage{
-				description: "Could not parse file",
+				Description: "Could not parse file",
 				Err:         err,
 			}
 		}

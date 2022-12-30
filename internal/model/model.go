@@ -7,9 +7,9 @@ import (
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/style"
 	"github.com/TypicalAM/goread/internal/tab"
+	"github.com/TypicalAM/goread/internal/tab/category"
 	"github.com/TypicalAM/goread/internal/tab/feed"
 	"github.com/TypicalAM/goread/internal/tab/welcome"
-	"github.com/TypicalAM/goread/internal/tab/category"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -27,8 +27,8 @@ type Model struct {
 func New(backend backend.Backend) Model {
 	model := Model{}
 	model.backend = backend
-	model.tabs = append(model.tabs, welcome.New("welcome", 0))
-	model.message = "Pro-Tip - press Ctrl+W to close the current tab"
+	model.tabs = append(model.tabs, welcome.New("Welcome", 0, backend.FetchCategories))
+	model.message = fmt.Sprintf("Using backend - %s", backend.Name())
 	return model
 }
 
@@ -50,8 +50,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case backend.FetchErrorMessage:
 		// If there is an error, display it on the status bar
 		// the error message will be cleared when the user closes the tab
-		// TODO: desc
-		m.message = fmt.Sprintf("%s - %s", "test", msg.Err.Error())
+		m.message = fmt.Sprintf("%s - %s", msg.Description, msg.Err.Error())
 
 	case tab.NewTabMessage:
 		// Create the new tab

@@ -30,6 +30,6 @@ type FetchSuccessMessage struct {
 // FetchErrorMessage is a message that is sent when the fetching of the
 // categories or feeds failed
 type FetchErrorMessage struct {
-	description string
+	Description string
 	Err         error
 }

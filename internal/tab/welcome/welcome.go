@@ -1,10 +1,10 @@
 package welcome
 
 import (
+	"github.com/TypicalAM/goread/internal/backend"
 	simpleList "github.com/TypicalAM/goread/internal/list"
 	"github.com/TypicalAM/goread/internal/style"
 	"github.com/TypicalAM/goread/internal/tab"
-	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -15,14 +15,16 @@ type Welcome struct {
 	loaded bool
 
 	// The list of categorie
-	list simpleList.List
+	list       simpleList.List
+	readerFunc func() tea.Cmd
 }
 
 // New creates a new RssFeedTab with sensible defautls
-func New(title string, index int) Welcome {
+func New(title string, index int, readerFunc func() tea.Cmd) Welcome {
 	return Welcome{
-		title: title,
-		index: index,
+		title:      title,
+		index:      index,
+		readerFunc: readerFunc,
 	}
 }
 
@@ -52,16 +54,7 @@ func (w *Welcome) initList(height int) {
 	w.list = defaultList
 
 	// Add the categories
-	w.list.SetItems(
-		[]list.Item{
-			simpleList.NewListItem("All", "All the categories", ""),
-			simpleList.NewListItem("Books", "Books", "books"),
-			simpleList.NewListItem("Movies", "Movies", "movies"),
-			simpleList.NewListItem("Music", "Music", "music"),
-			simpleList.NewListItem("Games", "Games", "games"),
-			simpleList.NewListItem("Technology", "Software", "software"),
-		},
-	)
+	w.list.SetItems(w.readerFunc()().(backend.FetchSuccessMessage).Items)
 }
 
 // Implement the bubbletea.Model interface
