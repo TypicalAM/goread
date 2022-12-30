@@ -1,4 +1,4 @@
-package tab
+package feed
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"github.com/TypicalAM/goread/internal/backend"
 	simpleList "github.com/TypicalAM/goread/internal/list"
 	"github.com/TypicalAM/goread/internal/style"
+	"github.com/TypicalAM/goread/internal/tab"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -39,7 +40,7 @@ type RssFeedTab struct {
 }
 
 // New creates a new RssFeedTab with sensible defautls
-func NewRssFeedTab(title string, index int, readerFunc func(string) tea.Cmd) RssFeedTab {
+func New(title string, index int, readerFunc func(string) tea.Cmd) RssFeedTab {
 	// Create a spinner for loading the data
 	spin := spinner.New()
 	spin.Spinner = spinner.Points
@@ -74,7 +75,7 @@ func (r RssFeedTab) Init() tea.Cmd {
 }
 
 // Update the tab
-func (r RssFeedTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
+func (r RssFeedTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	switch msg := msg.(type) {
 	case backend.FetchSuccessMessage:
 		if !r.loaded && style.WindowWidth > 0 && style.WindowHeight > 0 {
@@ -189,12 +190,12 @@ func (r RssFeedTab) View() string {
 }
 
 // Return the type of the tab
-func (r RssFeedTab) Type() TabType {
-	return FeedTab
+func (r RssFeedTab) Type() tab.TabType {
+	return tab.Feed
 }
 
 // Set the index of the tab
-func (r RssFeedTab) SetIndex(index int) Tab {
+func (r RssFeedTab) SetIndex(index int) tab.Tab {
 	r.index = index
 	return r
 }

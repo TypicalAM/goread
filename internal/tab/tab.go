@@ -7,9 +7,9 @@ import (
 type TabType int
 
 const (
-	WelcomeTab TabType = iota
-	FeedTab
-	CategoryTab
+	Welcome TabType = iota
+	Feed
+	Category
 )
 
 // Tab is a general layout for a tab

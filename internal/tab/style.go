@@ -12,21 +12,21 @@ var (
 			Foreground(style.BasicColorscheme.BgDark)
 
 	iconColors = map[TabType]lipgloss.Color{
-		WelcomeTab:  style.BasicColorscheme.Color4,
-		CategoryTab: style.BasicColorscheme.Color5,
-		FeedTab:     style.BasicColorscheme.Color3,
+		Welcome:  style.BasicColorscheme.Color4,
+		Category: style.BasicColorscheme.Color5,
+		Feed:     style.BasicColorscheme.Color3,
 	}
 
 	icons = map[TabType]string{
-		WelcomeTab:  "﫢",
-		CategoryTab: "﫜",
-		FeedTab:     "",
+		Welcome:  "﫢",
+		Category: "﫜",
+		Feed:     "",
 	}
 
 	texts = map[TabType]string{
-		WelcomeTab:  "MAIN",
-		CategoryTab: "CATEGORY",
-		FeedTab:     "FEED",
+		Welcome:  "MAIN",
+		Category: "CATEGORY",
+		Feed:     "FEED",
 	}
 )
 

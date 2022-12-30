@@ -1,8 +1,9 @@
-package tab
+package welcome
 
 import (
 	simpleList "github.com/TypicalAM/goread/internal/list"
 	"github.com/TypicalAM/goread/internal/style"
+	"github.com/TypicalAM/goread/internal/tab"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -18,7 +19,7 @@ type Welcome struct {
 }
 
 // New creates a new RssFeedTab with sensible defautls
-func NewWelcomeTab(title string, index int) Welcome {
+func New(title string, index int) Welcome {
 	return Welcome{
 		title: title,
 		index: index,
@@ -36,8 +37,8 @@ func (w Welcome) Index() int {
 }
 
 // Return the type of the tab
-func (w Welcome) Type() TabType {
-	return WelcomeTab
+func (w Welcome) Type() tab.TabType {
+	return tab.Welcome
 }
 
 // Return the load state
@@ -69,7 +70,7 @@ func (w Welcome) Init() tea.Cmd {
 }
 
 // Update the variables
-func (w Welcome) Update(msg tea.Msg) (Tab, tea.Cmd) {
+func (w Welcome) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
@@ -89,12 +90,12 @@ func (w Welcome) Update(msg tea.Msg) (Tab, tea.Cmd) {
 	case tea.KeyMsg:
 		// Check if we need to open a new tab
 		if index, ok := w.list.HasItem(msg.String()); ok {
-			cmds = append(cmds, NewTab(w.list.GetItem(index).FilterValue(), CategoryTab))
+			cmds = append(cmds, tab.NewTab(w.list.GetItem(index).FilterValue(), tab.Category))
 		}
 
 		// Check if the user has pressed enter
 		if msg.String() == "enter" {
-			cmds = append(cmds, NewTab(w.list.SelectedItem().FilterValue(), CategoryTab))
+			cmds = append(cmds, tab.NewTab(w.list.SelectedItem().FilterValue(), tab.Category))
 		}
 	}
 
@@ -113,7 +114,7 @@ func (w Welcome) View() string {
 }
 
 // Set the index of the tab
-func (w Welcome) SetIndex(index int) Tab {
+func (w Welcome) SetIndex(index int) tab.Tab {
 	w.index = index
 	return w
 }

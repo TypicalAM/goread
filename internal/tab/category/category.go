@@ -1,4 +1,4 @@
-package tab
+package category
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/list"
 	"github.com/TypicalAM/goread/internal/style"
+	"github.com/TypicalAM/goread/internal/tab"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -25,7 +26,7 @@ type RSSCategoryTab struct {
 }
 
 // New creates a new RssCategoryTab with sensible defautls
-func NewRssCategoryTab(title string, index int, readerFunc func(string) tea.Cmd) RSSCategoryTab {
+func New(title string, index int, readerFunc func(string) tea.Cmd) RSSCategoryTab {
 	// Create a spinner for loading the data
 	spin := spinner.New()
 	spin.Spinner = spinner.Points
@@ -56,7 +57,7 @@ func (c RSSCategoryTab) Init() tea.Cmd {
 	return tea.Batch(c.readerFunc(c.title), c.loadingSpinner.Tick)
 }
 
-func (c RSSCategoryTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
+func (c RSSCategoryTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	// Update the list
 	var cmd tea.Cmd
 	c.list, cmd = c.list.Update(msg)
@@ -78,12 +79,12 @@ func (c RSSCategoryTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 
 		// Check if the user opened a tab using the number pad
 		if index, ok := c.list.HasItem(msg.String()); ok {
-			return c, NewTab(c.list.GetItem(index).FilterValue(), FeedTab)
+			return c, tab.NewTab(c.list.GetItem(index).FilterValue(), tab.Feed)
 		}
 
 		// If it isnt a number, check if it is an enter
 		if msg.String() == "enter" {
-			return c, NewTab(c.list.SelectedItem().FilterValue(), FeedTab)
+			return c, tab.NewTab(c.list.SelectedItem().FilterValue(), tab.Feed)
 		}
 	default:
 		if !c.loaded {
@@ -115,12 +116,12 @@ func (c RSSCategoryTab) View() string {
 	return c.list.View()
 }
 
-func (c RSSCategoryTab) Type() TabType {
-	return CategoryTab
+func (c RSSCategoryTab) Type() tab.TabType {
+	return tab.Category
 }
 
 // Set the index of the tab
-func (c RSSCategoryTab) SetIndex(index int) Tab {
+func (c RSSCategoryTab) SetIndex(index int) tab.Tab {
 	c.index = index
 	return c
 }

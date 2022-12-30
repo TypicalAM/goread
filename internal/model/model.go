@@ -7,6 +7,9 @@ import (
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/style"
 	"github.com/TypicalAM/goread/internal/tab"
+	"github.com/TypicalAM/goread/internal/tab/feed"
+	"github.com/TypicalAM/goread/internal/tab/welcome"
+	"github.com/TypicalAM/goread/internal/tab/category"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -21,10 +24,10 @@ type Model struct {
 }
 
 // NewModel returns a new model with some sensible defaults
-func NewModel(backend backend.Backend) Model {
+func New(backend backend.Backend) Model {
 	model := Model{}
 	model.backend = backend
-	model.tabs = append(model.tabs, tab.NewWelcomeTab("welcome", 0))
+	model.tabs = append(model.tabs, welcome.New("welcome", 0))
 	model.message = "Pro-Tip - press Ctrl+W to close the current tab"
 	return model
 }
@@ -160,14 +163,14 @@ func (m *Model) createNewTab(title string, tabType tab.TabType) {
 
 	// Create a new tab based on the type
 	switch tabType {
-	case tab.CategoryTab:
-		newTab = tab.NewRssCategoryTab(
+	case tab.Category:
+		newTab = category.New(
 			title,
 			m.activeTab+1,
 			m.backend.FetchFeeds,
 		)
-	case tab.FeedTab:
-		newTab = tab.NewRssFeedTab(
+	case tab.Feed:
+		newTab = feed.New(
 			title,
 			m.activeTab+1,
 			m.backend.FetchArticles,
