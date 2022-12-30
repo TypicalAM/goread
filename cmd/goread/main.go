@@ -26,5 +26,3 @@ func main() {
 		fmt.Println("Oh no, it didn't work:", err)
 	}
 }
-
-

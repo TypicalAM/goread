@@ -2,8 +2,10 @@ package backend
 
 import (
 	"os"
+	"strings"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	simpleList "github.com/TypicalAM/goread/internal/list"
 	"github.com/TypicalAM/goread/internal/style"
 	"github.com/charmbracelet/bubbles/list"
@@ -148,4 +150,15 @@ func (i Item) MoreContent() string {
 		lipgloss.Top,
 		sections...,
 	)
+}
+
+// Since the rss feed "content" is HTML, we need to parse it and get the text
+// from it. This is a helper function to do that.
+func parseHTML(content string) string {
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(content))
+	if err != nil {
+		return ""
+	}
+
+	return doc.Text()
 }

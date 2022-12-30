@@ -32,8 +32,8 @@ type Colorscheme struct {
 }
 
 // A function which returns a new default colorscheme
-func NewDefaultColorscheme() *Colorscheme {
-	return &Colorscheme{
+func NewDefaultColorscheme() Colorscheme {
+	return Colorscheme{
 		BgDark:   lipgloss.Color("#161622"),
 		BgDarker: lipgloss.Color("#11111a"),
 
