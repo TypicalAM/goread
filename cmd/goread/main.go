@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/TypicalAM/goread/internal/backend"
+	"github.com/TypicalAM/goread/internal/backend/web"
 	"github.com/TypicalAM/goread/internal/model"
 	"github.com/TypicalAM/goread/internal/style"
 	tea "github.com/charmbracelet/bubbletea"
@@ -18,7 +18,7 @@ func main() {
 	}
 
 	// Create the main model
-	model := model.New(backend.NewWebBackend())
+	model := model.New(web.New())
 
 	// Start the program
 	p := tea.NewProgram(model)

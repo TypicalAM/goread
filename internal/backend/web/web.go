@@ -1,6 +1,8 @@
-package backend
+package web
 
 import (
+	"github.com/TypicalAM/goread/internal/backend"
+	"github.com/TypicalAM/goread/internal/backend/fake"
 	simpleList "github.com/TypicalAM/goread/internal/list"
 	"github.com/TypicalAM/goread/internal/rss"
 	"github.com/charmbracelet/bubbles/list"
@@ -14,7 +16,7 @@ type WebBackend struct {
 }
 
 // New returns a new WebBackend
-func NewWebBackend() WebBackend {
+func New() WebBackend {
 	return WebBackend{rss: rss.New()}
 }
 
@@ -37,7 +39,7 @@ func (b WebBackend) FetchCategories() tea.Cmd {
 		}
 
 		// Return the message
-		return FetchSuccessMessage{Items: items}
+		return backend.FetchSuccessMessage{Items: items}
 	}
 }
 
@@ -48,7 +50,7 @@ func (b WebBackend) FetchFeeds(catName string) tea.Cmd {
 		// Create a list of feeds
 		category, err := b.rss.GetCategory(catName)
 		if err != nil {
-			return FetchErrorMessage{
+			return backend.FetchErrorMessage{
 				Description: "Failed to get feeds",
 				Err:         err,
 			}
@@ -67,7 +69,7 @@ func (b WebBackend) FetchFeeds(catName string) tea.Cmd {
 		}
 
 		// Return the message
-		return FetchSuccessMessage{Items: items}
+		return backend.FetchSuccessMessage{Items: items}
 	}
 }
 
@@ -78,7 +80,7 @@ func (b WebBackend) FetchArticles(feedName string) tea.Cmd {
 		// Create a list of articles
 		url, err := b.rss.GetFeedUrl(feedName)
 		if err != nil {
-			return FetchErrorMessage{
+			return backend.FetchErrorMessage{
 				Description: "Failed to get articles",
 				Err:         err,
 			}
@@ -88,7 +90,7 @@ func (b WebBackend) FetchArticles(feedName string) tea.Cmd {
 		fp := gofeed.NewParser()
 		feed, err := fp.ParseURL(url)
 		if err != nil {
-			return FetchErrorMessage{
+			return backend.FetchErrorMessage{
 				Description: "Failed to parse the articles",
 				Err:         err,
 			}
@@ -97,7 +99,7 @@ func (b WebBackend) FetchArticles(feedName string) tea.Cmd {
 		// Create the list of list items
 		var result []list.Item
 		for i := range feed.Items {
-			content := CreateFakeContent(i, feed)
+			content := fake.CreateFakeContent(i, feed)
 			result = append(result, simpleList.NewListItem(
 				content.Title,
 				content.Description,
@@ -106,6 +108,6 @@ func (b WebBackend) FetchArticles(feedName string) tea.Cmd {
 		}
 
 		// Return the message
-		return FetchSuccessMessage{Items: result}
+		return backend.FetchSuccessMessage{Items: result}
 	}
 }

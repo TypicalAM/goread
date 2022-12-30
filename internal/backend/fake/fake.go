@@ -1,4 +1,4 @@
-package backend
+package fake
 
 import (
 	"os"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/TypicalAM/goread/internal/backend"
 	simpleList "github.com/TypicalAM/goread/internal/list"
 	"github.com/TypicalAM/goread/internal/style"
 	"github.com/charmbracelet/bubbles/list"
@@ -25,7 +26,7 @@ func (b FakeBackend) Name() string {
 // Return some fake categories
 func (b FakeBackend) FetchCategories() tea.Cmd {
 	return func() tea.Msg {
-		return FetchSuccessMessage{
+		return backend.FetchSuccessMessage{
 			Items: []list.Item{
 				simpleList.NewListItem("All", "All the categories", ""),
 				simpleList.NewListItem("Books", "Books", "books"),
@@ -42,7 +43,7 @@ func (b FakeBackend) FetchCategories() tea.Cmd {
 func (b FakeBackend) FetchFeeds(catName string) tea.Cmd {
 	return func() tea.Msg {
 		time.Sleep(1 * time.Second)
-		return FetchSuccessMessage{
+		return backend.FetchSuccessMessage{
 			Items: []list.Item{
 				simpleList.NewListItem("feed 1", "cat1", "more content"),
 				simpleList.NewListItem("feed 2", "cat2", "more content"),
@@ -58,7 +59,7 @@ func (b FakeBackend) FetchArticles(feedName string) tea.Cmd {
 		time.Sleep(1 * time.Second)
 		file, err := os.Open("rss.rss")
 		if err != nil {
-			return FetchErrorMessage{
+			return backend.FetchErrorMessage{
 				Description: "Could not open file",
 				Err:         err,
 			}
@@ -68,7 +69,7 @@ func (b FakeBackend) FetchArticles(feedName string) tea.Cmd {
 		fp := gofeed.NewParser()
 		feed, err := fp.Parse(file)
 		if err != nil {
-			return FetchErrorMessage{
+			return backend.FetchErrorMessage{
 				Description: "Could not parse file",
 				Err:         err,
 			}
@@ -85,7 +86,7 @@ func (b FakeBackend) FetchArticles(feedName string) tea.Cmd {
 		}
 
 		// Return the message
-		return FetchSuccessMessage{Items: result}
+		return backend.FetchSuccessMessage{Items: result}
 	}
 }
 
