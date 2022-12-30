@@ -2,15 +2,15 @@ package fake
 
 import (
 	"os"
-	"strings"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
+	md "github.com/JohannesKaufmann/html-to-markdown"
 	"github.com/TypicalAM/goread/internal/backend"
 	simpleList "github.com/TypicalAM/goread/internal/list"
 	"github.com/TypicalAM/goread/internal/style"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/mmcdole/gofeed"
 )
@@ -139,6 +139,17 @@ func (i Item) MoreContent() string {
 	fixedWidth := lipgloss.NewStyle().
 		Width(70)
 
+	var mdown string
+
+	mdown += "# " + i.Title
+	mdown += "\n"
+	mdown += i.PublishedParsed.String()
+	mdown += "\n\n"
+	mdown += parseHTML(i.Description)
+
+	out, _ := glamour.Render(mdown, "dark")
+	return out
+
 	sections = append(
 		sections,
 		titleTextStyle.Render(i.Title), "",
@@ -162,10 +173,12 @@ func (i Item) MoreContent() string {
 // Since the rss feed "content" is HTML, we need to parse it and get the text
 // from it. This is a helper function to do that.
 func parseHTML(content string) string {
-	doc, err := goquery.NewDocumentFromReader(strings.NewReader(content))
+	converter := md.NewConverter("", true, nil)
+
+	markdown, err := converter.ConvertString(content)
 	if err != nil {
-		return ""
+		return content
 	}
 
-	return doc.Text()
+	return markdown
 }
