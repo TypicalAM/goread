@@ -11,6 +11,7 @@ var errNotFound = errors.New("Resource not found")
 
 func New() Rss {
 	rss := Rss{}
+	// TODO: passing in and reading from a config file
 	rss["news"] = make(Category)
 	rss["news"]["cnn"] = "http://rss.cnn.com/rss/cnn_topstories.rss"
 	rss["news"]["reddit"] = "http://www.reddit.com/r/news/.rss"

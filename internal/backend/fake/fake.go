@@ -18,6 +18,11 @@ import (
 // Create a fake backed for testing
 type FakeBackend struct{}
 
+// Create a new fake backend
+func New() FakeBackend {
+	return FakeBackend{}
+}
+
 // Name returns the name of the backend
 func (b FakeBackend) Name() string {
 	return "FakeBackend"
