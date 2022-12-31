@@ -17,7 +17,7 @@ func main() {
 		return
 	}
 
-	cfg, err := config.New(config.BackendWeb, "", "fake")
+	cfg, err := config.New(config.BackendWeb, "", "")
 	if err != nil {
 		fmt.Println(err)
 		return

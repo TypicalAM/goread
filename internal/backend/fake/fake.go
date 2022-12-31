@@ -142,14 +142,17 @@ func (i Item) MoreContent() string {
 	var mdown string
 
 	mdown += "# " + i.Title
-	mdown += "\n"
-	mdown += i.PublishedParsed.String()
+	if i.PublishedParsed != nil {
+		mdown += "\n"
+		mdown += "Published: " + i.PublishedParsed.Format("2006-01-02 15:04:05")
+	}
 	mdown += "\n\n"
 	mdown += parseHTML(i.Description)
 
 	out, _ := glamour.Render(mdown, "dark")
 	return out
 
+	// TODO: redundant code, integrade glamour better
 	sections = append(
 		sections,
 		titleTextStyle.Render(i.Title), "",
