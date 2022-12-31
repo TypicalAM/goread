@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/TypicalAM/goread/internal/backend/fake"
+	"github.com/TypicalAM/goread/internal/config"
 	"github.com/TypicalAM/goread/internal/model"
 	"github.com/TypicalAM/goread/internal/style"
 	tea "github.com/charmbracelet/bubbletea"
@@ -17,8 +17,14 @@ func main() {
 		return
 	}
 
+	cfg, err := config.New(config.BackendWeb, "", "fake")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	// Create the main model
-	model := model.New(fake.New())
+	model := model.New(cfg.Getbackend())
 
 	// Start the program
 	p := tea.NewProgram(model)
