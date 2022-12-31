@@ -11,12 +11,12 @@ var (
 	WindowWidth  int
 	WindowHeight int
 	ColumnStyle  = lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(BasicColorscheme.TextDark)
+			Border(lipgloss.NormalBorder()).
+			BorderForeground(GlobalColorscheme.TextDark)
 
 	FocusedStyle = lipgloss.NewStyle().
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(BasicColorscheme.Color1)
+			Border(lipgloss.NormalBorder()).
+			BorderForeground(GlobalColorscheme.Color1)
 
 	tabBorder = lipgloss.Border{Left: "┃"}
 
@@ -29,23 +29,23 @@ var (
 			Padding(0, 0, 0, 3).
 			Bold(true).
 			Border(tabBorder, false, false, false, true).
-			BorderForeground(BasicColorscheme.TextDark)
+			BorderForeground(GlobalColorscheme.TextDark)
 
 	TabStyle = lipgloss.NewStyle().
 			Padding(0, 7, 0, 1).
-			Background(BasicColorscheme.BgDark).
-			Foreground(BasicColorscheme.TextDark)
+			Background(GlobalColorscheme.BgDark).
+			Foreground(GlobalColorscheme.TextDark)
 
 	TabIcon = ActiveTabIcon.Copy().
-		Background(BasicColorscheme.BgDark).
-		BorderForeground(BasicColorscheme.BgDarker).
-		BorderBackground(BasicColorscheme.BgDark)
+		Background(GlobalColorscheme.BgDark).
+		BorderForeground(GlobalColorscheme.BgDarker).
+		BorderBackground(GlobalColorscheme.BgDark)
 
 	TabGap = lipgloss.NewStyle().
-		Background(BasicColorscheme.BgDarker)
+		Background(GlobalColorscheme.BgDarker)
 
 	StatusBarGap = lipgloss.NewStyle().
-			Background(BasicColorscheme.BgDark)
+			Background(GlobalColorscheme.BgDark)
 )
 
 // Utility function to output the bigger nubmer
@@ -60,13 +60,13 @@ func Max(a, b int) int {
 func StyleIndex(index int, isSelected bool) string {
 	// Define the styles used in the index styling
 	bracketStyle := lipgloss.NewStyle().
-		Foreground(BasicColorscheme.Color7)
+		Foreground(GlobalColorscheme.Color7)
 	numberStyle := lipgloss.NewStyle().
-		Foreground(BasicColorscheme.Color6)
+		Foreground(GlobalColorscheme.Color6)
 
 	// If the index is the active index render it differently
 	if isSelected {
-		numberStyle = numberStyle.Background(BasicColorscheme.Text)
+		numberStyle = numberStyle.Background(GlobalColorscheme.Text)
 	}
 
 	// Check if the index is a digit

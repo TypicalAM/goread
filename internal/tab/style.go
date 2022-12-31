@@ -9,12 +9,12 @@ var (
 	statusBarCell = lipgloss.NewStyle().
 			Bold(true).
 			Padding(0, 1).
-			Foreground(style.BasicColorscheme.BgDark)
+			Foreground(style.GlobalColorscheme.BgDark)
 
 	iconColors = map[TabType]lipgloss.Color{
-		Welcome:  style.BasicColorscheme.Color4,
-		Category: style.BasicColorscheme.Color5,
-		Feed:     style.BasicColorscheme.Color3,
+		Welcome:  style.GlobalColorscheme.Color4,
+		Category: style.GlobalColorscheme.Color5,
+		Feed:     style.GlobalColorscheme.Color3,
 	}
 
 	icons = map[TabType]string{

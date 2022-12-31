@@ -9,7 +9,7 @@ import (
 )
 
 // Create the basic colorscheme on startup
-var BasicColorscheme = NewDefaultColorscheme()
+var GlobalColorscheme = NewDefaultColorscheme()
 
 // The basic colorscheme to use in the app
 type Colorscheme struct {

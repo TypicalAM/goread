@@ -13,7 +13,7 @@ import (
 func main() {
 	// Check if the user wants to test the colorscheme
 	if len(os.Args) > 1 && os.Args[1] == "colors" {
-		fmt.Println(style.BasicColorscheme.TestColors())
+		fmt.Println(style.GlobalColorscheme.TestColors())
 		return
 	}
 

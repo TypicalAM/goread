@@ -30,7 +30,7 @@ func New(title string, index int, readerFunc func(string) tea.Cmd) RSSCategoryTa
 	// Create a spinner for loading the data
 	spin := spinner.New()
 	spin.Spinner = spinner.Points
-	spin.Style = lipgloss.NewStyle().Foreground(style.BasicColorscheme.Color1)
+	spin.Style = lipgloss.NewStyle().Foreground(style.GlobalColorscheme.Color1)
 
 	return RSSCategoryTab{
 		loadingSpinner: spin,

@@ -14,10 +14,11 @@ func New() Rss {
 	// TODO: passing in and reading from a config file
 	rss["news"] = make(Category)
 	rss["news"]["cnn"] = "http://rss.cnn.com/rss/cnn_topstories.rss"
-	rss["news"]["reddit"] = "http://www.reddit.com/r/news/.rss"
 
 	rss["technology"] = make(Category)
 	rss["technology"]["golang sub"] = "http://www.reddit.com/r/golang/.rss"
+	rss["technology"]["chris titus android"] = "https://christitus.com/categories/android/index.xml"
+	rss["technology"]["chris titus linux"] = "https://christitus.com/categories/linux/index.xml"
 	return rss
 }
 

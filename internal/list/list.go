@@ -34,10 +34,10 @@ func NewList(title string, height int) List {
 		title:  title,
 		height: height,
 		titleStyle: lipgloss.NewStyle().
-			Foreground(style.BasicColorscheme.Color1).
+			Foreground(style.GlobalColorscheme.Color1).
 			PaddingBottom(1),
 		itemStyle: lipgloss.NewStyle().
-			Foreground(style.BasicColorscheme.Color2),
+			Foreground(style.GlobalColorscheme.Color2),
 	}
 }
 
@@ -75,7 +75,7 @@ func (l List) View() string {
 	if len(l.items) == 0 {
 		noItemsText := lipgloss.NewStyle().
 			MarginLeft(3).
-			Foreground(style.BasicColorscheme.Color2).
+			Foreground(style.GlobalColorscheme.Color2).
 			Italic(true)
 		sections = append(sections, noItemsText.Render("<no items>"))
 		return lipgloss.JoinVertical(lipgloss.Top, sections...)

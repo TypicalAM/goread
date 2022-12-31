@@ -7,11 +7,9 @@ import (
 	md "github.com/JohannesKaufmann/html-to-markdown"
 	"github.com/TypicalAM/goread/internal/backend"
 	simpleList "github.com/TypicalAM/goread/internal/list"
-	"github.com/TypicalAM/goread/internal/style"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/mmcdole/gofeed"
 )
 
@@ -47,7 +45,6 @@ func (b FakeBackend) FetchCategories() tea.Cmd {
 // Return some fake feeds
 func (b FakeBackend) FetchFeeds(catName string) tea.Cmd {
 	return func() tea.Msg {
-		time.Sleep(1 * time.Second)
 		return backend.FetchSuccessMessage{
 			Items: []list.Item{
 				simpleList.NewListItem("feed 1", "cat1", "more content"),
@@ -61,7 +58,6 @@ func (b FakeBackend) FetchFeeds(catName string) tea.Cmd {
 // Return some fake articles
 func (b FakeBackend) FetchArticles(feedName string) tea.Cmd {
 	return func() tea.Msg {
-		time.Sleep(1 * time.Second)
 		file, err := os.Open("rss.rss")
 		if err != nil {
 			return backend.FetchErrorMessage{
@@ -113,7 +109,7 @@ func CreateFakeContent(id int, feed *gofeed.Feed) *Item {
 	item := &Item{}
 
 	item.Title = feed.Items[id].Title
-	item.Description = parseHTML(feed.Items[id].Description)
+	item.Description = feed.Items[id].Description
 	item.Content = feed.Items[id].Content
 	item.Links = feed.Items[id].Links
 	item.UpdatedParsed = feed.Items[id].UpdatedParsed
@@ -121,56 +117,33 @@ func CreateFakeContent(id int, feed *gofeed.Feed) *Item {
 	item.Authors = feed.Items[id].Authors
 	item.Image = feed.Items[id].Image
 	item.Categories = feed.Items[id].Categories
+
 	return item
 }
 
 func (i Item) MoreContent() string {
-	var sections []string
-
-	titleTextStyle := lipgloss.NewStyle().
-		Foreground(style.BasicColorscheme.Color1).
-		Bold(true)
-
-	descTextStyle := lipgloss.NewStyle().
-		Foreground(style.BasicColorscheme.Color2).
-		Bold(true).
-		Width(70)
-
-	fixedWidth := lipgloss.NewStyle().
-		Width(70)
-
 	var mdown string
 
-	mdown += "# " + i.Title
+	// Add the title
+	mdown += "# " + i.Title + "\n "
+
+	// If there are no authors, then we don't want to add a newline
+	if i.Authors != nil {
+		mdown += i.Authors[0].Name + "\n"
+	}
+
+	// Show when the article was published if available
 	if i.PublishedParsed != nil {
 		mdown += "\n"
 		mdown += "Published: " + i.PublishedParsed.Format("2006-01-02 15:04:05")
 	}
+
 	mdown += "\n\n"
 	mdown += parseHTML(i.Description)
 
+	// TODO: error handling
 	out, _ := glamour.Render(mdown, "dark")
 	return out
-
-	// TODO: redundant code, integrade glamour better
-	sections = append(
-		sections,
-		titleTextStyle.Render(i.Title), "",
-		descTextStyle.Render(parseHTML(i.Description)),
-		fixedWidth.Render(parseHTML(i.Content)),
-	)
-
-	if len(i.Links) > 0 {
-		sections = append(sections, titleTextStyle.Render("Links"), "")
-		for _, link := range i.Links {
-			sections = append(sections, fixedWidth.Render(link))
-		}
-	}
-
-	return lipgloss.JoinVertical(
-		lipgloss.Top,
-		sections...,
-	)
 }
 
 // Since the rss feed "content" is HTML, we need to parse it and get the text
@@ -180,7 +153,7 @@ func parseHTML(content string) string {
 
 	markdown, err := converter.ConvertString(content)
 	if err != nil {
-		return content
+		panic(err)
 	}
 
 	return markdown
