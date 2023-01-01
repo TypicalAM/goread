@@ -1,6 +1,8 @@
 package web
 
 import (
+	"strings"
+
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/backend/fake"
 	simpleList "github.com/TypicalAM/goread/internal/list"
@@ -102,7 +104,7 @@ func (b WebBackend) FetchArticles(feedName string) tea.Cmd {
 			content := fake.CreateFakeContent(i, feed)
 			result = append(result, simpleList.NewListItem(
 				content.Title,
-				content.Description,
+				strings.Join(content.Categories, ", "),
 				content.MoreContent(),
 			))
 		}

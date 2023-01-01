@@ -2,6 +2,7 @@ package fake
 
 import (
 	"os"
+	"strings"
 	"time"
 
 	md "github.com/JohannesKaufmann/html-to-markdown"
@@ -81,7 +82,7 @@ func (b FakeBackend) FetchArticles(feedName string) tea.Cmd {
 			content := CreateFakeContent(i, feed)
 			result = append(result, simpleList.NewListItem(
 				content.Title,
-				content.Description,
+				strings.Join(content.Categories, ", "),
 				content.MoreContent(),
 			))
 		}

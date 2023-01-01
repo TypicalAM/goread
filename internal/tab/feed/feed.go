@@ -74,26 +74,49 @@ func (r RssFeedTab) Init() tea.Cmd {
 	return tea.Batch(r.readerFunc(r.title), r.loadingSpinner.Tick)
 }
 
+// loadTab is fired when the items are retrieved and we know the
+// dimensions of the window. It initializes the list and the viewport
+func (r *RssFeedTab) loadTab(items []list.Item) {
+	// Set the width and the height of the components
+	listWidth := style.WindowWidth / 4
+	viewportWidth := style.WindowWidth - listWidth - 4 // 4 is the padding
+
+	// Get the default styles for the list items
+	delegateStyles := list.NewDefaultItemStyles()
+	delegateStyles.SelectedTitle = delegateStyles.SelectedTitle.Copy().
+		Foreground(style.GlobalColorscheme.Color3).
+		Italic(true)
+
+	delegateStyles.SelectedDesc = delegateStyles.SelectedDesc.Copy().
+		Foreground(style.GlobalColorscheme.Color2).
+		Italic(true)
+
+	// Create the list
+	itemDelegate := list.NewDefaultDelegate()
+	itemDelegate.ShowDescription = true
+	itemDelegate.Styles = delegateStyles
+	itemDelegate.SetHeight(2)
+
+	r.list = list.New(items, itemDelegate, listWidth, style.WindowHeight-5)
+
+	// Set some attributes for the list
+	r.list.SetShowHelp(false)
+	r.list.SetShowTitle(false)
+	r.list.SetShowStatusBar(false)
+
+	// Initialize the viewport
+	r.viewport = viewport.New(viewportWidth, style.WindowHeight-5)
+
+	// We are locked and loaded
+	r.loaded = true
+}
+
 // Update the tab
 func (r RssFeedTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	switch msg := msg.(type) {
 	case backend.FetchSuccessMessage:
 		if !r.loaded && style.WindowWidth > 0 && style.WindowHeight > 0 {
-			// Set the width and the height of the components
-			listWidth := style.WindowWidth / 4
-			viewportWidth := style.WindowWidth - listWidth - 4 // 4 is the padding
-			r.list = list.New(msg.Items, list.NewDefaultDelegate(), listWidth, style.WindowHeight-5)
-
-			// Set some attributes for the list along with the newly fetched items
-			r.list.SetShowHelp(false)
-			r.list.SetShowTitle(false)
-			r.list.SetShowStatusBar(false)
-
-			// Initialize the viewport
-			r.viewport = viewport.New(viewportWidth, style.WindowHeight-5)
-
-			// We are locked and loaded
-			r.loaded = true
+			r.loadTab(msg.Items)
 			return r, nil
 		}
 
@@ -106,7 +129,9 @@ func (r RssFeedTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			}
 
 			// Set the content of the viewport on the selected item
-			r.viewport.SetContent(r.list.SelectedItem().(simpleList.ListItem).GetContent())
+			r.viewport.SetContent(
+				r.list.SelectedItem().(simpleList.ListItem).GetContent(),
+			)
 
 			// Set the view as open if it isn't
 			if !r.isViewportOpen {
@@ -115,6 +140,7 @@ func (r RssFeedTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 			// We don't need to update the list or the viewport
 			return r, nil
+
 		case "left", "right":
 			// If the viewport isn't open, don't do anything
 			if !r.isViewportOpen {
@@ -131,6 +157,7 @@ func (r RssFeedTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			// We don't need to update the list or the viewport
 			return r, nil
 		}
+
 	default:
 		// If the model is not loaded, update the loading spinner
 		if !r.loaded {
