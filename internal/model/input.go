@@ -1,4 +1,4 @@
-package rss
+package model
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-// CreateItem is used as a model when creating a new item
-type CreateItem struct {
+// createItem is used as a model when creating a new item
+type createItem struct {
 	activeInput int
 
 	fields []string
@@ -18,9 +18,12 @@ type CreateItem struct {
 }
 
 // New creates a new instance of the create item model
-func NewItemCreation(fields []string, tabType tab.Type) CreateItem {
+func newItemCreation(fields []string, tabType tab.Type) createItem {
 	// Create an empty instance
-	c := CreateItem{}
+	c := createItem{}
+
+	// Set the type
+	c.Type = tabType
 
 	// Set the fields
 	c.fields = fields
@@ -42,12 +45,12 @@ func NewItemCreation(fields []string, tabType tab.Type) CreateItem {
 }
 
 // Init initializes the model
-func (c CreateItem) Init() tea.Cmd {
+func (c createItem) Init() tea.Cmd {
 	return nil
 }
 
 // Update the model
-func (c CreateItem) Update(msg tea.Msg) (CreateItem, tea.Cmd) {
+func (c createItem) Update(msg tea.Msg) (createItem, tea.Cmd) {
 	// Update the textfields
 	var cmd tea.Cmd
 	c.inputs[c.activeInput], cmd = c.inputs[c.activeInput].Update(msg)
@@ -73,17 +76,17 @@ func (c CreateItem) Update(msg tea.Msg) (CreateItem, tea.Cmd) {
 }
 
 // View the selected input
-func (c CreateItem) View() string {
+func (c createItem) View() string {
 	return c.inputs[c.activeInput].View()
 }
 
 // Index() returns the index of the active input
-func (c CreateItem) Index() int {
+func (c createItem) Index() int {
 	return c.activeInput
 }
 
 // GetValues returns the values of the inputs
-func (c CreateItem) GetValues() []string {
+func (c createItem) GetValues() []string {
 	values := make([]string, len(c.inputs))
 	for i := range c.inputs {
 		values[i] = c.inputs[i].Value()

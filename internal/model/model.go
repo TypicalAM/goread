@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/TypicalAM/goread/internal/backend"
-	"github.com/TypicalAM/goread/internal/rss"
 	"github.com/TypicalAM/goread/internal/style"
 	"github.com/TypicalAM/goread/internal/tab"
 	"github.com/TypicalAM/goread/internal/tab/category"
@@ -25,7 +24,7 @@ type Model struct {
 	loaded    bool
 
 	creatingItem bool
-	createItem   rss.CreateItem
+	createItem   createItem
 }
 
 // NewModel returns a new model with some sensible defaults
@@ -92,7 +91,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case backend.NewItemMessage:
 		// Initialize the textfields and move into the
 		// textbox view
-		m.createItem = rss.NewItemCreation(msg.Fields, msg.TabType)
+		m.createItem = newItemCreation(msg.Fields, msg.TabType)
 		m.creatingItem = true
 
 	case tea.KeyMsg:
