@@ -33,6 +33,7 @@ type RssFeedTab struct {
 	isViewportOpen bool
 	viewport       viewport.Model
 	selected       SelectedPane
+	failed         bool
 
 	readerFunc func(string) tea.Cmd
 }
@@ -121,6 +122,12 @@ func (r *RssFeedTab) loadTab(items []list.Item) {
 // Update the tab
 func (r RssFeedTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	switch msg := msg.(type) {
+	case backend.FetchErrorMessage:
+		if !r.loaded {
+			r.failed = true
+			return r, nil
+		}
+
 	case backend.FetchSuccessMessage:
 		if !r.loaded && style.WindowWidth > 0 && style.WindowHeight > 0 {
 			r.loadTab(msg.Items)
@@ -193,12 +200,30 @@ func (r RssFeedTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 func (r RssFeedTab) View() string {
 	if !r.loaded {
-		loadingMessage := lipgloss.NewStyle().
+		// The style of the message
+		messageStyle := lipgloss.NewStyle().
 			MarginLeft(3).
-			MarginTop(1).
-			Render(fmt.Sprintf("%s Loading feed %s", r.loadingSpinner.View(), r.title))
+			MarginTop(1)
 
-		return loadingMessage + strings.Repeat("\n", style.WindowHeight-3-lipgloss.Height(loadingMessage))
+		var loadingMsg string
+		if r.failed {
+			// Render the failed message with an cross mark
+			errorMsgStyle := messageStyle.Copy().
+				Foreground(style.GlobalColorscheme.Color4)
+			loadingMsg = lipgloss.JoinHorizontal(
+				lipgloss.Top,
+				errorMsgStyle.Render(" "),
+				messageStyle.Render("Failed to load the articles"),
+			)
+		} else {
+			// Render the loading message with a spinner
+			loadingMsg = messageStyle.Render(
+				fmt.Sprintf("%s Loading feed %s", r.loadingSpinner.View(), r.title),
+			)
+		}
+
+		padding := style.WindowHeight - 3 - lipgloss.Height(loadingMsg)
+		return loadingMsg + strings.Repeat("\n", padding)
 	}
 
 	rssList := r.list.View()
