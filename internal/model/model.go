@@ -70,6 +70,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Quit the program
 			m.quitting = true
 			return m, tea.Quit
+
 		case "tab":
 			m.activeTab++
 			// Wrap around
@@ -84,6 +85,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// Clear the message
 			m.message = ""
+
 		case "shift+tab":
 			m.activeTab--
 			if m.activeTab < 0 {
@@ -92,6 +94,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// Clear the current message
 			m.message = ""
+
 		case "ctrl+w":
 			// If there is only one tab, quit
 			if len(m.tabs) == 1 {
@@ -102,8 +105,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Close the current tab
 			m.message = fmt.Sprintf("Closed tab - %s", m.tabs[m.activeTab].Title())
 			m.tabs = append(m.tabs[:m.activeTab], m.tabs[m.activeTab+1:]...)
-			if m.activeTab > len(m.tabs)-1 {
-				m.activeTab = 0
+			m.activeTab--
+
+			// Wrap around
+			if m.activeTab < 0 {
+				m.activeTab = len(m.tabs) - 1
 			}
 		}
 	}
