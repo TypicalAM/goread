@@ -10,7 +10,6 @@ import (
 	simpleList "github.com/TypicalAM/goread/internal/list"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/glamour"
 	"github.com/mmcdole/gofeed"
 )
 
@@ -142,9 +141,7 @@ func (i Item) MoreContent() string {
 	mdown += "\n\n"
 	mdown += htmlToMarkdown(i.Description)
 
-	// TODO: error handling
-	out, _ := glamour.Render(mdown, "dark")
-	return out
+	return mdown
 }
 
 // htmlToMarkdown converts html to markdown using the html-to-markdown library
