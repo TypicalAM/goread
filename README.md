@@ -30,7 +30,8 @@ go build -o goread cmd/goread/main.go
 
 Here are the things that I've not yet implemented
 
-- [ ] Waiting for the window size message before adding the first tab
+- [X] Waiting for the window size message before adding the first tab
+- [ ] Deleting, adding and removing items
 - [ ] Help interface with the key bindings
 - [ ] Adding and removing categories and feeds
 - [ ] A main category where all the feeds are aggregated
