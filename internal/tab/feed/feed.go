@@ -12,7 +12,6 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -138,16 +137,13 @@ func (r RssFeedTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 				return r, nil
 			}
 
-			// Get the content of the selected item
-			content := r.list.SelectedItem().(simpleList.ListItem).GetContent()
+			// Set the width of the styled content for word wrapping
+			contentWidth := style.WindowWidth - style.WindowWidth/4 - 4
 
-			// TODO: error handling
-			g, _ := glamour.NewTermRenderer(
-				glamour.WithStylePath("dracula"),
-				glamour.WithWordWrap(style.WindowWidth-style.WindowWidth/4-4),
+			// Get the content of the selected item
+			r.viewport.SetContent(
+				r.list.SelectedItem().(simpleList.ListItem).StyleContent(contentWidth),
 			)
-			out, _ := g.Render(content)
-			r.viewport.SetContent(out)
 
 			// Set the view as open if it isn't
 			if !r.isViewportOpen {
