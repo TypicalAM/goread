@@ -19,7 +19,7 @@ type Welcome struct {
 	readerFunc func() tea.Cmd
 }
 
-// New creates a new RssFeedTab with sensible defautls
+// New creates a new RssFeedTab with sensible defaults
 func New(title string, index int, readerFunc func() tea.Cmd) Welcome {
 	return Welcome{
 		title:      title,
@@ -39,7 +39,7 @@ func (w Welcome) Index() int {
 }
 
 // Return the type of the tab
-func (w Welcome) Type() tab.TabType {
+func (w Welcome) Type() tab.Type {
 	return tab.Welcome
 }
 
@@ -79,8 +79,7 @@ func (w Welcome) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	cmds = append(cmds, cmd)
 
 	// Check the message type
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	if msg, ok := msg.(tea.KeyMsg); ok {
 		// Check if we need to open a new tab
 		if index, ok := w.list.HasItem(msg.String()); ok {
 			cmds = append(cmds, tab.NewTab(w.list.GetItem(index).FilterValue(), tab.Category))

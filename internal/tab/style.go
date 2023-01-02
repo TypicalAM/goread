@@ -11,19 +11,19 @@ var (
 			Padding(0, 1).
 			Foreground(style.GlobalColorscheme.BgDark)
 
-	iconColors = map[TabType]lipgloss.Color{
+	iconColors = map[Type]lipgloss.Color{
 		Welcome:  style.GlobalColorscheme.Color4,
 		Category: style.GlobalColorscheme.Color5,
 		Feed:     style.GlobalColorscheme.Color3,
 	}
 
-	icons = map[TabType]string{
+	icons = map[Type]string{
 		Welcome:  "﫢",
 		Category: "﫜",
 		Feed:     "",
 	}
 
-	texts = map[TabType]string{
+	texts = map[Type]string{
 		Welcome:  "MAIN",
 		Category: "CATEGORY",
 		Feed:     "FEED",
@@ -31,7 +31,7 @@ var (
 )
 
 // Style the text depending on the type of the tab
-func AttachIconToTab(text string, tabType TabType, isActive bool) string {
+func AttachIconToTab(text string, tabType Type, isActive bool) string {
 	var iconStyle, textStyle lipgloss.Style
 	if isActive {
 		iconStyle = style.ActiveTabIcon
@@ -54,7 +54,7 @@ func AttachIconToTab(text string, tabType TabType, isActive bool) string {
 }
 
 // Style the status bar cell depending on the the of the current tab
-func StyleStatusBarCell(tabType TabType) string {
+func StyleStatusBarCell(tabType Type) string {
 	return statusBarCell.Copy().
 		Background(iconColors[tabType]).
 		Render(texts[tabType])

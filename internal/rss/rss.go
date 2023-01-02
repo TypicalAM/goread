@@ -23,7 +23,7 @@ func New() Rss {
 }
 
 // GetFeedUrl reutrns the url for a feed by a string key
-func (rss Rss) GetFeedUrl(name string) (string, error) {
+func (rss Rss) GetFeedURL(name string) (string, error) {
 	// Find the category
 	for _, cat := range rss {
 		// Find the feed
@@ -52,9 +52,13 @@ func (rss Rss) GetCategory(name string) (Category, error) {
 
 // GetCategories returns a list of categories
 func (rss Rss) GetCategories() []string {
-	var categories []string
+	categories := make([]string, len(rss))
+	count := 0
+
 	for k := range rss {
-		categories = append(categories, k)
+		categories[count] = k
+		count++
 	}
+
 	return categories
 }

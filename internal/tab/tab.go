@@ -4,10 +4,10 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type TabType int
+type Type int
 
 const (
-	Welcome TabType = iota
+	Welcome Type = iota
 	Feed
 	Category
 )
@@ -18,7 +18,7 @@ type Tab interface {
 	Title() string
 	Index() int
 	Loaded() bool
-	Type() TabType
+	Type() Type
 	SetIndex(int) Tab
 
 	// Bubbletea methods
@@ -29,7 +29,7 @@ type Tab interface {
 
 // NewTab is used to signal to the main model that a
 // tab should be created
-func NewTab(title string, tabType TabType) tea.Cmd {
+func NewTab(title string, tabType Type) tea.Cmd {
 	return func() tea.Msg {
 		return NewTabMessage{
 			Title: title,
@@ -43,5 +43,5 @@ type NewTabMessage struct {
 	// The new tab title
 	Title string
 	// The new tab type
-	Type TabType
+	Type Type
 }

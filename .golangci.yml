@@ -1,0 +1,19 @@
+linters:
+  enable:
+    - exportloopref
+    - gocritic
+    - gosec
+    - ineffassign
+    - misspell
+    - prealloc
+    - unconvert
+    - unparam
+    - goimports
+    - whitespace
+    - revive 
+    - errcheck 
+    - nilerr
+
+linters-settings:
+  whitespace:
+    multi-func: true

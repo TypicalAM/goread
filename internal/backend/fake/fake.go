@@ -14,20 +14,20 @@ import (
 )
 
 // Create a fake backed for testing
-type FakeBackend struct{}
+type Backend struct{}
 
 // Create a new fake backend
-func New() FakeBackend {
-	return FakeBackend{}
+func New() Backend {
+	return Backend{}
 }
 
 // Name returns the name of the backend
-func (b FakeBackend) Name() string {
+func (b Backend) Name() string {
 	return "FakeBackend"
 }
 
 // Return some fake categories
-func (b FakeBackend) FetchCategories() tea.Cmd {
+func (b Backend) FetchCategories() tea.Cmd {
 	return func() tea.Msg {
 		return backend.FetchSuccessMessage{
 			Items: []list.Item{
@@ -43,7 +43,7 @@ func (b FakeBackend) FetchCategories() tea.Cmd {
 }
 
 // Return some fake feeds
-func (b FakeBackend) FetchFeeds(catName string) tea.Cmd {
+func (b Backend) FetchFeeds(catName string) tea.Cmd {
 	return func() tea.Msg {
 		return backend.FetchSuccessMessage{
 			Items: []list.Item{
@@ -56,7 +56,7 @@ func (b FakeBackend) FetchFeeds(catName string) tea.Cmd {
 }
 
 // Return some fake articles
-func (b FakeBackend) FetchArticles(feedName string) tea.Cmd {
+func (b Backend) FetchArticles(feedName string) tea.Cmd {
 	return func() tea.Msg {
 		file, err := os.Open("rss.rss")
 		if err != nil {

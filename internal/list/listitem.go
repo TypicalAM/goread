@@ -7,32 +7,32 @@ import (
 	"github.com/muesli/reflow/wrap"
 )
 
-type ListItem struct {
+type Item struct {
 	title       string
 	description string
 	moreContent string
 }
 
-func (m ListItem) FilterValue() string {
+func (m Item) FilterValue() string {
 	return m.title
 }
 
-func (m ListItem) Title() string {
+func (m Item) Title() string {
 	return m.title
 }
 
-func (m ListItem) Description() string {
+func (m Item) Description() string {
 	return m.description
 }
 
 // NewListItem creates a new list item
-func NewListItem(title string, description string, moreContent string) ListItem {
-	return ListItem{title, description, moreContent}
+func NewListItem(title string, description string, moreContent string) Item {
+	return Item{title, description, moreContent}
 }
 
 // StyleContent styles the content of the item with glamour
 // and returns the result
-func (m ListItem) StyleContent(width int) string {
+func (m Item) StyleContent(width int) string {
 	// Create a renderer for the content
 	g, err := glamour.NewTermRenderer(
 		glamour.WithStylePath("dracula"),
@@ -53,7 +53,7 @@ func (m ListItem) StyleContent(width int) string {
 }
 
 // Wrap description to a given width
-func (m ListItem) WrapDescription(width int) ListItem {
+func (m Item) WrapDescription(width int) Item {
 	m.description = wrap.String(m.description, width-3)
 	return m
 }

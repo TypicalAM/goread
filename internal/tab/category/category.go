@@ -15,17 +15,16 @@ import (
 
 // RSSCategoryTab is a tab to choose a category from a list of categories
 type RSSCategoryTab struct {
-	title       string
-	index       int
-	loaded      bool
-	description string
+	title  string
+	index  int
+	loaded bool
 
 	loadingSpinner spinner.Model
 	list           list.List
 	readerFunc     func(string) tea.Cmd
 }
 
-// New creates a new RssCategoryTab with sensible defautls
+// New creates a new RssCategoryTab with sensible defaults
 func New(title string, index int, readerFunc func(string) tea.Cmd) RSSCategoryTab {
 	// Create a spinner for loading the data
 	spin := spinner.New()
@@ -64,7 +63,7 @@ func (c RSSCategoryTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case backend.FetchSuccessMessage:
-		// The data fetch was successfull
+		// The data fetch was successful
 		if !c.loaded && style.WindowWidth != 0 && style.WindowHeight != 0 {
 			c.list = list.NewList(c.title, style.WindowHeight-5)
 			c.list.SetItems(msg.Items)
@@ -116,7 +115,7 @@ func (c RSSCategoryTab) View() string {
 	return c.list.View()
 }
 
-func (c RSSCategoryTab) Type() tab.TabType {
+func (c RSSCategoryTab) Type() tab.Type {
 	return tab.Category
 }
 

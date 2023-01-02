@@ -10,24 +10,24 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
-// WebBackend uses the internet to get all the feeds and their articles
-type WebBackend struct {
+// Backend uses the internet to get all the feeds and their articles
+type Backend struct {
 	rss rss.Rss
 }
 
 // New returns a new WebBackend
-func New() WebBackend {
-	return WebBackend{rss: rss.New()}
+func New() Backend {
+	return Backend{rss: rss.New()}
 }
 
 // Name returns the name of the backend
-func (b WebBackend) Name() string {
+func (b Backend) Name() string {
 	return "WebBackend"
 }
 
 // FetchCategories returns a tea.Cmd which gets the category list
 // fron the backend
-func (b WebBackend) FetchCategories() tea.Cmd {
+func (b Backend) FetchCategories() tea.Cmd {
 	return func() tea.Msg {
 		// Create a list of categories
 		categories := b.rss.GetCategories()
@@ -45,7 +45,7 @@ func (b WebBackend) FetchCategories() tea.Cmd {
 
 // FetchFeeds returns a tea.Cmd which gets the feed list from
 // the backend via a string key
-func (b WebBackend) FetchFeeds(catName string) tea.Cmd {
+func (b Backend) FetchFeeds(catName string) tea.Cmd {
 	return func() tea.Msg {
 		// Create a list of feeds
 		category, err := b.rss.GetCategory(catName)
@@ -75,10 +75,10 @@ func (b WebBackend) FetchFeeds(catName string) tea.Cmd {
 
 // FetchArticles returns a tea.Cmd which gets the articles from
 // the backend via a string key
-func (b WebBackend) FetchArticles(feedName string) tea.Cmd {
+func (b Backend) FetchArticles(feedName string) tea.Cmd {
 	return func() tea.Msg {
 		// Create a list of articles
-		url, err := b.rss.GetFeedUrl(feedName)
+		url, err := b.rss.GetFeedURL(feedName)
 		if err != nil {
 			return backend.FetchErrorMessage{
 				Description: "Failed to get articles",

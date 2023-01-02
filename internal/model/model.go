@@ -123,9 +123,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *Model) RenderTabBar() string {
 	// Render the tab bar at the top of the screen
-	var tabs []string
+	tabs := make([]string, len(m.tabs))
 	for i, tabObj := range m.tabs {
-		tabs = append(tabs, tab.AttachIconToTab(tabObj.Title(), tabObj.Type(), i == m.activeTab))
+		tabs[i] = tab.AttachIconToTab(tabObj.Title(), tabObj.Type(), i == m.activeTab)
 	}
 
 	row := lipgloss.JoinHorizontal(lipgloss.Top, tabs...)
@@ -162,7 +162,7 @@ func (m Model) View() string {
 }
 
 // Create the new tab and add it to the model
-func (m *Model) createNewTab(title string, tabType tab.TabType) {
+func (m *Model) createNewTab(title string, tabType tab.Type) {
 	// Create and add the new tab
 	var newTab tab.Tab
 

@@ -57,7 +57,7 @@ func Max(a, b int) int {
 }
 
 // Style an index value
-func StyleIndex(index int, isSelected bool) string {
+func Index(index int, isSelected bool) string {
 	// Define the styles used in the index styling
 	bracketStyle := lipgloss.NewStyle().
 		Foreground(GlobalColorscheme.Color7)

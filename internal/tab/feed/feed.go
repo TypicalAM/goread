@@ -31,15 +31,13 @@ type RssFeedTab struct {
 	loadingSpinner spinner.Model
 	list           list.Model
 	isViewportOpen bool
-	viewedItem     simpleList.ListItem
-	content        string
 	viewport       viewport.Model
 	selected       SelectedPane
 
 	readerFunc func(string) tea.Cmd
 }
 
-// New creates a new RssFeedTab with sensible defautls
+// New creates a new RssFeedTab with sensible defaults
 func New(title string, index int, readerFunc func(string) tea.Cmd) RssFeedTab {
 	// Create a spinner for loading the data
 	spin := spinner.New()
@@ -99,13 +97,13 @@ func (r *RssFeedTab) loadTab(items []list.Item) {
 	itemDelegate.Styles = delegateStyles
 	itemDelegate.SetHeight(3)
 
-	// Now that we know the width of the list we can wrap the descriptons
+	// Now that we know the width of the list we can wrap the descriptions
 	// to match it
 	for i := range items {
-		items[i] = items[i].(simpleList.ListItem).WrapDescription(listWidth)
+		items[i] = items[i].(simpleList.Item)
 	}
 
-	// Intialize the list
+	// Initialize the list
 	r.list = list.New(items, itemDelegate, listWidth, style.WindowHeight-5)
 
 	// Set some attributes for the list
@@ -142,7 +140,7 @@ func (r RssFeedTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 			// Get the content of the selected item
 			r.viewport.SetContent(
-				r.list.SelectedItem().(simpleList.ListItem).StyleContent(contentWidth),
+				r.list.SelectedItem().(simpleList.Item).StyleContent(contentWidth),
 			)
 
 			// Set the view as open if it isn't
@@ -229,7 +227,7 @@ func (r RssFeedTab) View() string {
 }
 
 // Return the type of the tab
-func (r RssFeedTab) Type() tab.TabType {
+func (r RssFeedTab) Type() tab.Type {
 	return tab.Feed
 }
 

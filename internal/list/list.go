@@ -88,7 +88,7 @@ func (l List) View() string {
 			MarginLeft(3).
 			MarginRight(3).
 			Render(fmt.Sprintf("%s  %s",
-				style.StyleIndex(i, isSelected),
+				style.Index(i, isSelected),
 				l.itemStyle.Render(item.FilterValue())),
 			)
 		sections = append(sections, itemLine)
@@ -104,16 +104,17 @@ func (l List) View() string {
 
 // Update the list, things like scrolling
 func (l List) Update(msg tea.Msg) (List, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
+	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch msg.String() {
-		case "up":
-			if l.selected > 0 {
-				l.selected--
+		case "j", "down":
+			l.selected++
+			if l.selected >= len(l.items) {
+				l.selected = 0
 			}
-		case "down":
-			if l.selected < len(l.items)-1 {
-				l.selected++
+		case "k", "up":
+			l.selected--
+			if l.selected < 0 {
+				l.selected = len(l.items) - 1
 			}
 		}
 	}
