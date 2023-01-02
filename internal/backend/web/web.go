@@ -48,18 +48,12 @@ func (b Backend) FetchCategories() tea.Cmd {
 func (b Backend) FetchFeeds(catName string) tea.Cmd {
 	return func() tea.Msg {
 		// Create a list of feeds
-		category, err := b.rss.GetCategory(catName)
+		feeds, err := b.rss.GetFeeds(catName)
 		if err != nil {
 			return backend.FetchErrorMessage{
 				Description: "Failed to get feeds",
 				Err:         err,
 			}
-		}
-
-		// Add every key of category to a list
-		feeds := make([]string, 0)
-		for feedName := range category {
-			feeds = append(feeds, feedName)
 		}
 
 		// Create a list of list items

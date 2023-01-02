@@ -1,6 +1,9 @@
 package rss
 
-import "errors"
+import (
+	"errors"
+	"sort"
+)
 
 // Rss is the main object used to hold the data
 type Rss map[string]Category
@@ -26,7 +29,6 @@ func New() Rss {
 func (rss Rss) GetFeedURL(name string) (string, error) {
 	// Find the category
 	for _, cat := range rss {
-		// Find the feed
 		for k, v := range cat {
 			if k == name {
 				return string(v), nil
@@ -38,11 +40,22 @@ func (rss Rss) GetFeedURL(name string) (string, error) {
 	return "", errNotFound
 }
 
-// GetCategory returns a category by name
-func (rss Rss) GetCategory(name string) (Category, error) {
-	for k, v := range rss {
-		if k == name {
-			return v, nil
+// GetFeeds returns a feeds from a category
+func (rss Rss) GetFeeds(catName string) ([]string, error) {
+	for k := range rss {
+		if k == catName {
+			// Sort the keys of the map alphabetically
+			keys := make([]string, len(rss[k]))
+			i := 0
+
+			for k := range rss[k] {
+				keys[i] = k
+				i++
+			}
+
+			sort.Strings(keys)
+
+			return keys, nil
 		}
 	}
 
@@ -52,13 +65,17 @@ func (rss Rss) GetCategory(name string) (Category, error) {
 
 // GetCategories returns a list of categories
 func (rss Rss) GetCategories() []string {
-	categories := make([]string, len(rss))
-	count := 0
+	// Sort the keys of the map alphabetically
+	keys := make([]string, len(rss))
+	i := 0
 
 	for k := range rss {
-		categories[count] = k
-		count++
+		keys[i] = k
+		i++
 	}
 
-	return categories
+	sort.Strings(keys)
+
+	// Return the keys in order
+	return keys
 }
