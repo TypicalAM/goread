@@ -16,10 +16,8 @@ const (
 type Tab interface {
 	// General fields
 	Title() string
-	Index() int
 	Loaded() bool
 	Type() Type
-	SetIndex(int) Tab
 
 	// Bubbletea methods
 	Init() tea.Cmd

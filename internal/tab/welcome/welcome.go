@@ -11,7 +11,6 @@ import (
 type Welcome struct {
 	// General fields
 	title  string
-	index  int
 	loaded bool
 
 	// The list of categorie
@@ -20,10 +19,9 @@ type Welcome struct {
 }
 
 // New creates a new RssFeedTab with sensible defaults
-func New(title string, index int, readerFunc func() tea.Cmd) Welcome {
+func New(title string, readerFunc func() tea.Cmd) Welcome {
 	return Welcome{
 		title:      title,
-		index:      index,
 		readerFunc: readerFunc,
 	}
 }
@@ -31,11 +29,6 @@ func New(title string, index int, readerFunc func() tea.Cmd) Welcome {
 // Return the title of the tab
 func (w Welcome) Title() string {
 	return w.title
-}
-
-// Return the index of the tab
-func (w Welcome) Index() int {
-	return w.index
 }
 
 // Return the type of the tab
@@ -106,10 +99,4 @@ func (w Welcome) View() string {
 
 	// Return the view
 	return w.list.View()
-}
-
-// Set the index of the tab
-func (w Welcome) SetIndex(index int) tab.Tab {
-	w.index = index
-	return w
 }

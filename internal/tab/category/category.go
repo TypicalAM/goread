@@ -16,7 +16,6 @@ import (
 // RSSCategoryTab is a tab to choose a category from a list of categories
 type RSSCategoryTab struct {
 	title  string
-	index  int
 	loaded bool
 
 	loadingSpinner spinner.Model
@@ -25,7 +24,7 @@ type RSSCategoryTab struct {
 }
 
 // New creates a new RssCategoryTab with sensible defaults
-func New(title string, index int, readerFunc func(string) tea.Cmd) RSSCategoryTab {
+func New(title string, readerFunc func(string) tea.Cmd) RSSCategoryTab {
 	// Create a spinner for loading the data
 	spin := spinner.New()
 	spin.Spinner = spinner.Points
@@ -34,7 +33,6 @@ func New(title string, index int, readerFunc func(string) tea.Cmd) RSSCategoryTa
 	return RSSCategoryTab{
 		loadingSpinner: spin,
 		title:          title,
-		index:          index,
 		readerFunc:     readerFunc,
 	}
 }
@@ -42,10 +40,6 @@ func New(title string, index int, readerFunc func(string) tea.Cmd) RSSCategoryTa
 // Implement the Tab interface
 func (c RSSCategoryTab) Title() string {
 	return c.title
-}
-
-func (c RSSCategoryTab) Index() int {
-	return c.index
 }
 
 func (c RSSCategoryTab) Loaded() bool {
@@ -119,10 +113,4 @@ func (c RSSCategoryTab) View() string {
 
 func (c RSSCategoryTab) Type() tab.Type {
 	return tab.Category
-}
-
-// Set the index of the tab
-func (c RSSCategoryTab) SetIndex(index int) tab.Tab {
-	c.index = index
-	return c
 }

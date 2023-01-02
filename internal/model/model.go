@@ -50,7 +50,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg, ok := msg.(tea.WindowSizeMsg); ok {
 			style.WindowWidth = msg.Width
 			style.WindowHeight = msg.Height
-			m.tabs = append(m.tabs, welcome.New("Welcome", 0, m.backend.FetchCategories))
+			m.tabs = append(m.tabs, welcome.New("Welcome", m.backend.FetchCategories))
 			m.loaded = true
 			cmds = append(cmds, m.tabs[0].Init())
 		} else {
@@ -140,7 +140,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// Wrap around
 			if m.activeTab < 0 {
-				m.activeTab = len(m.tabs) - 1
+				m.activeTab = 0
 			}
 		}
 	}
@@ -215,22 +215,17 @@ func (m *Model) createNewTab(title string, tabType tab.Type) {
 	case tab.Category:
 		newTab = category.New(
 			title,
-			m.activeTab+1,
 			m.backend.FetchFeeds,
 		)
 	case tab.Feed:
 		newTab = feed.New(
 			title,
-			m.activeTab+1,
 			m.backend.FetchArticles,
 		)
 	}
 
 	// Insert the tab after the active tab
 	m.tabs = append(m.tabs[:m.activeTab+1], append([]tab.Tab{newTab}, m.tabs[m.activeTab+1:]...)...)
-	for i := m.activeTab + 2; i < len(m.tabs); i++ {
-		m.tabs[i] = m.tabs[i].SetIndex(i)
-	}
 
 	// Increase the active tab count
 	m.activeTab++

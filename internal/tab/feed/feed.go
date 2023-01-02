@@ -25,7 +25,6 @@ const (
 // RssFeedTab is a tab that displays a list of RSS feeds
 type RssFeedTab struct {
 	title  string
-	index  int
 	loaded bool
 
 	loadingSpinner spinner.Model
@@ -39,7 +38,7 @@ type RssFeedTab struct {
 }
 
 // New creates a new RssFeedTab with sensible defaults
-func New(title string, index int, readerFunc func(string) tea.Cmd) RssFeedTab {
+func New(title string, readerFunc func(string) tea.Cmd) RssFeedTab {
 	// Create a spinner for loading the data
 	spin := spinner.New()
 	spin.Spinner = spinner.Points
@@ -48,7 +47,6 @@ func New(title string, index int, readerFunc func(string) tea.Cmd) RssFeedTab {
 	return RssFeedTab{
 		loadingSpinner: spin,
 		title:          title,
-		index:          index,
 		readerFunc:     readerFunc,
 	}
 }
@@ -56,11 +54,6 @@ func New(title string, index int, readerFunc func(string) tea.Cmd) RssFeedTab {
 // Return the title of the tab
 func (r RssFeedTab) Title() string {
 	return r.title
-}
-
-// Return the index of the tab
-func (r RssFeedTab) Index() int {
-	return r.index
 }
 
 // Show if the tab is loaded
@@ -254,10 +247,4 @@ func (r RssFeedTab) View() string {
 // Return the type of the tab
 func (r RssFeedTab) Type() tab.Type {
 	return tab.Feed
-}
-
-// Set the index of the tab
-func (r RssFeedTab) SetIndex(index int) tab.Tab {
-	r.index = index
-	return r
 }
