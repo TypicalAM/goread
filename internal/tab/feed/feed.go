@@ -129,7 +129,7 @@ func (r RssFeedTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		}
 
 	case backend.FetchSuccessMessage:
-		if !r.loaded && style.WindowWidth > 0 && style.WindowHeight > 0 {
+		if !r.loaded {
 			r.loadTab(msg.Items)
 			return r, nil
 		}

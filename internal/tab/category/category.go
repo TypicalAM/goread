@@ -64,7 +64,7 @@ func (c RSSCategoryTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	switch msg := msg.(type) {
 	case backend.FetchSuccessMessage:
 		// The data fetch was successful
-		if !c.loaded && style.WindowWidth != 0 && style.WindowHeight != 0 {
+		if !c.loaded {
 			c.list = list.NewList(c.title, style.WindowHeight-5)
 			c.list.SetItems(msg.Items)
 			c.loaded = true

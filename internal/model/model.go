@@ -21,13 +21,13 @@ type Model struct {
 	activeTab int
 	message   string
 	quitting  bool
+	loaded    bool
 }
 
 // NewModel returns a new model with some sensible defaults
 func New(backend backend.Backend) Model {
 	model := Model{}
 	model.backend = backend
-	model.tabs = append(model.tabs, welcome.New("Welcome", 0, backend.FetchCategories))
 	model.message = fmt.Sprintf("Using backend - %s", backend.Name())
 	return model
 }
@@ -41,12 +41,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
-	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		// Update the window size
-		style.WindowWidth = msg.Width
-		style.WindowHeight = msg.Height
+	// Check if we have the window size, if not, we wait for it
+	if !m.loaded {
+		if msg, ok := msg.(tea.WindowSizeMsg); ok {
+			style.WindowWidth = msg.Width
+			style.WindowHeight = msg.Height
+			m.tabs = append(m.tabs, welcome.New("Welcome", 0, m.backend.FetchCategories))
+			m.loaded = true
+			cmds = append(cmds, m.tabs[0].Init())
+		} else {
+			return m, nil
+		}
+	}
 
+	switch msg := msg.(type) {
 	case backend.FetchErrorMessage:
 		// If there is an error, display it on the status bar
 		// the error message will be cleared when the user closes the tab
@@ -146,6 +154,11 @@ func (m Model) View() string {
 		return "Goodbye!"
 	}
 
+	// If we are not loaded, render the loading message
+	if !m.loaded {
+		return "Loadings..."
+	}
+
 	// Hold the sections of the screen
 	var sections []string
 
@@ -153,7 +166,8 @@ func (m Model) View() string {
 	sections = append(sections, m.RenderTabBar())
 
 	// Render the tab content and the status bar
-	sections = append(sections, lipgloss.NewStyle().Height(20).Render(m.tabs[m.activeTab].View()))
+	constrainHeight := lipgloss.NewStyle().Height(style.WindowHeight - 3)
+	sections = append(sections, constrainHeight.Render(m.tabs[m.activeTab].View()))
 	sections = append(sections, m.RenderStatusBar())
 	sections = append(sections, m.message)
 

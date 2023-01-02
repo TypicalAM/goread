@@ -48,18 +48,9 @@ func (w Welcome) Loaded() bool {
 	return w.loaded
 }
 
-// Create the list of categories
-func (w *Welcome) initList(height int) {
-	defaultList := simpleList.NewList("Categories", height-5)
-	w.list = defaultList
-
-	// Add the categories
-	w.list.SetItems(w.readerFunc()().(backend.FetchSuccessMessage).Items)
-}
-
 // Implement the bubbletea.Model interface
 func (w Welcome) Init() tea.Cmd {
-	return nil
+	return w.readerFunc()
 }
 
 // Update the variables
@@ -67,11 +58,18 @@ func (w Welcome) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
-	// Check if the program is loaded, if not, load it
-	if !w.loaded && style.WindowWidth > 0 && style.WindowHeight > 0 {
-		w.initList(style.WindowHeight)
-		w.loaded = true
-		return w, nil
+	// Wait for items to be loaded
+	if !w.loaded {
+		if msg, ok := msg.(backend.FetchSuccessMessage); ok {
+			// Initialize the list of categories
+			w.list = simpleList.NewList("Categories", style.WindowHeight-5)
+
+			// Add the categories
+			w.list.SetItems(msg.Items)
+			w.loaded = true
+		} else {
+			return w, nil
+		}
 	}
 
 	// Update the list
