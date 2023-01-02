@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"github.com/TypicalAM/goread/internal/tab"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -32,4 +33,22 @@ type FetchSuccessMessage struct {
 type FetchErrorMessage struct {
 	Description string
 	Err         error
+}
+
+// NewItemMessage is a message to tell the main model that a new item
+// needs to be added to the list
+type NewItemMessage struct {
+	TabType tab.Type
+	Fields  []string
+}
+
+// NewItem is a function to tell the main model that a new item
+// needs to be added to the list
+func NewItem(tabType tab.Type, fields ...string) tea.Cmd {
+	return func() tea.Msg {
+		return NewItemMessage{
+			TabType: tabType,
+			Fields:  fields,
+		}
+	}
 }

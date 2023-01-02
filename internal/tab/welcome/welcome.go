@@ -87,6 +87,11 @@ func (w Welcome) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		if msg.String() == "enter" {
 			cmds = append(cmds, tab.NewTab(w.list.SelectedItem().FilterValue(), tab.Category))
 		}
+
+		// Check if the user pressed "n" which creates a new category
+		if msg.String() == "n" {
+			cmds = append(cmds, backend.NewItem(tab.Category, "name", "desc"))
+		}
 	}
 
 	return w, tea.Batch(cmds...)

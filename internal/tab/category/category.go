@@ -70,6 +70,7 @@ func (c RSSCategoryTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			c.loaded = true
 			return c, nil
 		}
+
 	case tea.KeyMsg:
 		// If the tab is not loaded, return
 		if !c.loaded {
@@ -85,6 +86,7 @@ func (c RSSCategoryTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		if msg.String() == "enter" {
 			return c, tab.NewTab(c.list.SelectedItem().FilterValue(), tab.Feed)
 		}
+
 	default:
 		if !c.loaded {
 			c.loadingSpinner, cmd = c.loadingSpinner.Update(msg)

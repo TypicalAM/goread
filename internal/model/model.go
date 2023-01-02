@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/TypicalAM/goread/internal/backend"
+	"github.com/TypicalAM/goread/internal/rss"
 	"github.com/TypicalAM/goread/internal/style"
 	"github.com/TypicalAM/goread/internal/tab"
 	"github.com/TypicalAM/goread/internal/tab/category"
@@ -22,6 +23,9 @@ type Model struct {
 	message   string
 	quitting  bool
 	loaded    bool
+
+	creatingItem bool
+	createItem   rss.CreateItem
 }
 
 // NewModel returns a new model with some sensible defaults
@@ -54,6 +58,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	// If we are creating new items, we need to update the inputs
+	if m.creatingItem {
+		m.createItem, cmd = m.createItem.Update(msg)
+		cmds = append(cmds, cmd)
+
+		if m.createItem.Index() == -1 {
+			m.creatingItem = false
+			m.message = "Ended " + strings.Join(m.createItem.GetValues(), " ")
+		}
+
+		return m, tea.Batch(cmds...)
+	}
+
 	switch msg := msg.(type) {
 	case backend.FetchErrorMessage:
 		// If there is an error, display it on the status bar
@@ -71,6 +88,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Clear the message
 		m.message = ""
+
+	case backend.NewItemMessage:
+		// Initialize the textfields and move into the
+		// textbox view
+		m.createItem = rss.NewItemCreation(msg.Fields, msg.TabType)
+		m.creatingItem = true
 
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -169,7 +192,14 @@ func (m Model) View() string {
 	constrainHeight := lipgloss.NewStyle().Height(style.WindowHeight - 3)
 	sections = append(sections, constrainHeight.Render(m.tabs[m.activeTab].View()))
 	sections = append(sections, m.RenderStatusBar())
-	sections = append(sections, m.message)
+
+	// If we are typing, shift the focus onto the textfield
+	if m.creatingItem {
+		// FIXME: Section name?
+		sections = append(sections, m.createItem.View())
+	} else {
+		sections = append(sections, m.message)
+	}
 
 	// Render the message if there is one
 	return lipgloss.JoinVertical(lipgloss.Top, sections...)
