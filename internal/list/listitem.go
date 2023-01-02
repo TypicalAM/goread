@@ -1,5 +1,7 @@
 package list
 
+import "github.com/muesli/reflow/wrap"
+
 type ListItem struct {
 	title       string
 	description string
@@ -26,4 +28,10 @@ func NewListItem(title string, description string, moreContent string) ListItem 
 // GetContent returns the content
 func (m ListItem) GetContent() string {
 	return m.moreContent
+}
+
+// Wrap description to a given width
+func (m ListItem) WrapDescription(width int) ListItem {
+	m.description = wrap.String(m.description, width-3)
+	return m
 }

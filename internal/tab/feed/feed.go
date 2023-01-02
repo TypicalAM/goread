@@ -84,10 +84,12 @@ func (r *RssFeedTab) loadTab(items []list.Item) {
 	// Get the default styles for the list items
 	delegateStyles := list.NewDefaultItemStyles()
 	delegateStyles.SelectedTitle = delegateStyles.SelectedTitle.Copy().
+		BorderForeground(style.GlobalColorscheme.Color3).
 		Foreground(style.GlobalColorscheme.Color3).
 		Italic(true)
 
 	delegateStyles.SelectedDesc = delegateStyles.SelectedDesc.Copy().
+		BorderForeground(style.GlobalColorscheme.Color3).
 		Foreground(style.GlobalColorscheme.Color2).
 		Italic(true)
 
@@ -95,8 +97,15 @@ func (r *RssFeedTab) loadTab(items []list.Item) {
 	itemDelegate := list.NewDefaultDelegate()
 	itemDelegate.ShowDescription = true
 	itemDelegate.Styles = delegateStyles
-	itemDelegate.SetHeight(2)
+	itemDelegate.SetHeight(3)
 
+	// Now that we know the width of the list we can wrap the descriptons
+	// to match it
+	for i := range items {
+		items[i] = items[i].(simpleList.ListItem).WrapDescription(listWidth)
+	}
+
+	// Intialize the list
 	r.list = list.New(items, itemDelegate, listWidth, style.WindowHeight-5)
 
 	// Set some attributes for the list

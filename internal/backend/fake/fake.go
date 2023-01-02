@@ -140,16 +140,15 @@ func (i Item) MoreContent() string {
 	}
 
 	mdown += "\n\n"
-	mdown += parseHTML(i.Description)
+	mdown += htmlToMarkdown(i.Description)
 
 	// TODO: error handling
 	out, _ := glamour.Render(mdown, "dark")
 	return out
 }
 
-// Since the rss feed "content" is HTML, we need to parse it and get the text
-// from it. This is a helper function to do that.
-func parseHTML(content string) string {
+// htmlToMarkdown converts html to markdown using the html-to-markdown library
+func htmlToMarkdown(content string) string {
 	converter := md.NewConverter("", true, nil)
 
 	markdown, err := converter.ConvertString(content)
