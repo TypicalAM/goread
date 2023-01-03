@@ -35,7 +35,6 @@ type Feed struct {
 var ErrNotFound = errors.New("not found")
 
 // New will create a new Rss structure, it fills it with basic items for now
-// TODO: AddCategory and AddFeed methods
 func New(filePath string) Rss {
 	rss := Rss{filePath: "rss.yml"}
 	err := rss.loadFromFile()
@@ -48,10 +47,27 @@ func New(filePath string) Rss {
 		Description: "News from around the world",
 	})
 
+	rss.Categories = append(rss.Categories, Category{
+		Name:        "Tech",
+		Description: "Tech news",
+	})
+
 	rss.Categories[0].Subscriptions = append(rss.Categories[0].Subscriptions, Feed{
 		Name:        "BBC",
 		Description: "News from the BBC",
 		URL:         "http://feeds.bbci.co.uk/news/rss.xml",
+	})
+
+	rss.Categories[1].Subscriptions = append(rss.Categories[1].Subscriptions, Feed{
+		Name:        "Hacker News",
+		Description: "News from Hacker News",
+		URL:         "https://news.ycombinator.com/rss",
+	})
+
+	rss.Categories[1].Subscriptions = append(rss.Categories[1].Subscriptions, Feed{
+		Name:        "Golang subreddit",
+		Description: "News from the Golang subreddit",
+		URL:         "https://www.reddit.com/r/golang/.rss",
 	})
 
 	return rss

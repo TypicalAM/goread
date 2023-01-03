@@ -33,7 +33,6 @@ Here are the things that I've not yet implemented
 - [X] Waiting for the window size message before adding the first tab
 - [ ] Deleting, adding and removing items
 - [ ] Help interface with the key bindings
-- [ ] Adding and removing categories and feeds
 - [ ] A main category where all the feeds are aggregated
 
 ## 📸 Here is a demo of what it looks like:

@@ -23,6 +23,7 @@ func New() backend.Backend {
 
 	// Save the cache if it doesn't exist (crate the file)
 	if err := cache.Load(); err != nil {
+		// TODO: Logging
 		fmt.Println("Cache doesn't exist")
 	}
 
