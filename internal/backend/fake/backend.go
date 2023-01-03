@@ -90,11 +90,10 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 	}
 }
 
-// AddItem adds an item to the rss
-func (b Backend) AddItem(itemType backend.ItemType, fields ...string) {}
-
-// DeleteItem deletes an item from the rss
-func (b Backend) DeleteItem(itemType backend.ItemType, key string) {}
+// Rss returns the rss struct
+func (b Backend) Rss() *rss.Rss {
+	return nil
+}
 
 // Close the backend
 func (b Backend) Close() error {

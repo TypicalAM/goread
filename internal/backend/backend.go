@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"github.com/TypicalAM/goread/internal/rss"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -27,10 +28,9 @@ type Backend interface {
 	// FetchArticles returns a tea.Cmd which gets the articles from
 	// the backend via a string key
 	FetchArticles(feedName string) tea.Cmd
-	// AddItem adds an item to the rss
-	AddItem(itemType ItemType, fields ...string)
-	// DeleteItem deletes an item from the rss
-	DeleteItem(itemType ItemType, key string)
+	// Rss returns the pointer to the RSS struct, it can be used
+	// to add and remove items
+	Rss() *rss.Rss
 	// Close closes the backend
 	Close() error
 }

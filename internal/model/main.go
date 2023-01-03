@@ -99,7 +99,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case backend.DeleteItemMessage:
 		// Delete the item
 		m.message = fmt.Sprintf("Deleted item %s", msg.Key)
-		m.backend.DeleteItem(msg.Type, msg.Key)
+		if msg.Type == backend.Category {
+			err := m.backend.Rss().RemoveCategory(msg.Key)
+			if err != nil {
+				m.message = fmt.Sprintf("Error deleting category %s - %s", msg.Key, err.Error())
+			}
+		}
 
 		// Fetch the categories again to update the list
 		if m.createItem.Type == backend.Category {
@@ -249,22 +254,29 @@ func (m *Model) createNewTab(title string, tabType tab.Type) {
 func (m Model) addItem() (tea.Model, tea.Cmd) {
 	// End creating new items
 	m.creatingItem = false
+	m.message = "Adding an item - " + strings.Join(m.createItem.GetValues(), " ")
 	values := m.createItem.GetValues()
 
-	// Prepend the tab name (category name) to the values
-	if m.createItem.Type == backend.Feed {
-		values = append([]string{m.tabs[m.activeTab].Title()}, values...)
-	}
-
-	// Create the new item
-	m.backend.AddItem(m.createItem.Type, values...)
-	m.message = "Added an item - " + strings.Join(m.createItem.GetValues(), " ")
-
-	// Fetch the categories again to update the list
+	// Check if the values are valid
 	if m.createItem.Type == backend.Category {
+		// Check if the category already exists
+		err := m.backend.Rss().AddCategory(values[0], values[1])
+		if err != nil {
+			m.message = "Error adding category: " + err.Error()
+			return m, nil
+		}
+
+		// Refresh the categories
 		return m, m.backend.FetchCategories()
 	}
 
-	// Fetch the feeds again to update the list
+	// Check if the feed already exists
+	err := m.backend.Rss().AddFeed(m.tabs[m.activeTab].Title(), values[0], values[1])
+	if err != nil {
+		m.message = "Error adding feed: " + err.Error()
+		return m, nil
+	}
+
+	// Refresh the feeds
 	return m, m.backend.FetchFeeds(m.tabs[m.activeTab].Title())
 }
