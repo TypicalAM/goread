@@ -64,8 +64,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, cmd)
 
 		// Add the item if we escaped
-		if m.createItem.Index() == -1 {
+		if m.createItem.Index() == quitNormal {
 			return m.addItem()
+		} else if m.createItem.Index() == quitCancel {
+			m.message = "Cancelled adding item"
+			m.creatingItem = false
 		}
 
 		// If we are not creating an item, we need to update the tabs

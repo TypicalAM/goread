@@ -44,6 +44,11 @@ func newItemCreation(fields []string, itemType backend.ItemType) createItem {
 	return c
 }
 
+const (
+	quitNormal = -1
+	quitCancel = -2
+)
+
 // Init initializes the model
 func (c createItem) Init() tea.Cmd {
 	return nil
@@ -61,12 +66,12 @@ func (c createItem) Update(msg tea.Msg) (createItem, tea.Cmd) {
 		case "enter":
 			c.activeInput++
 			if c.activeInput >= len(c.inputs) {
-				c.activeInput = -1
+				c.activeInput = quitNormal
 				return c, nil
 			}
 
 		case "esc":
-			c.activeInput = -1
+			c.activeInput = quitCancel
 			return c, nil
 		}
 	}
