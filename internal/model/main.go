@@ -64,7 +64,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if m.createItem.Index() == -1 {
 			m.creatingItem = false
-			m.message = "Ended " + strings.Join(m.createItem.GetValues(), " ")
+			m.backend.AddItem(m.createItem.Type, m.createItem.GetValues()...)
+			m.message = "Added an item - " + strings.Join(m.createItem.GetValues(), " ")
 		}
 
 		return m, tea.Batch(cmds...)

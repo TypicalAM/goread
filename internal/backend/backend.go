@@ -20,6 +20,8 @@ type Backend interface {
 	// FetchArticles returns a tea.Cmd which gets the articles from
 	// the backend via a string key
 	FetchArticles(feedName string) tea.Cmd
+	// AddItem returns a tea.Cmd which adds an item to the rss
+	AddItem(tabType tab.Type, fields ...string)
 	// Close closes the backend
 	Close() error
 }
