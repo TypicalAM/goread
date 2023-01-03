@@ -63,21 +63,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.createItem, cmd = m.createItem.Update(msg)
 		cmds = append(cmds, cmd)
 
+		// Add the item if we escaped
 		if m.createItem.Index() == -1 {
-			// End creating new items
-			m.creatingItem = false
-			m.backend.AddItem(m.createItem.Type, m.createItem.GetValues()...)
-			m.message = "Added an item - " + strings.Join(m.createItem.GetValues(), " ")
-
-			// Fetch the categories again to update the list
-			if m.createItem.Type == backend.Category {
-				return m, m.backend.FetchCategories()
-			}
-
-			// Fetch the feeds again to update the list
-			return m, m.backend.FetchFeeds(m.tabs[m.activeTab].Title())
+			return m.addItem()
 		}
 
+		// If we are not creating an item, we need to update the tabs
 		return m, tea.Batch(cmds...)
 	}
 
@@ -252,4 +243,28 @@ func (m *Model) createNewTab(title string, tabType tab.Type) {
 
 	// Increase the active tab count
 	m.activeTab++
+}
+
+// Add an item
+func (m Model) addItem() (tea.Model, tea.Cmd) {
+	// End creating new items
+	m.creatingItem = false
+	values := m.createItem.GetValues()
+
+	// Prepend the tab name (category name) to the values
+	if m.createItem.Type == backend.Feed {
+		values = append([]string{m.tabs[m.activeTab].Title()}, values...)
+	}
+
+	// Create the new item
+	m.backend.AddItem(m.createItem.Type, values...)
+	m.message = "Added an item - " + strings.Join(m.createItem.GetValues(), " ")
+
+	// Fetch the categories again to update the list
+	if m.createItem.Type == backend.Category {
+		return m, m.backend.FetchCategories()
+	}
+
+	// Fetch the feeds again to update the list
+	return m, m.backend.FetchFeeds(m.tabs[m.activeTab].Title())
 }
