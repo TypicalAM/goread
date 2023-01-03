@@ -64,7 +64,17 @@ func (c *Cache) Load() error {
 func (c *Cache) Save() error {
 	f, err := os.Create(c.path)
 	if err != nil {
-		return err
+		// Try to create the directory
+		err = os.MkdirAll(filepath.Dir(c.path), 0755)
+		if err != nil {
+			return err
+		}
+
+		// Try to create the file again
+		f, err = os.Create(c.path)
+		if err != nil {
+			return err
+		}
 	}
 	defer f.Close()
 

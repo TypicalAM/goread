@@ -56,6 +56,7 @@ func main() {
 		os.Exit(0)
 	}
 
+	// Create the config
 	cfg, err := config.New(backend, configPath, "goread")
 	if err != nil {
 		fmt.Println(err)
