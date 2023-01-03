@@ -59,13 +59,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// If we are creating new items, we need to update the inputs
 	if m.creatingItem {
+		// Update the create item model
 		m.createItem, cmd = m.createItem.Update(msg)
 		cmds = append(cmds, cmd)
 
 		if m.createItem.Index() == -1 {
+			// End creating new items
 			m.creatingItem = false
 			m.backend.AddItem(m.createItem.Type, m.createItem.GetValues()...)
 			m.message = "Added an item - " + strings.Join(m.createItem.GetValues(), " ")
+
+			// Fetch the categories again to update the list
+			return m, m.backend.FetchCategories()
 		}
 
 		return m, tea.Batch(cmds...)

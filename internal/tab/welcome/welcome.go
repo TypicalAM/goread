@@ -54,7 +54,7 @@ func (w Welcome) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	// Wait for items to be loaded
 	if !w.loaded {
 		if msg, ok := msg.(backend.FetchSuccessMessage); ok {
-			// Initialize the list of categories
+			// Initialize the list of categories, items will be set later
 			w.list = simpleList.NewList("Categories", style.WindowHeight-5)
 
 			// Add the categories
@@ -69,21 +69,33 @@ func (w Welcome) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	w.list, cmd = w.list.Update(msg)
 	cmds = append(cmds, cmd)
 
+	switch msg := msg.(type) {
+	case backend.FetchSuccessMessage:
+		// Update the list of categories
+		w.list.SetItems(msg.Items)
+
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "enter":
+			// Add a new tab with the selected category
+			if !w.list.IsEmpty() {
+				cmds = append(cmds, tab.NewTab(
+					w.list.SelectedItem().FilterValue(),
+					tab.Category,
+				))
+			}
+
+		case "n":
+			// Add a new category
+			cmds = append(cmds, backend.NewItem(backend.Category, "name", "desc"))
+		}
+	}
+
 	// Check the message type
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		// Check if we need to open a new tab
 		if index, ok := w.list.HasItem(msg.String()); ok {
 			cmds = append(cmds, tab.NewTab(w.list.GetItem(index).FilterValue(), tab.Category))
-		}
-
-		// Check if the user has pressed enter
-		if msg.String() == "enter" && !w.list.IsEmpty() {
-			cmds = append(cmds, tab.NewTab(w.list.SelectedItem().FilterValue(), tab.Category))
-		}
-
-		// Check if the user pressed "n" which creates a new category
-		if msg.String() == "n" {
-			cmds = append(cmds, backend.NewItem(backend.Category, "name", "desc"))
 		}
 	}
 
