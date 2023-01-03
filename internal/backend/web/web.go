@@ -17,7 +17,8 @@ type Backend struct {
 
 // New returns a new WebBackend
 func New() Backend {
-	return Backend{rss: rss.New()}
+	// FIXME: This should be configurable
+	return Backend{rss: rss.New("config.yml")}
 }
 
 // Name returns the name of the backend
