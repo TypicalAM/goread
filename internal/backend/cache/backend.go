@@ -17,7 +17,7 @@ type Backend struct {
 }
 
 // New creates a new Cache Backend
-func New() backend.Backend {
+func New(urlFilePath string) backend.Backend {
 	// TODO: Make the path configurable
 	cache := newCache()
 
@@ -30,7 +30,7 @@ func New() backend.Backend {
 	// Return the backend
 	return Backend{
 		Cache: cache,
-		rss:   rss.New("config.yml"),
+		rss:   rss.New(urlFilePath),
 	}
 }
 
@@ -120,5 +120,11 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 
 // Close closes the backend
 func (b Backend) Close() error {
+	// Try to save the rss
+	if err := b.rss.Save(); err != nil {
+		return err
+	}
+
+	// Try to save the cache
 	return b.Cache.Save()
 }

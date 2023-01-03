@@ -15,9 +15,9 @@ type Backend struct {
 }
 
 // New returns a new WebBackend
-func New() Backend {
+func New(urlFilePath string) Backend {
 	// FIXME: This should be configurable
-	return Backend{rss: rss.New("config.yml")}
+	return Backend{rss: rss.New(urlFilePath)}
 }
 
 // Name returns the name of the backend
@@ -107,5 +107,6 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 
 // Close closes the backend
 func (b Backend) Close() error {
-	return nil
+	// Try to save the rss
+	return b.rss.Save()
 }

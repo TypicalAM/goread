@@ -3,6 +3,7 @@ package rss
 import (
 	"errors"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -36,47 +37,32 @@ type Feed struct {
 // ErrNotFound is returned when a feed or category is not found
 var ErrNotFound = errors.New("not found")
 
-// New will create a new Rss structure, it fills it with basic items for now
-func New(filePath string) Rss {
-	rss := Rss{filePath: "rss.yml"}
+// New will create a new Rss structure
+func New(urlFilePath string) Rss {
+	rss := Rss{filePath: urlFilePath}
 	err := rss.loadFromFile()
 	if err == nil {
 		return rss
 	}
 
-	rss.Categories = append(rss.Categories, Category{
-		Name:        "News",
-		Description: "News from around the world",
-	})
-
-	rss.Categories = append(rss.Categories, Category{
-		Name:        "Tech",
-		Description: "Tech news",
-	})
-
-	rss.Categories[0].Subscriptions = append(rss.Categories[0].Subscriptions, Feed{
-		Name:        "BBC",
-		Description: "News from the BBC",
-		URL:         "http://feeds.bbci.co.uk/news/rss.xml",
-	})
-
-	rss.Categories[1].Subscriptions = append(rss.Categories[1].Subscriptions, Feed{
-		Name:        "Hacker News",
-		Description: "News from Hacker News",
-		URL:         "https://news.ycombinator.com/rss",
-	})
-
-	rss.Categories[1].Subscriptions = append(rss.Categories[1].Subscriptions, Feed{
-		Name:        "Golang subreddit",
-		Description: "News from the Golang subreddit",
-		URL:         "https://www.reddit.com/r/golang/.rss",
-	})
-
+	rss.Categories = append(rss.Categories, createBasicCategories()...)
 	return rss
 }
 
 // loadFromFile will load the Rss structure from a file
 func (rss *Rss) loadFromFile() error {
+	// Check if the path is valid
+	if rss.filePath == "" {
+		// Get the default path
+		path, err := getDefaultPath()
+		if err != nil {
+			return err
+		}
+
+		// Set the path
+		rss.filePath = path
+	}
+
 	// Try to open the file
 	fileContent, err := os.ReadFile(rss.filePath)
 	if err != nil {
@@ -93,8 +79,8 @@ func (rss *Rss) loadFromFile() error {
 	return nil
 }
 
-// WriteToFile will write the Rss structure to a file
-func (rss Rss) WriteToFile() error {
+// Save will write the Rss structure to a file
+func (rss *Rss) Save() error {
 	// Try to marshall the data
 	yamlData, err := yaml.Marshal(rss)
 	if err != nil {
@@ -104,7 +90,17 @@ func (rss Rss) WriteToFile() error {
 	// Try to open the file, if it doesn't exist, create it
 	file, err := os.OpenFile(rss.filePath, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
-		return err
+		// Try to create the directory
+		err = os.MkdirAll(filepath.Dir(rss.filePath), 0755)
+		if err != nil {
+			return err
+		}
+
+		// Try to create the file again
+		file, err = os.Create(rss.filePath)
+		if err != nil {
+			return err
+		}
 	}
 	defer file.Close()
 
@@ -219,4 +215,51 @@ func HTMLToText(content string) string {
 
 	// Return the text
 	return doc.Text()
+}
+
+// getDefaultPath will return the default path for the urls file
+func getDefaultPath() (string, error) {
+	// Get the default config path
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
+	}
+
+	// Create the config path
+	return filepath.Join(configDir, "goread", "urls.yml"), nil
+}
+
+// createBasicCategories will create some basic categories
+func createBasicCategories() []Category {
+	var categories []Category
+
+	categories = append(categories, Category{
+		Name:        "News",
+		Description: "News from around the world",
+	})
+
+	categories = append(categories, Category{
+		Name:        "Tech",
+		Description: "Tech news",
+	})
+
+	categories[0].Subscriptions = append(categories[0].Subscriptions, Feed{
+		Name:        "BBC",
+		Description: "News from the BBC",
+		URL:         "http://feeds.bbci.co.uk/news/rss.xml",
+	})
+
+	categories[1].Subscriptions = append(categories[1].Subscriptions, Feed{
+		Name:        "Hacker News",
+		Description: "News from Hacker News",
+		URL:         "https://news.ycombinator.com/rss",
+	})
+
+	categories[1].Subscriptions = append(categories[1].Subscriptions, Feed{
+		Name:        "Golang subreddit",
+		Description: "News from the Golang subreddit",
+		URL:         "https://www.reddit.com/r/golang/.rss",
+	})
+
+	return categories
 }

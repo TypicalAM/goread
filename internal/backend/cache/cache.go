@@ -24,7 +24,7 @@ type Item struct {
 // newCache creates a new cache
 func newCache() Cache {
 	// Get the path to the cache file
-	path, err := getCachePath()
+	path, err := getDefaultPath()
 	// TODO: Handle error
 	if err != nil {
 		panic(err)
@@ -62,7 +62,7 @@ func (c *Cache) Load() error {
 
 // Save writes the cache to disk
 func (c *Cache) Save() error {
-	f, err := os.Create(c.path)
+	file, err := os.Create(c.path)
 	if err != nil {
 		// Try to create the directory
 		err = os.MkdirAll(filepath.Dir(c.path), 0755)
@@ -71,12 +71,12 @@ func (c *Cache) Save() error {
 		}
 
 		// Try to create the file again
-		f, err = os.Create(c.path)
+		file, err = os.Create(c.path)
 		if err != nil {
 			return err
 		}
 	}
-	defer f.Close()
+	defer file.Close()
 
 	// Try to encode the cache
 	content, err := json.Marshal(c.Content)
@@ -85,7 +85,7 @@ func (c *Cache) Save() error {
 	}
 
 	// Try to write the cache to disk
-	_, err = f.Write(content)
+	_, err = file.Write(content)
 	if err != nil {
 		return err
 	}
@@ -152,8 +152,8 @@ func fetchArticle(url string) (Item, error) {
 	}, nil
 }
 
-// getCachedPath returns the path to the cache file
-func getCachePath() (string, error) {
+// getDefaultPath returns the default path to the cache file
+func getDefaultPath() (string, error) {
 	// Get the temporary directory
 	dir, err := os.UserCacheDir()
 	if err != nil {

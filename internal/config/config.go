@@ -2,8 +2,6 @@ package config
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/backend/cache"
@@ -29,17 +27,8 @@ func New(backendType string, urlPath string) (Config, error) {
 	// Create a new config
 	config := Config{}
 
-	// If the config path is not supplied, use the default
-	if urlPath == "" {
-		// Get the default config path
-		configDir, err := os.UserConfigDir()
-		if err != nil {
-			return Config{}, err
-		}
-
-		// Create the config path
-		config.urlPath = filepath.Join(configDir, "goread", "urls.yml")
-	}
+	// Set the url path
+	config.urlPath = urlPath
 
 	// Determine the backend
 	var backend backend.Backend
@@ -47,9 +36,9 @@ func New(backendType string, urlPath string) (Config, error) {
 	case BackendFake:
 		backend = fake.New()
 	case BackendWeb:
-		backend = web.New()
+		backend = web.New(config.urlPath)
 	case BackendCache:
-		backend = cache.New()
+		backend = cache.New(config.urlPath)
 	default:
 		return Config{}, fmt.Errorf("invalid backend type: %s", backendType)
 	}
