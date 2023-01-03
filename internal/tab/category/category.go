@@ -77,7 +77,7 @@ func (c RSSCategoryTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		}
 
 		// If it isnt a number, check if it is an enter
-		if msg.String() == "enter" {
+		if msg.String() == "enter" && !c.list.IsEmpty() {
 			return c, tab.NewTab(c.list.SelectedItem().FilterValue(), tab.Feed)
 		}
 

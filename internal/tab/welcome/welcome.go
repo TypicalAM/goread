@@ -77,7 +77,7 @@ func (w Welcome) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		}
 
 		// Check if the user has pressed enter
-		if msg.String() == "enter" {
+		if msg.String() == "enter" && !w.list.IsEmpty() {
 			cmds = append(cmds, tab.NewTab(w.list.SelectedItem().FilterValue(), tab.Category))
 		}
 

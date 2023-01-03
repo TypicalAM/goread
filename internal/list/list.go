@@ -146,3 +146,8 @@ func (l List) HasItem(text string) (int, bool) {
 	index := int(text[0]) - 97 + 10
 	return index, index < len(l.items)
 }
+
+// Check if the list is empty
+func (l *List) IsEmpty() bool {
+	return len(l.items) == 0
+}
