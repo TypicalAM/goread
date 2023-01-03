@@ -4,8 +4,10 @@ import (
 	"errors"
 	"os"
 	"sort"
+	"strings"
 
 	md "github.com/JohannesKaufmann/html-to-markdown"
+	"github.com/PuerkitoBio/goquery"
 	"github.com/mmcdole/gofeed"
 	"gopkg.in/yaml.v3"
 )
@@ -171,14 +173,14 @@ func (rss Rss) GetFeedURL(feedName string) (string, error) {
 	return "", ErrNotFound
 }
 
-// Glamourize will return a string that can be used to display the rss feeds
-func Glamourize(item gofeed.Item) string {
+// Markdownize will return a string that can be used to display the rss feeds
+func Markdownize(item gofeed.Item) string {
 	var mdown string
 
 	// Add the title
 	mdown += "# " + item.Title + "\n "
 
-	// If there are no authors, then we don't want to add a newline
+	// If there are no authors, then don't add the author
 	if item.Authors != nil {
 		mdown += item.Authors[0].Name + "\n"
 	}
@@ -189,16 +191,32 @@ func Glamourize(item gofeed.Item) string {
 		mdown += "Published: " + item.PublishedParsed.Format("2006-01-02 15:04:05")
 	}
 
+	// Convert the html to markdown
 	mdown += "\n\n"
+	mdown += htmlToMarkdown(item.Description)
+	return mdown
+}
 
-	// Convert the description html to markdown
+// htmlToMarkdown converts html to markdown using the html-to-markdown library
+func htmlToMarkdown(content string) string {
 	converter := md.NewConverter("", true, nil)
-	descMarkdown, err := converter.ConvertString(item.Description)
+
+	markdown, err := converter.ConvertString(content)
 	if err != nil {
 		panic(err)
 	}
 
-	mdown += descMarkdown
+	return markdown
+}
 
-	return mdown
+// HTMLToText converts html to text using the goquery library
+func HTMLToText(content string) string {
+	// Create a new document
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(content))
+	if err != nil {
+		panic(err)
+	}
+
+	// Return the text
+	return doc.Text()
 }

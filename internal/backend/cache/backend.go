@@ -108,8 +108,8 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 		for _, item := range items {
 			result = append(result, simpleList.NewListItem(
 				item.Title,
-				item.Description,
-				rss.Glamourize(item),
+				rss.HTMLToText(item.Description),
+				rss.Markdownize(item),
 			))
 		}
 

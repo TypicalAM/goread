@@ -2,7 +2,6 @@ package web
 
 import (
 	"github.com/TypicalAM/goread/internal/backend"
-	"github.com/TypicalAM/goread/internal/backend/fake"
 	simpleList "github.com/TypicalAM/goread/internal/list"
 	"github.com/TypicalAM/goread/internal/rss"
 	"github.com/charmbracelet/bubbles/list"
@@ -93,12 +92,11 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 
 		// Create the list of list items
 		var result []list.Item
-		for i := range feed.Items {
-			content := fake.CreateFakeContent(i, feed)
+		for _, item := range feed.Items {
 			result = append(result, simpleList.NewListItem(
-				content.Title,
-				content.Description,
-				content.MoreContent(),
+				item.Title,
+				rss.HTMLToText(item.Description),
+				rss.Markdownize(*item),
 			))
 		}
 
