@@ -93,6 +93,9 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 // AddItem adds an item to the rss
 func (b Backend) AddItem(itemType backend.ItemType, fields ...string) {}
 
+// DeleteItem deletes an item from the rss
+func (b Backend) DeleteItem(itemType backend.ItemType, key string) {}
+
 // Close the backend
 func (b Backend) Close() error {
 	return nil

@@ -29,6 +29,8 @@ type Backend interface {
 	FetchArticles(feedName string) tea.Cmd
 	// AddItem adds an item to the rss
 	AddItem(itemType ItemType, fields ...string)
+	// DeleteItem deletes an item from the rss
+	DeleteItem(itemType ItemType, key string)
 	// Close closes the backend
 	Close() error
 }
@@ -60,6 +62,24 @@ func NewItem(itemType ItemType, fields ...string) tea.Cmd {
 		return NewItemMessage{
 			Type:   itemType,
 			Fields: fields,
+		}
+	}
+}
+
+// DeleteItemMessage is a message to tell the main model that a new item
+// needs to be removed from the list
+type DeleteItemMessage struct {
+	Type ItemType
+	Key  string
+}
+
+// DeleteItem is a function to tell the main model that a new item
+// needs to be removed from the list
+func DeleteItem(itemType ItemType, key string) tea.Cmd {
+	return func() tea.Msg {
+		return DeleteItemMessage{
+			Type: itemType,
+			Key:  key,
 		}
 	}
 }

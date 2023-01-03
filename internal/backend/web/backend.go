@@ -123,6 +123,26 @@ func (b Backend) AddItem(itemType backend.ItemType, fields ...string) {
 	}
 }
 
+// DeleteItem deletes an item from the rss
+func (b Backend) DeleteItem(itemType backend.ItemType, key string) {
+	// Delete the item from the rss
+	switch itemType {
+	case backend.Category:
+		for i, cat := range b.rss.Categories {
+			if cat.Name == key {
+				b.rss.Categories = append(b.rss.Categories[:i], b.rss.Categories[i+1:]...)
+			}
+		}
+	case backend.Feed:
+		// FIXME: Get the category
+		for i, cat := range b.rss.Categories {
+			if cat.Name == key {
+				b.rss.Categories = append(b.rss.Categories[:i], b.rss.Categories[i+1:]...)
+			}
+		}
+	}
+}
+
 // Close closes the backend
 func (b Backend) Close() error {
 	// Try to save the rss

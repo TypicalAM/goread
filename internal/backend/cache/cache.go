@@ -11,8 +11,8 @@ import (
 
 // Cache is a basic cache to read and write gofeed.Items based on the URL
 type Cache struct {
-	path    string
-	Content map[string]Item
+	filePath string
+	Content  map[string]Item
 }
 
 // Item is an item in the cache
@@ -31,15 +31,15 @@ func newCache() Cache {
 	}
 
 	return Cache{
-		path:    path,
-		Content: make(map[string]Item),
+		filePath: path,
+		Content:  make(map[string]Item),
 	}
 }
 
 // Load reads the cache from disk
 func (c *Cache) Load() error {
 	// Load the cache from the file
-	file, err := os.ReadFile(c.path)
+	file, err := os.ReadFile(c.filePath)
 	if err != nil {
 		return err
 	}
@@ -62,32 +62,25 @@ func (c *Cache) Load() error {
 
 // Save writes the cache to disk
 func (c *Cache) Save() error {
-	file, err := os.Create(c.path)
-	if err != nil {
-		// Try to create the directory
-		err = os.MkdirAll(filepath.Dir(c.path), 0755)
-		if err != nil {
-			return err
-		}
-
-		// Try to create the file again
-		file, err = os.Create(c.path)
-		if err != nil {
-			return err
-		}
-	}
-	defer file.Close()
-
 	// Try to encode the cache
-	content, err := json.Marshal(c.Content)
+	cacheData, err := json.Marshal(c.Content)
 	if err != nil {
 		return err
 	}
 
-	// Try to write the cache to disk
-	_, err = file.Write(content)
-	if err != nil {
-		return err
+	// Try to write the data to the file
+	if err = os.WriteFile(c.filePath, cacheData, 0600); err != nil {
+		// Try to create the directory
+		err = os.MkdirAll(filepath.Dir(c.filePath), 0755)
+		if err != nil {
+			return err
+		}
+
+		// Try to write to the file again
+		err = os.WriteFile(c.filePath, cacheData, 0600)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Writing was successful

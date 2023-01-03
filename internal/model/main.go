@@ -70,7 +70,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.message = "Added an item - " + strings.Join(m.createItem.GetValues(), " ")
 
 			// Fetch the categories again to update the list
-			return m, m.backend.FetchCategories()
+			if m.createItem.Type == backend.Category {
+				return m, m.backend.FetchCategories()
+			}
+
+			// Fetch the feeds again to update the list
+			return m, m.backend.FetchFeeds(m.tabs[m.activeTab].Title())
 		}
 
 		return m, tea.Batch(cmds...)
@@ -99,6 +104,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// textbox view
 		m.createItem = newItemCreation(msg.Fields, msg.Type)
 		m.creatingItem = true
+
+	case backend.DeleteItemMessage:
+		// Delete the item
+		m.message = fmt.Sprintf("Deleted item %s", msg.Key)
+		m.backend.DeleteItem(msg.Type, msg.Key)
+
+		// Fetch the categories again to update the list
+		if m.createItem.Type == backend.Category {
+			return m, m.backend.FetchCategories()
+		}
+
+		// Fetch the feeds again to update the list
+		return m, m.backend.FetchFeeds(m.tabs[m.activeTab].Title())
 
 	case tea.KeyMsg:
 		switch msg.String() {

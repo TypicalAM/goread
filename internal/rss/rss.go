@@ -2,7 +2,6 @@ package rss
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
@@ -82,38 +81,25 @@ func (rss *Rss) loadFromFile() error {
 
 // Save will write the Rss structure to a file
 func (rss *Rss) Save() error {
-	fmt.Println("Saving rss file to", rss.filePath)
-	for _, cat := range rss.Categories {
-		fmt.Println("Category:", cat.Name)
-	}
-
 	// Try to marshall the data
 	yamlData, err := yaml.Marshal(rss)
 	if err != nil {
 		return err
 	}
 
-	// Try to open the file, if it doesn't exist, create it
-	file, err := os.OpenFile(rss.filePath, os.O_WRONLY|os.O_CREATE, 0644)
-	if err != nil {
+	// Try to write the data to the file
+	if err = os.WriteFile(rss.filePath, yamlData, 0600); err != nil {
 		// Try to create the directory
 		err = os.MkdirAll(filepath.Dir(rss.filePath), 0755)
 		if err != nil {
 			return err
 		}
 
-		// Try to create the file again
-		file, err = os.Create(rss.filePath)
+		// Try to write to the file again
+		err = os.WriteFile(rss.filePath, yamlData, 0600)
 		if err != nil {
 			return err
 		}
-	}
-	defer file.Close()
-
-	// Write the data to the file
-	_, err = file.Write(yamlData)
-	if err != nil {
-		return err
 	}
 
 	// Successfully wrote the file

@@ -17,7 +17,7 @@ type Backend struct {
 }
 
 // New creates a new Cache Backend
-func New(urlFilePath string) backend.Backend {
+func New(urlFilePath string) Backend {
 	// TODO: Make the path configurable
 	cache := newCache()
 
@@ -134,6 +134,27 @@ func (b Backend) AddItem(itemType backend.ItemType, fields ...string) {
 			Name:        fields[0],
 			Description: fields[1],
 		})
+	}
+}
+
+// DeleteItem deletes an item from the rss
+func (b Backend) DeleteItem(itemType backend.ItemType, key string) {
+	// Delete the item from the rss
+	switch itemType {
+	case backend.Category:
+		for i, cat := range b.rss.Categories {
+			if cat.Name == key {
+				b.rss.Categories = append(b.rss.Categories[:i], b.rss.Categories[i+1:]...)
+				return
+			}
+		}
+	case backend.Feed:
+		// FIXME: Get the category
+		for i, cat := range b.rss.Categories {
+			if cat.Name == key {
+				b.rss.Categories = append(b.rss.Categories[:i], b.rss.Categories[i+1:]...)
+			}
+		}
 	}
 }
 
