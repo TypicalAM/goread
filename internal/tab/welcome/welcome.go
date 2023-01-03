@@ -83,7 +83,7 @@ func (w Welcome) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 		// Check if the user pressed "n" which creates a new category
 		if msg.String() == "n" {
-			cmds = append(cmds, backend.NewItem(tab.Category, "name", "desc"))
+			cmds = append(cmds, backend.NewItem(backend.Category, "name", "desc"))
 		}
 	}
 

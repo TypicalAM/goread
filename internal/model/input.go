@@ -3,7 +3,7 @@ package model
 import (
 	"fmt"
 
-	"github.com/TypicalAM/goread/internal/tab"
+	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -14,16 +14,16 @@ type createItem struct {
 
 	fields []string
 	inputs []textinput.Model
-	Type   tab.Type
+	Type   backend.ItemType
 }
 
 // New creates a new instance of the create item model
-func newItemCreation(fields []string, tabType tab.Type) createItem {
+func newItemCreation(fields []string, itemType backend.ItemType) createItem {
 	// Create an empty instance
 	c := createItem{}
 
 	// Set the type
-	c.Type = tabType
+	c.Type = itemType
 
 	// Set the fields
 	c.fields = fields

@@ -2,6 +2,7 @@ package rss
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
@@ -81,6 +82,11 @@ func (rss *Rss) loadFromFile() error {
 
 // Save will write the Rss structure to a file
 func (rss *Rss) Save() error {
+	fmt.Println("Saving rss file to", rss.filePath)
+	for _, cat := range rss.Categories {
+		fmt.Println("Category:", cat.Name)
+	}
+
 	// Try to marshall the data
 	yamlData, err := yaml.Marshal(rss)
 	if err != nil {

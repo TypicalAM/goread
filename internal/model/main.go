@@ -92,7 +92,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case backend.NewItemMessage:
 		// Initialize the textfields and move into the
 		// textbox view
-		m.createItem = newItemCreation(msg.Fields, msg.TabType)
+		m.createItem = newItemCreation(msg.Fields, msg.Type)
 		m.creatingItem = true
 
 	case tea.KeyMsg:

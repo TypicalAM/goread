@@ -7,7 +7,6 @@ import (
 	"github.com/TypicalAM/goread/internal/backend"
 	simpleList "github.com/TypicalAM/goread/internal/list"
 	"github.com/TypicalAM/goread/internal/rss"
-	"github.com/TypicalAM/goread/internal/tab"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/mmcdole/gofeed"
@@ -92,7 +91,7 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 }
 
 // AddItem adds an item to the rss
-func (b Backend) AddItem(tabType tab.Type, fields ...string) {}
+func (b Backend) AddItem(itemType backend.ItemType, fields ...string) {}
 
 // Close the backend
 func (b Backend) Close() error {

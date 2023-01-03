@@ -1,9 +1,16 @@
 package backend
 
 import (
-	"github.com/TypicalAM/goread/internal/tab"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+)
+
+// ItemType is the type of the added item
+type ItemType int
+
+const (
+	Category ItemType = iota
+	Feed
 )
 
 // The Backend is the model for the backend of the program. It is responsible
@@ -20,8 +27,8 @@ type Backend interface {
 	// FetchArticles returns a tea.Cmd which gets the articles from
 	// the backend via a string key
 	FetchArticles(feedName string) tea.Cmd
-	// AddItem returns a tea.Cmd which adds an item to the rss
-	AddItem(tabType tab.Type, fields ...string)
+	// AddItem adds an item to the rss
+	AddItem(itemType ItemType, fields ...string)
 	// Close closes the backend
 	Close() error
 }
@@ -42,17 +49,17 @@ type FetchErrorMessage struct {
 // NewItemMessage is a message to tell the main model that a new item
 // needs to be added to the list
 type NewItemMessage struct {
-	TabType tab.Type
-	Fields  []string
+	Type   ItemType
+	Fields []string
 }
 
 // NewItem is a function to tell the main model that a new item
 // needs to be added to the list
-func NewItem(tabType tab.Type, fields ...string) tea.Cmd {
+func NewItem(itemType ItemType, fields ...string) tea.Cmd {
 	return func() tea.Msg {
 		return NewItemMessage{
-			TabType: tabType,
-			Fields:  fields,
+			Type:   itemType,
+			Fields: fields,
 		}
 	}
 }

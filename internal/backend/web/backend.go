@@ -4,7 +4,6 @@ import (
 	"github.com/TypicalAM/goread/internal/backend"
 	simpleList "github.com/TypicalAM/goread/internal/list"
 	"github.com/TypicalAM/goread/internal/rss"
-	"github.com/TypicalAM/goread/internal/tab"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/mmcdole/gofeed"
@@ -12,13 +11,13 @@ import (
 
 // The Web Backend uses the internet to get all the feeds and their articles
 type Backend struct {
-	rss rss.Rss
+	rss *rss.Rss
 }
 
 // New returns a new WebBackend
 func New(urlFilePath string) Backend {
-	// FIXME: This should be configurable
-	return Backend{rss: rss.New(urlFilePath)}
+	rss := rss.New(urlFilePath)
+	return Backend{rss: &rss}
 }
 
 // Name returns the name of the backend
@@ -107,7 +106,22 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 }
 
 // AddItem adds an item to the rss
-func (b Backend) AddItem(tabType tab.Type, fields ...string) {}
+func (b Backend) AddItem(itemType backend.ItemType, fields ...string) {
+	// Add the item to the rss
+	switch itemType {
+	case backend.Category:
+		b.rss.Categories = append(b.rss.Categories, rss.Category{
+			Name:        fields[0],
+			Description: fields[1],
+		})
+	case backend.Feed:
+		// FIXME: Get the category
+		b.rss.Categories = append(b.rss.Categories, rss.Category{
+			Name:        fields[0],
+			Description: fields[1],
+		})
+	}
+}
 
 // Close closes the backend
 func (b Backend) Close() error {
