@@ -60,10 +60,12 @@ func (c RSSCategoryTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		// The data fetch was successful
 		if !c.loaded {
 			c.list = list.NewList(c.title, style.WindowHeight-5)
-			c.list.SetItems(msg.Items)
 			c.loaded = true
-			return c, nil
 		}
+
+		// Set the items of the list
+		c.list.SetItems(msg.Items)
+		return c, nil
 
 	case tea.KeyMsg:
 		// If the tab is not loaded, return
@@ -71,14 +73,32 @@ func (c RSSCategoryTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			return c, nil
 		}
 
+		// Handle the list messages
+		switch msg.String() {
+		case "enter":
+
+			// If it isnt a number, check if it is an enter
+			if !c.list.IsEmpty() {
+				return c, tab.NewTab(c.list.SelectedItem().FilterValue(), tab.Feed)
+			}
+
+		case "n":
+			// Add a new category
+			return c, backend.NewItem(backend.Feed)
+
+		case "d":
+			// Delete the selected category
+			if !c.list.IsEmpty() {
+				return c, backend.DeleteItem(
+					backend.Feed,
+					c.list.SelectedItem().FilterValue(),
+				)
+			}
+		}
+
 		// Check if the user opened a tab using the number pad
 		if index, ok := c.list.HasItem(msg.String()); ok {
 			return c, tab.NewTab(c.list.GetItem(index).FilterValue(), tab.Feed)
-		}
-
-		// If it isnt a number, check if it is an enter
-		if msg.String() == "enter" && !c.list.IsEmpty() {
-			return c, tab.NewTab(c.list.SelectedItem().FilterValue(), tab.Feed)
 		}
 
 	default:

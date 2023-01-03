@@ -87,10 +87,7 @@ func (w Welcome) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 		case "n":
 			// Add a new category
-			cmds = append(cmds, backend.NewItem(
-				backend.Category,
-				"name", "desc",
-			))
+			cmds = append(cmds, backend.NewItem(backend.Category))
 
 		case "d":
 			// Delete the selected category

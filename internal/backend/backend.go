@@ -57,11 +57,18 @@ type NewItemMessage struct {
 
 // NewItem is a function to tell the main model that a new item
 // needs to be added to the list
-func NewItem(itemType ItemType, fields ...string) tea.Cmd {
+func NewItem(itemType ItemType) tea.Cmd {
 	return func() tea.Msg {
+		var textFields []string
+		if itemType == Category {
+			textFields = []string{"Name", "Description"}
+		} else {
+			textFields = []string{"Name", "URL"}
+		}
+
 		return NewItemMessage{
 			Type:   itemType,
-			Fields: fields,
+			Fields: textFields,
 		}
 	}
 }

@@ -98,17 +98,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case backend.DeleteItemMessage:
 		// Delete the item
-		m.message = fmt.Sprintf("Deleted item %s", msg.Key)
+		m.message = fmt.Sprintf("Deleting item %s", msg.Key)
+
+		// Check the type of the item
 		if msg.Type == backend.Category {
 			err := m.backend.Rss().RemoveCategory(msg.Key)
 			if err != nil {
 				m.message = fmt.Sprintf("Error deleting category %s - %s", msg.Key, err.Error())
 			}
+
+			// Refresh the categories
+			return m, m.backend.FetchCategories()
 		}
 
-		// Fetch the categories again to update the list
-		if m.createItem.Type == backend.Category {
-			return m, m.backend.FetchCategories()
+		// Delete the feed
+		err := m.backend.Rss().RemoveFeed(m.tabs[m.activeTab].Title(), msg.Key)
+		if err != nil {
+			m.message = fmt.Sprintf("Error deleting feed %s - %s", msg.Key, err.Error())
 		}
 
 		// Fetch the feeds again to update the list
