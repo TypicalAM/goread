@@ -6,14 +6,16 @@ import (
 	"path/filepath"
 
 	"github.com/TypicalAM/goread/internal/backend"
+	"github.com/TypicalAM/goread/internal/backend/cache"
 	"github.com/TypicalAM/goread/internal/backend/fake"
 	"github.com/TypicalAM/goread/internal/backend/web"
 )
 
 // Define the basic backend types
 const (
-	BackendFake = "fake"
-	BackendWeb  = "web"
+	BackendFake  = "fake"
+	BackendWeb   = "web"
+	BackendCache = "cache"
 )
 
 // Config is the configuration for the program
@@ -63,6 +65,13 @@ func New(backend string, configPath string, urlPath string) (Config, error) {
 			urlPath:    urlPath,
 		}, nil
 
+	case BackendCache:
+		// Return the cache backend
+		return Config{
+			backend:    cache.New(),
+			configPath: configPath,
+			urlPath:    urlPath,
+		}, nil
 	default:
 		// No backend was found
 		return Config{}, fmt.Errorf("Unknown backend: %s", backend)

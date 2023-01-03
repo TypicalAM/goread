@@ -1,29 +1,31 @@
-package web
+package cache
 
 import (
 	"github.com/TypicalAM/goread/internal/backend"
-	"github.com/TypicalAM/goread/internal/backend/fake"
 	simpleList "github.com/TypicalAM/goread/internal/list"
 	"github.com/TypicalAM/goread/internal/rss"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/mmcdole/gofeed"
 )
 
-// The Web Backend uses the internet to get all the feeds and their articles
+// The Cache Backend uses a local cache to get all the feeds and their articles
 type Backend struct {
-	rss rss.Rss
+	Cache Cache
+	rss   rss.Rss
 }
 
-// New returns a new WebBackend
-func New() Backend {
-	// FIXME: This should be configurable
-	return Backend{rss: rss.New("config.yml")}
+// New creates a new Cache Backend
+func New() backend.Backend {
+	// TODO: Make the path configurable
+	return Backend{
+		Cache: newCache("cache.json"),
+		rss:   rss.New("config.yml"),
+	}
 }
 
 // Name returns the name of the backend
 func (b Backend) Name() string {
-	return "WebBackend"
+	return "CacheBackend"
 }
 
 // FetchCategories returns a tea.Cmd which gets the category list
@@ -76,29 +78,27 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 		url, err := b.rss.GetFeedURL(feedName)
 		if err != nil {
 			return backend.FetchErrorMessage{
-				Description: "Failed to get articles",
+				Description: "Failed to get the article url",
 				Err:         err,
 			}
 		}
 
-		// Get the articles and parse them using gofeed
-		fp := gofeed.NewParser()
-		feed, err := fp.ParseURL(url)
+		// Get the items from the cache
+		items, err := b.Cache.GetArticle(url)
 		if err != nil {
 			return backend.FetchErrorMessage{
-				Description: "Failed to parse the articles",
+				Description: "Failed to parse the article",
 				Err:         err,
 			}
 		}
 
 		// Create the list of list items
 		var result []list.Item
-		for i := range feed.Items {
-			content := fake.CreateFakeContent(i, feed)
+		for _, item := range items {
 			result = append(result, simpleList.NewListItem(
-				content.Title,
-				content.Description,
-				content.MoreContent(),
+				item.Title,
+				item.Description,
+				rss.Glamourize(item),
 			))
 		}
 

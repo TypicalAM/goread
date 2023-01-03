@@ -2,10 +2,11 @@ package rss
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"sort"
 
+	md "github.com/JohannesKaufmann/html-to-markdown"
+	"github.com/mmcdole/gofeed"
 	"gopkg.in/yaml.v3"
 )
 
@@ -39,11 +40,8 @@ func New(filePath string) Rss {
 	rss := Rss{filePath: "rss.yml"}
 	err := rss.loadFromFile()
 	if err == nil {
-		fmt.Println("Loaded rss file")
 		return rss
 	}
-
-	fmt.Println("Creating an example rss file")
 
 	rss.Categories = append(rss.Categories, Category{
 		Name:        "News",
@@ -155,4 +153,36 @@ func (rss Rss) GetFeedURL(feedName string) (string, error) {
 
 	// Feed not found
 	return "", ErrNotFound
+}
+
+// Glamourize will return a string that can be used to display the rss feeds
+func Glamourize(item gofeed.Item) string {
+	var mdown string
+
+	// Add the title
+	mdown += "# " + item.Title + "\n "
+
+	// If there are no authors, then we don't want to add a newline
+	if item.Authors != nil {
+		mdown += item.Authors[0].Name + "\n"
+	}
+
+	// Show when the article was published if available
+	if item.PublishedParsed != nil {
+		mdown += "\n"
+		mdown += "Published: " + item.PublishedParsed.Format("2006-01-02 15:04:05")
+	}
+
+	mdown += "\n\n"
+
+	// Convert the description html to markdown
+	converter := md.NewConverter("", true, nil)
+	descMarkdown, err := converter.ConvertString(item.Description)
+	if err != nil {
+		panic(err)
+	}
+
+	mdown += descMarkdown
+
+	return mdown
 }

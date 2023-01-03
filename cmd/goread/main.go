@@ -17,7 +17,7 @@ func main() {
 		return
 	}
 
-	cfg, err := config.New(config.BackendWeb, "", "")
+	cfg, err := config.New(config.BackendCache, "", "")
 	if err != nil {
 		fmt.Println(err)
 		return
