@@ -106,3 +106,8 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 		return backend.FetchSuccessMessage{Items: result}
 	}
 }
+
+// Close closes the backend
+func (b Backend) Close() error {
+	return nil
+}

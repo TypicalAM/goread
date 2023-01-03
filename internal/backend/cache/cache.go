@@ -1,6 +1,8 @@
 package cache
 
 import (
+	"fmt"
+
 	"github.com/TypicalAM/goread/internal/backend"
 	simpleList "github.com/TypicalAM/goread/internal/list"
 	"github.com/TypicalAM/goread/internal/rss"
@@ -17,8 +19,16 @@ type Backend struct {
 // New creates a new Cache Backend
 func New() backend.Backend {
 	// TODO: Make the path configurable
+	cache := newCache()
+
+	// Save the cache if it doesn't exist (crate the file)
+	if err := cache.Load(); err != nil {
+		fmt.Println("Cache doesn't exist")
+	}
+
+	// Return the backend
 	return Backend{
-		Cache: newCache("cache.json"),
+		Cache: cache,
 		rss:   rss.New("config.yml"),
 	}
 }
@@ -105,4 +115,9 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 		// Return the message
 		return backend.FetchSuccessMessage{Items: result}
 	}
+}
+
+// Close closes the backend
+func (b Backend) Close() error {
+	return b.Cache.Save()
 }

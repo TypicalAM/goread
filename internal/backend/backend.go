@@ -20,6 +20,8 @@ type Backend interface {
 	// FetchArticles returns a tea.Cmd which gets the articles from
 	// the backend via a string key
 	FetchArticles(feedName string) tea.Cmd
+	// Close closes the backend
+	Close() error
 }
 
 // FetchSuccessMessage is a message that is sent when the fetching of the

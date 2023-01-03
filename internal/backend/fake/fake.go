@@ -155,3 +155,8 @@ func htmlToMarkdown(content string) string {
 
 	return markdown
 }
+
+// Close the backend
+func (b Backend) Close() error {
+	return nil
+}

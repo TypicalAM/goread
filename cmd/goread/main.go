@@ -22,6 +22,7 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+	defer cfg.Getbackend().Close()
 
 	// Create the main model
 	model := model.New(cfg.Getbackend())

@@ -3,6 +3,7 @@ package cache
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/mmcdole/gofeed"
@@ -21,7 +22,14 @@ type Item struct {
 }
 
 // newCache creates a new cache
-func newCache(path string) Cache {
+func newCache() Cache {
+	// Get the path to the cache file
+	path, err := getCachePath()
+	// TODO: Handle error
+	if err != nil {
+		panic(err)
+	}
+
 	return Cache{
 		path:    path,
 		Content: make(map[string]Item),
@@ -54,7 +62,6 @@ func (c *Cache) Load() error {
 
 // Save writes the cache to disk
 func (c *Cache) Save() error {
-	// TODO: What if the file exists
 	f, err := os.Create(c.path)
 	if err != nil {
 		return err
@@ -133,4 +140,16 @@ func fetchArticle(url string) (Item, error) {
 		Expire: time.Now().Add(24 * time.Hour),
 		Items:  items,
 	}, nil
+}
+
+// getCachedPath returns the path to the cache file
+func getCachePath() (string, error) {
+	// Get the temporary directory
+	dir, err := os.UserCacheDir()
+	if err != nil {
+		return "", err
+	}
+
+	// Join the path
+	return filepath.Join(dir, "goread", "cache.json"), nil
 }
