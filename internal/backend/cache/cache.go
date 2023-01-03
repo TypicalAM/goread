@@ -1,124 +1,165 @@
 package cache
 
 import (
-	"fmt"
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"time"
 
-	"github.com/TypicalAM/goread/internal/backend"
-	simpleList "github.com/TypicalAM/goread/internal/list"
-	"github.com/TypicalAM/goread/internal/rss"
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
+	"github.com/mmcdole/gofeed"
 )
 
-// The Cache Backend uses a local cache to get all the feeds and their articles
-type Backend struct {
-	Cache Cache
-	rss   rss.Rss
+// Cache is a basic cache to read and write gofeed.Items based on the URL
+type Cache struct {
+	path    string
+	Content map[string]Item
 }
 
-// New creates a new Cache Backend
-func New() backend.Backend {
-	// TODO: Make the path configurable
-	cache := newCache()
+// Item is an item in the cache
+type Item struct {
+	Expire time.Time
+	Items  []gofeed.Item
+}
 
-	// Save the cache if it doesn't exist (crate the file)
-	if err := cache.Load(); err != nil {
-		// TODO: Logging
-		fmt.Println("Cache doesn't exist ", err)
+// newCache creates a new cache
+func newCache() Cache {
+	// Get the path to the cache file
+	path, err := getCachePath()
+	// TODO: Handle error
+	if err != nil {
+		panic(err)
 	}
 
-	// Return the backend
-	return Backend{
-		Cache: cache,
-		rss:   rss.New("config.yml"),
+	return Cache{
+		path:    path,
+		Content: make(map[string]Item),
 	}
 }
 
-// Name returns the name of the backend
-func (b Backend) Name() string {
-	return "CacheBackend"
-}
+// Load reads the cache from disk
+func (c *Cache) Load() error {
+	// Load the cache from the file
+	file, err := os.ReadFile(c.path)
+	if err != nil {
+		return err
+	}
 
-// FetchCategories returns a tea.Cmd which gets the category list
-// fron the backend
-func (b Backend) FetchCategories() tea.Cmd {
-	return func() tea.Msg {
-		// Create a list of categories
-		categories := b.rss.GetCategories()
+	err = json.Unmarshal(file, &c.Content)
+	if err != nil {
+		return err
+	}
 
-		// Create a list of list items
-		items := make([]list.Item, len(categories))
-		for i, cat := range categories {
-			items[i] = simpleList.NewListItem(cat, "", "")
+	// Iterate over the cache and remove any expired items
+	for key, value := range c.Content {
+		if value.Expire.Before(time.Now()) {
+			delete(c.Content, key)
 		}
-
-		// Return the message
-		return backend.FetchSuccessMessage{Items: items}
 	}
+
+	// Return no errors
+	return nil
 }
 
-// FetchFeeds returns a tea.Cmd which gets the feed list from
-// the backend via a string key
-func (b Backend) FetchFeeds(catName string) tea.Cmd {
-	return func() tea.Msg {
-		// Create a list of feeds
-		feeds, err := b.rss.GetFeeds(catName)
+// Save writes the cache to disk
+func (c *Cache) Save() error {
+	f, err := os.Create(c.path)
+	if err != nil {
+		// Try to create the directory
+		err = os.MkdirAll(filepath.Dir(c.path), 0755)
 		if err != nil {
-			return backend.FetchErrorMessage{
-				Description: "Failed to get feeds",
-				Err:         err,
-			}
+			return err
 		}
 
-		// Create a list of list items
-		items := make([]list.Item, len(feeds))
-		for i, feed := range feeds {
-			items[i] = simpleList.NewListItem(feed, "", "")
+		// Try to create the file again
+		f, err = os.Create(c.path)
+		if err != nil {
+			return err
 		}
-
-		// Return the message
-		return backend.FetchSuccessMessage{Items: items}
 	}
+	defer f.Close()
+
+	// Try to encode the cache
+	content, err := json.Marshal(c.Content)
+	if err != nil {
+		return err
+	}
+
+	// Try to write the cache to disk
+	_, err = f.Write(content)
+	if err != nil {
+		return err
+	}
+
+	// Writing was successful
+	return nil
 }
 
-// FetchArticles returns a tea.Cmd which gets the articles from
-// the backend via a string key
-func (b Backend) FetchArticles(feedName string) tea.Cmd {
-	return func() tea.Msg {
-		// Create a list of articles
-		url, err := b.rss.GetFeedURL(feedName)
+// GetArticle returns an article list from the cache or
+// fetches it from the internet if it is not in the cache
+func (c *Cache) GetArticle(url string) ([]gofeed.Item, error) {
+	// Check if the cache contains the url
+	if item, ok := c.Content[url]; ok {
+		// Check if the item is expired
+		if item.Expire.After(time.Now()) {
+			// Return the items
+			return item.Items, nil
+		}
+
+		// Fetch the cacheItem from the internet
+		cacheItem, err := fetchArticle(url)
 		if err != nil {
-			return backend.FetchErrorMessage{
-				Description: "Failed to get the article url",
-				Err:         err,
-			}
+			return nil, err
 		}
 
-		// Get the items from the cache
-		items, err := b.Cache.GetArticle(url)
-		if err != nil {
-			return backend.FetchErrorMessage{
-				Description: "Failed to parse the article",
-				Err:         err,
-			}
-		}
-
-		// Create the list of list items
-		var result []list.Item
-		for _, item := range items {
-			result = append(result, simpleList.NewListItem(
-				item.Title,
-				item.Description,
-				rss.Glamourize(item),
-			))
-		}
-
-		// Return the message
-		return backend.FetchSuccessMessage{Items: result}
+		// Add the item to the cache
+		c.Content[url] = cacheItem
+		return cacheItem.Items, nil
 	}
+
+	// Fetch the cacheItem from the internet
+	cacheItem, err := fetchArticle(url)
+	if err != nil {
+		return nil, err
+	}
+
+	// Add the item to the cache
+	c.Content[url] = cacheItem
+	return cacheItem.Items, nil
 }
 
-// Close closes the backend
-func (b Backend) Close() error {
-	return b.Cache.Save()
+// fetchArticle fetches an article list from the internet and
+// reutrns a slice of gofeed.Items
+func fetchArticle(url string) (Item, error) {
+	// Create a new feed parser
+	fp := gofeed.NewParser()
+
+	// Parse the feed
+	feed, err := fp.ParseURL(url)
+	if err != nil {
+		return Item{}, err
+	}
+
+	// Parse the items
+	items := make([]gofeed.Item, len(feed.Items))
+	for i, item := range feed.Items {
+		items[i] = *item
+	}
+
+	// Return the items
+	return Item{
+		Expire: time.Now().Add(24 * time.Hour),
+		Items:  items,
+	}, nil
+}
+
+// getCachedPath returns the path to the cache file
+func getCachePath() (string, error) {
+	// Get the temporary directory
+	dir, err := os.UserCacheDir()
+	if err != nil {
+		return "", err
+	}
+
+	// Join the path
+	return filepath.Join(dir, "goread", "cache.json"), nil
 }
