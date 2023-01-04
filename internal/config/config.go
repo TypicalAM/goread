@@ -5,13 +5,11 @@ import (
 
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/backend/cache"
-	"github.com/TypicalAM/goread/internal/backend/fake"
 	"github.com/TypicalAM/goread/internal/backend/web"
 )
 
 // Define the basic backend types
 const (
-	BackendFake  = "fake"
 	BackendWeb   = "web"
 	BackendCache = "cache"
 )
@@ -33,8 +31,6 @@ func New(backendType string, urlPath string) (Config, error) {
 	// Determine the backend
 	var backend backend.Backend
 	switch backendType {
-	case BackendFake:
-		backend = fake.New()
 	case BackendWeb:
 		backend = web.New(config.urlPath)
 	case BackendCache:

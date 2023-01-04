@@ -28,7 +28,7 @@ func parseCmdLine() (urlPath string, backend string, testColors bool, err error)
 	testColors = *testColorsPtr
 
 	// Check if the backend is valid
-	if backend != config.BackendCache && backend != config.BackendWeb && backend != config.BackendFake {
+	if backend != config.BackendCache && backend != config.BackendWeb {
 		return "", "", false, fmt.Errorf("invalid backend: %s", backend)
 	}
 
