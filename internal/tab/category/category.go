@@ -47,10 +47,6 @@ func (c RSSCategoryTab) Title() string {
 	return c.title
 }
 
-func (c RSSCategoryTab) Loaded() bool {
-	return c.loaded
-}
-
 func (c RSSCategoryTab) Init() tea.Cmd {
 	return tea.Batch(c.readerFunc(c.title), c.loadingSpinner.Tick)
 }

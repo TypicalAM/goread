@@ -12,21 +12,21 @@ const (
 	Category
 )
 
-// Tab is a general layout for a tab
+// Tab is an interface outlining the methods that a tab should implement
+// a bubbletea models' methods and also some more
 type Tab interface {
-	// General fields
+	// general fields
 	Title() string
-	Loaded() bool
 	Type() Type
 
-	// Bubbletea methods
+	// bubbletea methods
 	Init() tea.Cmd
 	Update(msg tea.Msg) (Tab, tea.Cmd)
 	View() string
 }
 
-// NewTab is used to signal to the main model that a
-// tab should be created
+// NewTab returns a tea.Cmd which sends a message to the main
+// model to create a new tab
 func NewTab(title string, tabType Type) tea.Cmd {
 	return func() tea.Msg {
 		return NewTabMessage{
@@ -36,10 +36,8 @@ func NewTab(title string, tabType Type) tea.Cmd {
 	}
 }
 
-// The new tab message is sent when we want to enqueue a new tab
+// NewTabMessage is a tea.Msg that signals that a new tab should be created
 type NewTabMessage struct {
-	// The new tab title
 	Title string
-	// The new tab type
-	Type Type
+	Type  Type
 }

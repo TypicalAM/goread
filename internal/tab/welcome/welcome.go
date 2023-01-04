@@ -40,11 +40,6 @@ func (w Welcome) Type() tab.Type {
 	return tab.Welcome
 }
 
-// Return the load state
-func (w Welcome) Loaded() bool {
-	return w.loaded
-}
-
 // Implement the bubbletea.Model interface
 func (w Welcome) Init() tea.Cmd {
 	return w.readerFunc()

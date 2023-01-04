@@ -61,11 +61,6 @@ func (r RssFeedTab) Title() string {
 	return r.title
 }
 
-// Show if the tab is loaded
-func (r RssFeedTab) Loaded() bool {
-	return r.loaded
-}
-
 // Initialize the tab
 func (r RssFeedTab) Init() tea.Cmd {
 	return tea.Batch(r.readerFunc(r.title), r.loadingSpinner.Tick)
