@@ -35,19 +35,24 @@ type RssFeedTab struct {
 	failed         bool
 
 	readerFunc func(string) tea.Cmd
+
+	availableWidth  int
+	availableHeight int
 }
 
 // New creates a new RssFeedTab with sensible defaults
-func New(title string, readerFunc func(string) tea.Cmd) RssFeedTab {
+func New(availableWidth, availableHeight int, title string, readerFunc func(string) tea.Cmd) RssFeedTab {
 	// Create a spinner for loading the data
 	spin := spinner.New()
 	spin.Spinner = spinner.Points
 	spin.Style = lipgloss.NewStyle().Foreground(style.GlobalColorscheme.Color1)
 
 	return RssFeedTab{
-		loadingSpinner: spin,
-		title:          title,
-		readerFunc:     readerFunc,
+		availableWidth:  availableWidth,
+		availableHeight: availableHeight,
+		loadingSpinner:  spin,
+		title:           title,
+		readerFunc:      readerFunc,
 	}
 }
 
@@ -70,8 +75,8 @@ func (r RssFeedTab) Init() tea.Cmd {
 // dimensions of the window. It initializes the list and the viewport
 func (r *RssFeedTab) loadTab(items []list.Item) {
 	// Set the width and the height of the components
-	listWidth := style.WindowWidth / 4
-	viewportWidth := style.WindowWidth - listWidth - 4 // 4 is the padding
+	listWidth := r.availableWidth / 4
+	viewportWidth := r.availableHeight - listWidth - 4 // 4 is the padding
 
 	// Get the default styles for the list items
 	delegateStyles := list.NewDefaultItemStyles()
@@ -98,7 +103,7 @@ func (r *RssFeedTab) loadTab(items []list.Item) {
 	}
 
 	// Initialize the list
-	r.list = list.New(items, itemDelegate, listWidth, style.WindowHeight-5)
+	r.list = list.New(items, itemDelegate, listWidth, r.availableHeight-5)
 
 	// Set some attributes for the list
 	r.list.SetShowHelp(false)
@@ -106,7 +111,7 @@ func (r *RssFeedTab) loadTab(items []list.Item) {
 	r.list.SetShowStatusBar(false)
 
 	// Initialize the viewport
-	r.viewport = viewport.New(viewportWidth, style.WindowHeight-5)
+	r.viewport = viewport.New(viewportWidth, r.availableHeight-5)
 
 	// We are locked and loaded
 	r.loaded = true
@@ -136,7 +141,7 @@ func (r RssFeedTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			}
 
 			// Set the width of the styled content for word wrapping
-			contentWidth := style.WindowWidth - style.WindowWidth/4 - 4
+			contentWidth := r.availableWidth - r.availableWidth/4 - 4
 
 			// Get the content of the selected item
 			r.viewport.SetContent(
@@ -215,7 +220,7 @@ func (r RssFeedTab) View() string {
 			)
 		}
 
-		padding := style.WindowHeight - 3 - lipgloss.Height(loadingMsg)
+		padding := r.availableHeight - 3 - lipgloss.Height(loadingMsg)
 		return loadingMsg + strings.Repeat("\n", padding)
 	}
 

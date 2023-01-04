@@ -21,19 +21,24 @@ type RSSCategoryTab struct {
 	loadingSpinner spinner.Model
 	list           list.List
 	readerFunc     func(string) tea.Cmd
+
+	availableWidth  int
+	availableHeight int
 }
 
 // New creates a new RssCategoryTab with sensible defaults
-func New(title string, readerFunc func(string) tea.Cmd) RSSCategoryTab {
+func New(availableWidth, availableHeight int, title string, readerFunc func(string) tea.Cmd) RSSCategoryTab {
 	// Create a spinner for loading the data
 	spin := spinner.New()
 	spin.Spinner = spinner.Points
 	spin.Style = lipgloss.NewStyle().Foreground(style.GlobalColorscheme.Color1)
 
 	return RSSCategoryTab{
-		loadingSpinner: spin,
-		title:          title,
-		readerFunc:     readerFunc,
+		availableWidth:  availableWidth,
+		availableHeight: availableHeight,
+		loadingSpinner:  spin,
+		title:           title,
+		readerFunc:      readerFunc,
 	}
 }
 
@@ -59,7 +64,7 @@ func (c RSSCategoryTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	case backend.FetchSuccessMessage:
 		// The data fetch was successful
 		if !c.loaded {
-			c.list = list.NewList(c.title, style.WindowHeight-5)
+			c.list = list.NewList(c.title, c.availableHeight-5)
 			c.loaded = true
 		}
 
@@ -124,7 +129,7 @@ func (c RSSCategoryTab) View() string {
 			Render(fmt.Sprintf("%s Loading category %s", c.loadingSpinner.View(), c.title))
 
 		// Display the loading message with padding
-		return loadingMessage + strings.Repeat("\n", style.WindowHeight-3-lipgloss.Height(loadingMessage))
+		return loadingMessage + strings.Repeat("\n", c.availableHeight-3-lipgloss.Height(loadingMessage))
 	}
 
 	// Return the list view

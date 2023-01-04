@@ -3,7 +3,6 @@ package welcome
 import (
 	"github.com/TypicalAM/goread/internal/backend"
 	simpleList "github.com/TypicalAM/goread/internal/list"
-	"github.com/TypicalAM/goread/internal/style"
 	"github.com/TypicalAM/goread/internal/tab"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -16,13 +15,18 @@ type Welcome struct {
 	// The list of categorie
 	list       simpleList.List
 	readerFunc func() tea.Cmd
+
+	availableWidth  int
+	availableHeight int
 }
 
 // New creates a new RssFeedTab with sensible defaults
-func New(title string, readerFunc func() tea.Cmd) Welcome {
+func New(availableWidth, availableHeight int, title string, readerFunc func() tea.Cmd) Welcome {
 	return Welcome{
-		title:      title,
-		readerFunc: readerFunc,
+		availableWidth:  availableWidth,
+		availableHeight: availableHeight,
+		title:           title,
+		readerFunc:      readerFunc,
 	}
 }
 
@@ -55,7 +59,7 @@ func (w Welcome) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	if !w.loaded {
 		if msg, ok := msg.(backend.FetchSuccessMessage); ok {
 			// Initialize the list of categories, items will be set later
-			w.list = simpleList.NewList("Categories", style.WindowHeight-5)
+			w.list = simpleList.NewList("Categories", w.availableHeight-5)
 
 			// Add the categories
 			w.list.SetItems(msg.Items)

@@ -8,9 +8,7 @@ import (
 
 // Styles
 var (
-	WindowWidth  int
-	WindowHeight int
-	ColumnStyle  = lipgloss.NewStyle().
+	ColumnStyle = lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
 			BorderForeground(GlobalColorscheme.TextDark)
 

@@ -25,6 +25,9 @@ type Model struct {
 
 	creatingItem bool
 	createItem   createItem
+
+	WindowWidth  int
+	WindowHeight int
 }
 
 // NewModel returns a new model with some sensible defaults
@@ -47,9 +50,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Check if we have the window size, if not, we wait for it
 	if !m.loaded {
 		if msg, ok := msg.(tea.WindowSizeMsg); ok {
-			style.WindowWidth = msg.Width
-			style.WindowHeight = msg.Height
-			m.tabs = append(m.tabs, welcome.New("Welcome", m.backend.FetchCategories))
+			m.WindowWidth = msg.Width
+			m.WindowHeight = msg.Height
+			m.tabs = append(m.tabs, welcome.New(
+				m.WindowWidth,
+				m.WindowHeight,
+				"Welcome",
+				m.backend.FetchCategories,
+			))
 			m.loaded = true
 			cmds = append(cmds, m.tabs[0].Init())
 		} else {
@@ -188,14 +196,14 @@ func (m *Model) RenderTabBar() string {
 	}
 
 	row := lipgloss.JoinHorizontal(lipgloss.Top, tabs...)
-	gap := style.TabGap.Render(strings.Repeat(" ", style.Max(0, style.WindowWidth-lipgloss.Width(row))))
+	gap := style.TabGap.Render(strings.Repeat(" ", style.Max(0, m.WindowWidth-lipgloss.Width(row))))
 	return lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap)
 }
 
 func (m *Model) RenderStatusBar() string {
 	// Render the status bar at the bottom of the screen
 	row := lipgloss.JoinHorizontal(lipgloss.Top, tab.StyleStatusBarCell(m.tabs[m.activeTab].Type()))
-	gap := style.StatusBarGap.Render(strings.Repeat(" ", style.Max(0, style.WindowWidth-lipgloss.Width(row))))
+	gap := style.StatusBarGap.Render(strings.Repeat(" ", style.Max(0, m.WindowWidth-lipgloss.Width(row))))
 	return lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap)
 }
 
@@ -217,7 +225,7 @@ func (m Model) View() string {
 	sections = append(sections, m.RenderTabBar())
 
 	// Render the tab content and the status bar
-	constrainHeight := lipgloss.NewStyle().Height(style.WindowHeight - 3)
+	constrainHeight := lipgloss.NewStyle().Height(m.WindowHeight - 3)
 	sections = append(sections, constrainHeight.Render(m.tabs[m.activeTab].View()))
 	sections = append(sections, m.RenderStatusBar())
 
@@ -242,11 +250,15 @@ func (m *Model) createNewTab(title string, tabType tab.Type) {
 	switch tabType {
 	case tab.Category:
 		newTab = category.New(
+			m.WindowWidth,
+			m.WindowHeight-4,
 			title,
 			m.backend.FetchFeeds,
 		)
 	case tab.Feed:
 		newTab = feed.New(
+			m.WindowWidth,
+			m.WindowHeight,
 			title,
 			m.backend.FetchArticles,
 		)
