@@ -31,9 +31,11 @@ go build -o goread cmd/goread/main.go
 Here are the things that I've not yet implemented
 
 - [X] Waiting for the window size message before adding the first tab
-- [ ] Deleting, adding and removing items
-- [ ] Help interface with the key bindings
+- [X] Adding and removing items
+- [ ] Verbose UI mode
 - [ ] A main category where all the feeds are aggregated
+- [ ] Loadable colorschemes
+- [ ] Help interface with the key bindings
 
 ## 📸 Here is a demo of what it looks like:
 
