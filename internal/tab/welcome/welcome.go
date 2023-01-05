@@ -2,20 +2,22 @@ package welcome
 
 import (
 	"github.com/TypicalAM/goread/internal/backend"
-	simpleList "github.com/TypicalAM/goread/internal/list"
+	"github.com/TypicalAM/goread/internal/list"
 	"github.com/TypicalAM/goread/internal/tab"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+// Welcome is a tab which shows the categories
 type Welcome struct {
-	// General fields
+	// general fields
 	title  string
 	loaded bool
 
-	// The list of categorie
-	list       simpleList.List
+	// aggregating categories
+	list       list.List
 	readerFunc func() tea.Cmd
 
+	// other fields
 	availableWidth  int
 	availableHeight int
 }
@@ -30,93 +32,82 @@ func New(availableWidth, availableHeight int, title string, readerFunc func() te
 	}
 }
 
-// Return the title of the tab
-func (w Welcome) Title() string {
-	return w.title
+// Title returns the title of the tab
+func (m Welcome) Title() string {
+	return m.title
 }
 
-// Return the type of the tab
-func (w Welcome) Type() tab.Type {
+// Type returns the type of the tab (welcome)
+func (m Welcome) Type() tab.Type {
 	return tab.Welcome
 }
 
-// Implement the bubbletea.Model interface
-func (w Welcome) Init() tea.Cmd {
-	return w.readerFunc()
+// Init initializes the tab (calls the backend)
+func (m Welcome) Init() tea.Cmd {
+	return m.readerFunc()
 }
 
-// Update the variables
-func (w Welcome) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
-	var cmd tea.Cmd
-	var cmds []tea.Cmd
-
+// Update the variables of the tab
+func (m Welcome) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	// Wait for items to be loaded
-	if !w.loaded {
-		if msg, ok := msg.(backend.FetchSuccessMessage); ok {
-			// Initialize the list of categories, items will be set later
-			w.list = simpleList.NewList("Categories", w.availableHeight-5)
-
-			// Add the categories
-			w.list.SetItems(msg.Items)
-			w.loaded = true
-		} else {
-			return w, nil
+	if !m.loaded {
+		_, ok := msg.(backend.FetchSuccessMessage)
+		if !ok {
+			return m, nil
 		}
+
+		// Initialize the list of categories, items will be set later
+		m.list = list.NewList("Categories", m.availableHeight-5)
+
+		// Add the categories
+		m.loaded = true
 	}
 
 	// Update the list
-	w.list, cmd = w.list.Update(msg)
-	cmds = append(cmds, cmd)
+	var cmd tea.Cmd
+	m.list, cmd = m.list.Update(msg)
 
 	switch msg := msg.(type) {
 	case backend.FetchSuccessMessage:
 		// Update the list of categories
-		w.list.SetItems(msg.Items)
+		m.list.SetItems(msg.Items)
 
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
 			// Add a new tab with the selected category
-			if !w.list.IsEmpty() {
-				cmds = append(cmds, tab.NewTab(
-					w.list.SelectedItem().FilterValue(),
-					tab.Category,
-				))
+			if !m.list.IsEmpty() {
+				return m, tab.NewTab(m.list.SelectedItem().FilterValue(), tab.Category)
 			}
 
 		case "n":
 			// Add a new category
-			cmds = append(cmds, backend.NewItem(backend.Category))
+			return m, backend.NewItem(backend.Category)
 
 		case "d":
 			// Delete the selected category
-			if !w.list.IsEmpty() {
-				cmds = append(cmds, backend.DeleteItem(
-					backend.Category,
-					w.list.SelectedItem().FilterValue(),
-				))
+			if !m.list.IsEmpty() {
+				return m, backend.DeleteItem(backend.Category, m.list.SelectedItem().FilterValue())
+			}
+
+			// Check if we need to open a new category
+			if index, ok := m.list.HasItem(msg.String()); ok {
+				return m, tab.NewTab(m.list.GetItem(index).FilterValue(), tab.Category)
 			}
 		}
 	}
 
-	// Check the message type
-	if msg, ok := msg.(tea.KeyMsg); ok {
-		// Check if we need to open a new tab
-		if index, ok := w.list.HasItem(msg.String()); ok {
-			cmds = append(cmds, tab.NewTab(w.list.GetItem(index).FilterValue(), tab.Category))
-		}
-	}
-
-	return w, tea.Batch(cmds...)
+	// Return the updated list
+	return m, cmd
 }
 
 // View the tab
-func (w Welcome) View() string {
+func (m Welcome) View() string {
 	// Check if the program is loaded, if not, return an empty string
-	if !w.loaded {
+	if !m.loaded {
 		return "Loading..."
 	}
 
 	// Return the view
-	return w.list.View()
+	return m.list.View()
 }
