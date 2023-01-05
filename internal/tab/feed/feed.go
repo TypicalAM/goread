@@ -15,39 +15,33 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type SelectedPane int
-
-const (
-	articlesList SelectedPane = iota
-	articlesPreview
-)
-
-// RssFeedTab is a tab that displays a list of RSS feeds
-type RssFeedTab struct {
-	title  string
-	loaded bool
-
-	loadingSpinner spinner.Model
-	list           list.Model
-	isViewportOpen bool
-	viewport       viewport.Model
-	selected       SelectedPane
-	failed         bool
-
-	readerFunc func(string) tea.Cmd
-
+// Model contains the state of this tab
+type Model struct {
+	title           string
+	loaded          bool
+	loadingSpinner  spinner.Model
+	fetchFailed     bool
+	list            list.Model
+	isViewportOpen  bool
+	viewport        viewport.Model
+	viewportFocused bool
 	availableWidth  int
 	availableHeight int
+
+	// readerFunc is a function which returns a tea.Cmd which will be executed
+	// when the tab is initialized
+	readerFunc func(string) tea.Cmd
 }
 
-// New creates a new RssFeedTab with sensible defaults
-func New(availableWidth, availableHeight int, title string, readerFunc func(string) tea.Cmd) RssFeedTab {
+// New creates a new feed tab with sensible defaults
+func New(availableWidth, availableHeight int, title string, readerFunc func(string) tea.Cmd) Model {
 	// Create a spinner for loading the data
 	spin := spinner.New()
 	spin.Spinner = spinner.Points
 	spin.Style = lipgloss.NewStyle().Foreground(style.GlobalColorscheme.Color1)
 
-	return RssFeedTab{
+	// Create the model
+	return Model{
 		availableWidth:  availableWidth,
 		availableHeight: availableHeight,
 		loadingSpinner:  spin,
@@ -56,24 +50,96 @@ func New(availableWidth, availableHeight int, title string, readerFunc func(stri
 	}
 }
 
-// Return the title of the tab
-func (r RssFeedTab) Title() string {
-	return r.title
+// Title returns the title of the tab
+func (m Model) Title() string {
+	return m.title
 }
 
-// Initialize the tab
-func (r RssFeedTab) Init() tea.Cmd {
-	return tea.Batch(r.readerFunc(r.title), r.loadingSpinner.Tick)
+// Type returns the type of the tab
+func (m Model) Type() tab.Type {
+	return tab.Feed
 }
 
-// loadTab is fired when the items are retrieved and we know the
-// dimensions of the window. It initializes the list and the viewport
-func (r *RssFeedTab) loadTab(items []list.Item) {
+// Init initializes the tab
+func (m Model) Init() tea.Cmd {
+	return tea.Batch(m.readerFunc(m.title), m.loadingSpinner.Tick)
+}
+
+// Update the variables of the tab
+func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
+	switch msg := msg.(type) {
+	case backend.FetchErrorMessage:
+		// If the fetch failed, we need to display an error message
+		m.fetchFailed = true
+		return m, nil
+
+	case backend.FetchSuccessMessage:
+		// If the fetch succeeded, we need to load the tab
+		return m.loadTab(msg.Items)
+
+	case tea.KeyMsg:
+		// If the tab is not loaded, return
+		if !m.loaded {
+			return m, nil
+		}
+
+		// Handle the key message
+		switch msg.String() {
+		case "enter":
+			// Update the viewport
+			return m.updateViewport()
+
+		case "r":
+			// Refresh the contents of the tab
+			m.isViewportOpen = false
+			m.loaded = false
+			return m, m.readerFunc(m.title)
+
+		case "left", "right":
+			// If the viewport isn't open, don't do anything
+			if !m.isViewportOpen {
+				return m, nil
+			}
+
+			// Toggle the viewport focus
+			m.viewportFocused = !m.viewportFocused
+			return m, nil
+		}
+
+	default:
+		// If the model is not loaded, update the loading spinner
+		if !m.loaded {
+			var cmd tea.Cmd
+			m.loadingSpinner, cmd = m.loadingSpinner.Update(msg)
+			return m, cmd
+		}
+	}
+
+	// Update the selected item from the pane
+	var cmd tea.Cmd
+	if m.viewportFocused {
+		m.viewport, cmd = m.viewport.Update(msg)
+		return m, cmd
+	}
+
+	// Prevent the list from updating if we are not loaded yet
+	if m.loaded {
+		m.list, cmd = m.list.Update(msg)
+		return m, cmd
+	}
+
+	// Return no commands
+	return m, nil
+}
+
+// loadTab is fired when the items are retrieved from the backend, it
+// initializes the list and the viewport
+func (m Model) loadTab(items []list.Item) (tab.Tab, tea.Cmd) {
 	// Set the width and the height of the components
-	listWidth := r.availableWidth / 4
-	viewportWidth := r.availableHeight - listWidth - 4 // 4 is the padding
+	listWidth := m.availableWidth / 4
+	viewportWidth := m.availableHeight - listWidth - 4
 
-	// Get the default styles for the list items
+	// Create the styles for the list items
 	delegateStyles := list.NewDefaultItemStyles()
 	delegateStyles.SelectedTitle = delegateStyles.SelectedTitle.Copy().
 		BorderForeground(style.GlobalColorscheme.Color3).
@@ -91,160 +157,94 @@ func (r *RssFeedTab) loadTab(items []list.Item) {
 	itemDelegate.Styles = delegateStyles
 	itemDelegate.SetHeight(3)
 
-	// Now that we know the width of the list we can wrap the descriptions
-	// to match it
-	for i := range items {
-		items[i] = items[i].(simpleList.Item)
-	}
-
 	// Initialize the list
-	r.list = list.New(items, itemDelegate, listWidth, r.availableHeight-5)
+	m.list = list.New(items, itemDelegate, listWidth, m.availableHeight-5)
 
 	// Set some attributes for the list
-	r.list.SetShowHelp(false)
-	r.list.SetShowTitle(false)
-	r.list.SetShowStatusBar(false)
+	m.list.SetShowHelp(false)
+	m.list.SetShowTitle(false)
+	m.list.SetShowStatusBar(false)
 
 	// Initialize the viewport
-	r.viewport = viewport.New(viewportWidth, r.availableHeight-5)
+	m.viewport = viewport.New(viewportWidth, m.availableHeight-5)
 
 	// We are locked and loaded
-	r.loaded = true
+	m.loaded = true
+	return m, nil
 }
 
-// Update the tab
-func (r RssFeedTab) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
-	switch msg := msg.(type) {
-	case backend.FetchErrorMessage:
-		if !r.loaded {
-			r.failed = true
-			return r, nil
-		}
+// updateViewport is fired when the user presses enter, it updates the
+// viewport with the selected item
+func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
+	// Set the width of the styled content for word wrapping
+	contentWidth := m.availableWidth - m.availableWidth/4 - 4
 
-	case backend.FetchSuccessMessage:
-		if !r.loaded {
-			r.loadTab(msg.Items)
-			return r, nil
-		}
+	// Get the content of the selected item
+	m.viewport.SetContent(m.list.SelectedItem().(simpleList.Item).StyleContent(contentWidth))
 
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "enter":
-			// If the tab is not loaded, return
-			if !r.loaded {
-				return r, nil
-			}
-
-			// Set the width of the styled content for word wrapping
-			contentWidth := r.availableWidth - r.availableWidth/4 - 4
-
-			// Get the content of the selected item
-			r.viewport.SetContent(
-				r.list.SelectedItem().(simpleList.Item).StyleContent(contentWidth),
-			)
-
-			// Set the view as open if it isn't
-			if !r.isViewportOpen {
-				r.isViewportOpen = true
-			}
-
-			// We don't need to update the list or the viewport
-			return r, nil
-
-		case "left", "right":
-			// If the viewport isn't open, don't do anything
-			if !r.isViewportOpen {
-				return r, nil
-			}
-
-			// If the viewport is open, switch the selected pane
-			if r.selected == articlesPreview {
-				r.selected = articlesList
-			} else {
-				r.selected = articlesPreview
-			}
-
-			// We don't need to update the list or the viewport
-			return r, nil
-		}
-
-	default:
-		// If the model is not loaded, update the loading spinner
-		if !r.loaded {
-			var cmd tea.Cmd
-			r.loadingSpinner, cmd = r.loadingSpinner.Update(msg)
-			return r, cmd
-		}
+	// Set the view as open if it isn't
+	if !m.isViewportOpen {
+		m.isViewportOpen = true
 	}
 
-	// Update the selected item from the pane
-	var cmd tea.Cmd
-	if r.selected == articlesList {
-		// Prevent the list from updating if we are not loaded yet
-		if r.loaded {
-			r.list, cmd = r.list.Update(msg)
-		}
-	} else {
-		r.viewport, cmd = r.viewport.Update(msg)
-	}
-
-	return r, cmd
+	// Don't update the list
+	return m, nil
 }
 
-func (r RssFeedTab) View() string {
-	if !r.loaded {
-		// The style of the message
-		messageStyle := lipgloss.NewStyle().
-			MarginLeft(3).
-			MarginTop(1)
-
-		var loadingMsg string
-		if r.failed {
-			// Render the failed message with an cross mark
-			errorMsgStyle := messageStyle.Copy().
-				Foreground(style.GlobalColorscheme.Color4)
-			loadingMsg = lipgloss.JoinHorizontal(
-				lipgloss.Top,
-				errorMsgStyle.Render(" "),
-				messageStyle.Render("Failed to load the articles"),
-			)
-		} else {
-			// Render the loading message with a spinner
-			loadingMsg = messageStyle.Render(
-				fmt.Sprintf("%s Loading feed %s", r.loadingSpinner.View(), r.title),
-			)
-		}
-
-		padding := r.availableHeight - 3 - lipgloss.Height(loadingMsg)
-		return loadingMsg + strings.Repeat("\n", padding)
+// View the tab
+func (m Model) View() string {
+	if !m.loaded {
+		// Show the loading message
+		return m.showLoading()
 	}
-
-	rssList := r.list.View()
-	rssViewport := r.viewport.View()
 
 	// If the view is not open show just the rss list
-	if !r.isViewportOpen {
-		return style.FocusedStyle.Render(rssList)
+	if !m.isViewportOpen {
+		return style.FocusedStyle.Render(m.list.View())
 	}
 
-	// If the viewport is open and the list is selected, highlight the list
-	if r.selected == articlesList {
+	// If the viewport is focused, render it with the focused style
+	if m.viewportFocused {
 		return lipgloss.JoinHorizontal(
 			lipgloss.Left,
-			style.FocusedStyle.Render(rssList),
-			style.ColumnStyle.Render(rssViewport),
+			style.ColumnStyle.Render(m.list.View()),
+			style.FocusedStyle.Render(m.viewport.View()),
 		)
 	}
 
-	// Highlight the viewport
+	// Otherwise render it with the default style
 	return lipgloss.JoinHorizontal(
 		lipgloss.Left,
-		style.ColumnStyle.Render(rssList),
-		style.FocusedStyle.Render(rssViewport),
+		style.FocusedStyle.Render(m.list.View()),
+		style.ColumnStyle.Render(m.viewport.View()),
 	)
 }
 
-// Return the type of the tab
-func (r RssFeedTab) Type() tab.Type {
-	return tab.Feed
+// showLoading shows the loading message or the error message
+func (m Model) showLoading() string {
+	// The style of the message
+	messageStyle := lipgloss.NewStyle().
+		MarginLeft(3).
+		MarginTop(1)
+
+	var loadingMsg string
+	if m.fetchFailed {
+		// Render the failed message with an cross mark
+		errorMsgStyle := messageStyle.Copy().
+			Foreground(style.GlobalColorscheme.Color4)
+		loadingMsg = lipgloss.JoinHorizontal(
+			lipgloss.Top,
+			errorMsgStyle.Render(" "),
+			messageStyle.Render("Failed to load the articles"),
+		)
+	} else {
+		// Render the loading message with a spinner
+		loadingMsg = messageStyle.Render(
+			fmt.Sprintf("%s Loading feed %s", m.loadingSpinner.View(), m.title),
+		)
+	}
+
+	// Pad the message with empty lines
+	padding := m.availableHeight - 3 - lipgloss.Height(loadingMsg)
+	return loadingMsg + strings.Repeat("\n", padding)
 }
