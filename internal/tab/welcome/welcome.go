@@ -7,24 +7,22 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-// Welcome is a tab which shows the categories
-type Welcome struct {
-	// general fields
-	title  string
-	loaded bool
-
-	// aggregating categories
-	list       list.List
-	readerFunc func() tea.Cmd
-
-	// other fields
+// Model contains the state of this tab
+type Model struct {
+	title           string
+	loaded          bool
+	list            list.List
 	availableWidth  int
 	availableHeight int
+
+	// readerFunc is a function which returns a tea.Cmd which will be executed
+	// when the tab is initialized
+	readerFunc func() tea.Cmd
 }
 
 // New creates a new RssFeedTab with sensible defaults
-func New(availableWidth, availableHeight int, title string, readerFunc func() tea.Cmd) Welcome {
-	return Welcome{
+func New(availableWidth, availableHeight int, title string, readerFunc func() tea.Cmd) Model {
+	return Model{
 		availableWidth:  availableWidth,
 		availableHeight: availableHeight,
 		title:           title,
@@ -33,22 +31,22 @@ func New(availableWidth, availableHeight int, title string, readerFunc func() te
 }
 
 // Title returns the title of the tab
-func (m Welcome) Title() string {
+func (m Model) Title() string {
 	return m.title
 }
 
-// Type returns the type of the tab (welcome)
-func (m Welcome) Type() tab.Type {
+// Type returns the type of the tab
+func (m Model) Type() tab.Type {
 	return tab.Welcome
 }
 
-// Init initializes the tab (calls the backend)
-func (m Welcome) Init() tea.Cmd {
+// Init initializes the tab
+func (m Model) Init() tea.Cmd {
 	return m.readerFunc()
 }
 
 // Update the variables of the tab
-func (m Welcome) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	// Wait for items to be loaded
 	if !m.loaded {
 		_, ok := msg.(backend.FetchSuccessMessage)
@@ -63,10 +61,6 @@ func (m Welcome) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		m.loaded = true
 	}
 
-	// Update the list
-	var cmd tea.Cmd
-	m.list, cmd = m.list.Update(msg)
-
 	switch msg := msg.(type) {
 	case backend.FetchSuccessMessage:
 		// Update the list of categories
@@ -80,6 +74,9 @@ func (m Welcome) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 				return m, tab.NewTab(m.list.SelectedItem().FilterValue(), tab.Category)
 			}
 
+			// If the list is empty, return nothing
+			return m, nil
+
 		case "n":
 			// Add a new category
 			return m, backend.NewItem(backend.Category)
@@ -90,6 +87,7 @@ func (m Welcome) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 				return m, backend.DeleteItem(backend.Category, m.list.SelectedItem().FilterValue())
 			}
 
+		default:
 			// Check if we need to open a new category
 			if index, ok := m.list.HasItem(msg.String()); ok {
 				return m, tab.NewTab(m.list.GetItem(index).FilterValue(), tab.Category)
@@ -97,13 +95,15 @@ func (m Welcome) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		}
 	}
 
-	// Return the updated list
+	// Update the list
+	var cmd tea.Cmd
+	m.list, cmd = m.list.Update(msg)
 	return m, cmd
 }
 
 // View the tab
-func (m Welcome) View() string {
-	// Check if the program is loaded, if not, return an empty string
+func (m Model) View() string {
+	// Check if the program is loaded, if not, return a loading message
 	if !m.loaded {
 		return "Loading..."
 	}
