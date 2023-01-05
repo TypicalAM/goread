@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/TypicalAM/goread/internal/backend"
-	simpleList "github.com/TypicalAM/goread/internal/list"
+	"github.com/TypicalAM/goread/internal/simplelist"
 	"github.com/TypicalAM/goread/internal/style"
 	"github.com/TypicalAM/goread/internal/tab"
 	"github.com/charmbracelet/bubbles/list"
@@ -176,18 +176,25 @@ func (m Model) loadTab(items []list.Item) (tab.Tab, tea.Cmd) {
 // updateViewport is fired when the user presses enter, it updates the
 // viewport with the selected item
 func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
-	// Set the width of the styled content for word wrapping
-	contentWidth := m.availableWidth - m.availableWidth/4 - 4
-
-	// Get the content of the selected item
-	m.viewport.SetContent(m.list.SelectedItem().(simpleList.Item).StyleContent(contentWidth))
-
 	// Set the view as open if it isn't
 	if !m.isViewportOpen {
 		m.isViewportOpen = true
 	}
 
-	// Don't update the list
+	// Set the width of the styled content for word wrapping
+	contentWidth := m.availableWidth - m.availableWidth/4 - 4
+
+	// Get the content of the selected item
+	content, err := m.list.SelectedItem().(simplelist.Item).StyleContent(contentWidth)
+	if err != nil {
+		m.viewport.SetContent(
+			fmt.Sprintf("We have encountered an error styling the content: %s", err),
+		)
+		return m, nil
+	}
+
+	// Set the content of the viewport
+	m.viewport.SetContent(content)
 	return m, nil
 }
 

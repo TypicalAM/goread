@@ -2,8 +2,8 @@ package web
 
 import (
 	"github.com/TypicalAM/goread/internal/backend"
-	simpleList "github.com/TypicalAM/goread/internal/list"
 	"github.com/TypicalAM/goread/internal/rss"
+	"github.com/TypicalAM/goread/internal/simplelist"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/mmcdole/gofeed"
@@ -35,7 +35,7 @@ func (b Backend) FetchCategories() tea.Cmd {
 		// Create a list of list items
 		items := make([]list.Item, len(categories))
 		for i, cat := range categories {
-			items[i] = simpleList.NewListItem(cat, "", "")
+			items[i] = simplelist.NewItem(cat, "", "")
 		}
 
 		// Return the message
@@ -59,7 +59,7 @@ func (b Backend) FetchFeeds(catName string) tea.Cmd {
 		// Create a list of list items
 		items := make([]list.Item, len(feeds))
 		for i, feed := range feeds {
-			items[i] = simpleList.NewListItem(feed, "", "")
+			items[i] = simplelist.NewItem(feed, "", "")
 		}
 
 		// Return the message
@@ -93,7 +93,7 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 		// Create the list of list items
 		var result []list.Item
 		for _, item := range feed.Items {
-			result = append(result, simpleList.NewListItem(
+			result = append(result, simplelist.NewItem(
 				item.Title,
 				rss.HTMLToText(item.Description),
 				rss.Markdownize(*item),

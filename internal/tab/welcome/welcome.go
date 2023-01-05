@@ -2,7 +2,7 @@ package welcome
 
 import (
 	"github.com/TypicalAM/goread/internal/backend"
-	"github.com/TypicalAM/goread/internal/list"
+	"github.com/TypicalAM/goread/internal/simplelist"
 	"github.com/TypicalAM/goread/internal/tab"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -11,7 +11,7 @@ import (
 type Model struct {
 	title           string
 	loaded          bool
-	list            list.List
+	list            simplelist.Model
 	availableWidth  int
 	availableHeight int
 
@@ -55,7 +55,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		}
 
 		// Initialize the list of categories, items will be set later
-		m.list = list.NewList("Categories", m.availableHeight-5)
+		m.list = simplelist.New("Categories", m.availableHeight-5)
 
 		// Add the categories
 		m.loaded = true
@@ -89,8 +89,8 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 		default:
 			// Check if we need to open a new category
-			if index, ok := m.list.HasItem(msg.String()); ok {
-				return m, tab.NewTab(m.list.GetItem(index).FilterValue(), tab.Category)
+			if item, ok := m.list.GetItem(msg.String()); ok {
+				return m, tab.NewTab(item.FilterValue(), tab.Category)
 			}
 		}
 	}

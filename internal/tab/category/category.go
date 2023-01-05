@@ -2,7 +2,7 @@ package category
 
 import (
 	"github.com/TypicalAM/goread/internal/backend"
-	"github.com/TypicalAM/goread/internal/list"
+	"github.com/TypicalAM/goread/internal/simplelist"
 	"github.com/TypicalAM/goread/internal/tab"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -11,7 +11,7 @@ import (
 type Model struct {
 	title           string
 	loaded          bool
-	list            list.List
+	list            simplelist.Model
 	availableWidth  int
 	availableHeight int
 
@@ -51,7 +51,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	case backend.FetchSuccessMessage:
 		// The data fetch was successful
 		if !m.loaded {
-			m.list = list.NewList(m.title, m.availableHeight-5)
+			m.list = simplelist.New(m.title, m.availableHeight-5)
 			m.loaded = true
 		}
 
@@ -87,8 +87,8 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 		default:
 			// Check if we need to open a new feed
-			if index, ok := m.list.HasItem(msg.String()); ok {
-				return m, tab.NewTab(m.list.GetItem(index).FilterValue(), tab.Feed)
+			if item, ok := m.list.GetItem(msg.String()); ok {
+				return m, tab.NewTab(item.FilterValue(), tab.Feed)
 			}
 		}
 	}
