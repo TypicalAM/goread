@@ -32,7 +32,7 @@ Here are the things that I've not yet implemented
 
 - [X] Waiting for the window size message before adding the first tab
 - [X] Adding and removing items
-- [ ] Verbose UI mode
+- [X] Verbose UI mode
 - [ ] A main category where all the feeds are aggregated
 - [ ] Loadable colorschemes
 - [ ] Help interface with the key bindings
