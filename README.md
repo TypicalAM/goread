@@ -1,5 +1,5 @@
 <p align="center">
-    <img width="400" src="assets/cover.png" />
+    <img width="500" src="assets/cover.png" />
 </p>
 
 👋 Hello! This is an RSS reader which allows you to browse the web better! It's accompanied by a beautiful TUI made with [bubble tea](https://github.com/charmbracelet/bubbletea)
@@ -36,11 +36,16 @@ Here are the things that I've not yet implemented
 - [ ] A main category where all the feeds are aggregated
 - [ ] Loadable colorschemes
 - [ ] Help interface with the key bindings
+- [ ] Generating colorschemes from a file
 
 ## 📸 Here is a demo of what it looks like:
 
 <p align="center">
     <img width="700" src="assets/example1.gif" />
+</p>
+
+<p align="center">
+    <img width="700" src="assets/example2.gif" />
 </p>
 
 ## 💁 Credit where credit is due
