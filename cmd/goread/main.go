@@ -4,13 +4,11 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/TypicalAM/goread/internal/config"
 	model "github.com/TypicalAM/goread/internal/model/main"
 	"github.com/TypicalAM/goread/internal/style"
 	tea "github.com/charmbracelet/bubbletea"
-	"golang.org/x/sys/unix"
 )
 
 // parseCmdLine parses the command line arguments
@@ -30,12 +28,6 @@ func parseCmdLine() (urlPath string, backend string, testColors bool, err error)
 	// Check if the backend is valid
 	if backend != config.BackendCache && backend != config.BackendWeb {
 		return "", "", false, fmt.Errorf("invalid backend: %s", backend)
-	}
-
-	// Check if the config path is valid and writeable
-	configDir := filepath.Dir(urlPath)
-	if unix.Access(configDir, unix.W_OK) != nil {
-		return "", "", false, fmt.Errorf("config file directory is not writable: %s", configDir)
 	}
 
 	// Return the default path
