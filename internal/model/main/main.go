@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/TypicalAM/goread/internal/backend"
+	"github.com/TypicalAM/goread/internal/model/input"
 	"github.com/TypicalAM/goread/internal/model/tab"
 	"github.com/TypicalAM/goread/internal/model/tab/category"
 	"github.com/TypicalAM/goread/internal/model/tab/feed"
@@ -30,8 +31,8 @@ type Model struct {
 	windowHeight   int
 
 	// creating items
-	creatingItem bool
-	createItem   createItem
+	newItem bool
+	input   input.Model
 
 	// other
 	message  string
@@ -61,7 +62,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	// If we are creating new items, we need to update the inputs
-	if m.creatingItem {
+	if m.newItem {
 		return m.updateItemCreation(msg)
 	}
 
@@ -80,9 +81,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case backend.NewItemMessage:
 		// Initialize the new Item model
-		m.createItem = newItemCreation(msg.Fields, msg.Type)
-		m.creatingItem = true
-		return m, m.createItem.Init()
+		m.input = input.New(msg.Type, msg.Fields)
+		m.newItem = true
+		return m, m.input.Init()
 
 	case backend.DeleteItemMessage:
 		// Delete the item
@@ -173,8 +174,8 @@ func (m Model) View() string {
 
 	// If we are typing, shift the focus onto the textfield
 	var messageBar string
-	if m.creatingItem {
-		messageBar = m.createItem.View()
+	if m.newItem {
+		messageBar = m.input.View()
 	} else {
 		messageBar = m.message
 	}
@@ -215,16 +216,18 @@ func (m Model) waitForSize(msg tea.Msg) (tea.Model, tea.Cmd) {
 // updateItemCreation updates the child model for creating items
 func (m Model) updateItemCreation(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
-	m.createItem, cmd = m.createItem.Update(msg)
+	m.input, cmd = m.input.Update(msg)
 
 	// If the child model is done, add the item
-	switch m.createItem.Index() {
-	case quitCancel:
+	switch m.input.State {
+	case input.Cancel:
 		m.message = "Cancelled adding item"
-		m.creatingItem = false
+		m.newItem = false
 		return m, cmd
-	case quitNormal:
+
+	case input.Finished:
 		return m.addItem()
+
 	default:
 		return m, cmd
 	}
@@ -263,12 +266,12 @@ func (m *Model) createNewTab(title string, tabType tab.Type) {
 // addItem gets the data from the child model and adds it to the rss
 func (m Model) addItem() (tea.Model, tea.Cmd) {
 	// End creating new items
-	m.creatingItem = false
-	m.message = "Adding an item - " + strings.Join(m.createItem.GetValues(), " ")
-	values := m.createItem.GetValues()
+	m.newItem = false
+	m.message = "Adding an item - " + strings.Join(m.input.GetValues(), " ")
+	values := m.input.GetValues()
 
 	// Check if the values are valid
-	if m.createItem.Type == backend.Category {
+	if m.input.Type == backend.Category {
 		// Check if the category already exists
 		err := m.backend.Rss().AddCategory(values[0], values[1])
 		if err != nil {

@@ -1,4 +1,4 @@
-package model
+package input
 
 import (
 	"fmt"
@@ -8,19 +8,27 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-// createItem is used as a model when creating a new item
-type createItem struct {
-	activeInput int
+type State int
 
-	fields []string
-	inputs []textinput.Model
-	Type   backend.ItemType
+const (
+	Normal State = iota
+	Cancel
+	Finished
+)
+
+// Model contains the state of this tab
+type Model struct {
+	State       State
+	activeInput int
+	fields      []string
+	inputs      []textinput.Model
+	Type        backend.ItemType
 }
 
 // New creates a new instance of the create item model
-func newItemCreation(fields []string, itemType backend.ItemType) createItem {
+func New(itemType backend.ItemType, fields []string) Model {
 	// Create an empty instance
-	c := createItem{}
+	c := Model{}
 
 	// Set the type
 	c.Type = itemType
@@ -44,57 +52,52 @@ func newItemCreation(fields []string, itemType backend.ItemType) createItem {
 	return c
 }
 
-const (
-	quitNormal = -1
-	quitCancel = -2
-)
-
 // Init initializes the model
-func (c createItem) Init() tea.Cmd {
+func (m Model) Init() tea.Cmd {
 	return nil
 }
 
 // Update the model
-func (c createItem) Update(msg tea.Msg) (createItem, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	// Update the textfields
 	var cmd tea.Cmd
-	c.inputs[c.activeInput], cmd = c.inputs[c.activeInput].Update(msg)
+	m.inputs[m.activeInput], cmd = m.inputs[m.activeInput].Update(msg)
 
 	// Check if we pressed enter, if yes, switch to the next input
 	if key, ok := msg.(tea.KeyMsg); ok {
 		switch key.String() {
 		case "enter":
-			c.activeInput++
-			if c.activeInput >= len(c.inputs) {
-				c.activeInput = quitNormal
-				return c, nil
+			m.activeInput++
+			if m.activeInput >= len(m.inputs) {
+				m.State = Finished
+				return m, nil
 			}
 
 		case "esc":
-			c.activeInput = quitCancel
-			return c, nil
+			m.State = Cancel
+			return m, nil
 		}
 	}
 
 	// If we are not creating new items, we need to update the tabs
-	return c, cmd
+	return m, cmd
 }
 
 // View the selected input
-func (c createItem) View() string {
-	return c.inputs[c.activeInput].View()
+func (m Model) View() string {
+	return m.inputs[m.activeInput].View()
 }
 
-// Index() returns the index of the active input
-func (c createItem) Index() int {
-	return c.activeInput
+// Index returns the index of the active input
+func (m Model) Index() int {
+	return m.activeInput
 }
 
 // GetValues returns the values of the inputs
-func (c createItem) GetValues() []string {
-	values := make([]string, len(c.inputs))
-	for i := range c.inputs {
-		values[i] = c.inputs[i].Value()
+func (m Model) GetValues() []string {
+	values := make([]string, len(m.inputs))
+	for i := range m.inputs {
+		values[i] = m.inputs[i].Value()
 	}
 	return values
 }

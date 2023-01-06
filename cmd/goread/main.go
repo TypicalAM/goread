@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/TypicalAM/goread/internal/config"
-	"github.com/TypicalAM/goread/internal/model"
+	model "github.com/TypicalAM/goread/internal/model/main"
 	"github.com/TypicalAM/goread/internal/style"
 	tea "github.com/charmbracelet/bubbletea"
 	"golang.org/x/sys/unix"
