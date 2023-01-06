@@ -14,6 +14,7 @@ const (
 	Normal State = iota
 	Cancel
 	Finished
+	NotEnoughText
 )
 
 // Model contains the state of this tab
@@ -69,6 +70,15 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		case "enter":
 			m.activeInput++
 			if m.activeInput >= len(m.inputs) {
+				// If any of the inputs are empty, return
+				for i := range m.inputs {
+					if m.inputs[i].Value() == "" {
+						m.State = NotEnoughText
+						return m, nil
+					}
+				}
+
+				// If we are here, all inputs are filled
 				m.State = Finished
 				return m, nil
 			}

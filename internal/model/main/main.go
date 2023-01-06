@@ -220,6 +220,11 @@ func (m Model) updateItemCreation(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// If the child model is done, add the item
 	switch m.input.State {
+	case input.NotEnoughText:
+		m.message = "Fields cannot be blank!"
+		m.newItem = false
+		return m, cmd
+
 	case input.Cancel:
 		m.message = "Cancelled adding item"
 		m.newItem = false
