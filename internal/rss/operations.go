@@ -95,7 +95,8 @@ func (rss *Rss) RemoveFeed(category string, name string) error {
 func (rss *Rss) UpdateCategory(name, desc string, key string) error {
 	// Check if the category already exists
 	for _, cat := range rss.Categories {
-		if cat.Name == name {
+		if cat.Name == name && cat.Description == desc {
+			// FIXME: Name clash
 			return ErrAlreadyExists
 		}
 	}
