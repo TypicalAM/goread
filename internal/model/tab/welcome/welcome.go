@@ -2,8 +2,8 @@ package welcome
 
 import (
 	"github.com/TypicalAM/goread/internal/backend"
-	"github.com/TypicalAM/goread/internal/simplelist"
-	"github.com/TypicalAM/goread/internal/tab"
+	"github.com/TypicalAM/goread/internal/model/simplelist"
+	"github.com/TypicalAM/goread/internal/model/tab"
 	tea "github.com/charmbracelet/bubbletea"
 )
 

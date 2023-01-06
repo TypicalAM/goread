@@ -5,11 +5,11 @@ import (
 	"strings"
 
 	"github.com/TypicalAM/goread/internal/backend"
+	"github.com/TypicalAM/goread/internal/model/tab"
+	"github.com/TypicalAM/goread/internal/model/tab/category"
+	"github.com/TypicalAM/goread/internal/model/tab/feed"
+	"github.com/TypicalAM/goread/internal/model/tab/welcome"
 	"github.com/TypicalAM/goread/internal/style"
-	"github.com/TypicalAM/goread/internal/tab"
-	"github.com/TypicalAM/goread/internal/tab/category"
-	"github.com/TypicalAM/goread/internal/tab/feed"
-	"github.com/TypicalAM/goread/internal/tab/welcome"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
