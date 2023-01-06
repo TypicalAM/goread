@@ -77,7 +77,11 @@ func Index(index int, isSelected bool) string {
 		indexString = fmt.Sprintf("%c", index+87)
 	}
 	// Render the whole index
-	return bracketStyle.Render("[") +
-		numberStyle.Render(indexString) +
-		bracketStyle.Render("]")
+	return lipgloss.NewStyle().
+		MarginLeft(3).
+		Render(
+			bracketStyle.Render("[") +
+				numberStyle.Render(indexString) +
+				bracketStyle.Render("]"),
+		)
 }

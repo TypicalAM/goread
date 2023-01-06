@@ -12,8 +12,8 @@ type listStyle struct {
 	itemStyle    lipgloss.Style
 }
 
-// newDefaultListStyle returns a new list style with default values.
-func newDefaultListStyle() listStyle {
+// newListStyle creates a new listStyle
+func newListStyle() listStyle {
 	// Create the new style
 	newStyle := listStyle{}
 
@@ -32,9 +32,23 @@ func newDefaultListStyle() listStyle {
 	// newItemsStyle is used to style the items in the list
 	newStyle.itemStyle = lipgloss.NewStyle().
 		MarginLeft(3).
-		MarginRight(3).
 		Foreground(style.GlobalColorscheme.Color2)
 
 	// Return the new style
 	return newStyle
+}
+
+// styleDescription will style the description of the item
+func (s listStyle) styleDescription(description string) string {
+	// Create the arrow style
+	arrowStyle := lipgloss.NewStyle().
+		MarginLeft(10).
+		Foreground(style.GlobalColorscheme.Color3)
+
+	// Create the text style
+	textStyle := lipgloss.NewStyle().
+		MarginLeft(1).
+		Foreground(style.GlobalColorscheme.Color3)
+
+	return arrowStyle.Render("⮡") + textStyle.Render(description)
 }

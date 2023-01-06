@@ -51,7 +51,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	case backend.FetchSuccessMessage:
 		// The data fetch was successful
 		if !m.loaded {
-			m.list = simplelist.New(m.title, m.height)
+			m.list = simplelist.New(m.title, m.height, false)
 			m.loaded = true
 		}
 

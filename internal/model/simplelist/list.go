@@ -1,7 +1,6 @@
 package simplelist
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"unicode"
@@ -18,15 +17,17 @@ type Model struct {
 	height   int
 	items    []list.Item
 	selected int
+	showDesc bool
 	style    listStyle
 }
 
 // New creates a new list
-func New(title string, height int) Model {
+func New(title string, height int, showDesc bool) Model {
 	return Model{
-		title:  title,
-		height: height,
-		style:  newDefaultListStyle(),
+		title:    title,
+		height:   height,
+		showDesc: showDesc,
+		style:    newListStyle(),
 	}
 }
 
@@ -74,9 +75,18 @@ func (m Model) View() string {
 	// If the list has items, style them
 	for i, item := range m.items {
 		isSelected := i == m.selected
-		itemText := fmt.Sprintf("%s  %s", style.Index(i, isSelected), item.FilterValue())
-		itemLine := m.style.itemStyle.Render(itemText)
-		sections = append(sections, itemLine)
+		sections = append(sections, lipgloss.JoinHorizontal(
+			lipgloss.Left,
+			style.Index(i, isSelected),
+			m.style.itemStyle.Render(item.FilterValue()),
+		))
+
+		// If the description is shown add the description
+		if m.showDesc {
+			sections = append(sections,
+				m.style.styleDescription(item.(Item).Description()),
+			)
+		}
 	}
 
 	// Append a blank line at the end

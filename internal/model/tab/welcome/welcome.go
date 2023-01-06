@@ -55,7 +55,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		}
 
 		// Initialize the list of categories, items will be set later
-		m.list = simplelist.New("Categories", m.height)
+		m.list = simplelist.New("Categories", m.height, true)
 
 		// Add the categories
 		m.loaded = true

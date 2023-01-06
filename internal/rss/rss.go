@@ -111,18 +111,18 @@ func (rss *Rss) Save() error {
 }
 
 // GetCategories will return a alphabetically sorted list of all categories
-func (rss Rss) GetCategories() []string {
+func (rss Rss) GetCategories() (names []string, descs []string) {
 	// Create a list of categories
-	categories := make([]string, len(rss.Categories))
+	names = make([]string, len(rss.Categories))
+	descs = make([]string, len(rss.Categories))
+
 	for i, cat := range rss.Categories {
-		categories[i] = cat.Name
+		names[i] = cat.Name
+		descs[i] = cat.Description
 	}
 
-	// Sort the list
-	sort.Strings(categories)
-
 	// Return the list
-	return categories
+	return names, descs
 }
 
 // GetFeeds will return a alphabetically sorted list of the feeds

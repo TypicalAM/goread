@@ -45,12 +45,12 @@ func (b Backend) Name() string {
 func (b Backend) FetchCategories() tea.Cmd {
 	return func() tea.Msg {
 		// Create a list of categories
-		categories := b.rss.GetCategories()
+		names, descs := b.rss.GetCategories()
 
 		// Create a list of list items
-		items := make([]list.Item, len(categories))
-		for i, cat := range categories {
-			items[i] = simplelist.NewItem(cat, "", "")
+		items := make([]list.Item, len(names))
+		for i := range names {
+			items[i] = simplelist.NewItem(names[i], descs[i], "")
 		}
 
 		// Return the message
