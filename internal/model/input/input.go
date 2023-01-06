@@ -23,16 +23,20 @@ type Model struct {
 	activeInput int
 	fields      []string
 	inputs      []textinput.Model
+	Creating    bool
 	Type        backend.ItemType
 }
 
 // New creates a new instance of the create item model
-func New(itemType backend.ItemType, fields []string) Model {
+func New(itemType backend.ItemType, creating bool, fields []string) Model {
 	// Create an empty instance
 	c := Model{}
 
 	// Set the type
 	c.Type = itemType
+
+	// Are we creating a new item?
+	c.Creating = creating
 
 	// Set the fields
 	c.fields = fields

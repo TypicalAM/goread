@@ -77,7 +77,11 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 		case "n":
 			// Add a new category
-			return m, backend.NewItem(backend.Feed)
+			return m, backend.NewItem(backend.Feed, true)
+
+		case "e":
+			// Edit the selected category
+			return m, backend.NewItem(backend.Feed, false)
 
 		case "d":
 			// Delete the selected category

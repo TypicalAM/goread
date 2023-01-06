@@ -81,7 +81,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case backend.NewItemMessage:
 		// Initialize the new Item model
-		m.input = input.New(msg.Type, msg.Fields)
+		m.input = input.New(msg.Type, msg.New, msg.Fields)
 		m.newItem = true
 		return m, m.input.Init()
 
@@ -272,8 +272,14 @@ func (m *Model) createNewTab(title string, tabType tab.Type) {
 func (m Model) addItem() (tea.Model, tea.Cmd) {
 	// End creating new items
 	m.newItem = false
-	m.message = "Adding an item - " + strings.Join(m.input.GetValues(), " ")
 	values := m.input.GetValues()
+
+	// Check if we are creating or editing the item
+	if m.input.Creating {
+		m.message = "Adding an item - " + strings.Join(values, " ")
+	} else {
+		m.message = "Editing an item - " + strings.Join(values, " ")
+	}
 
 	// Check if the values are valid
 	if m.input.Type == backend.Category {
