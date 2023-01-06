@@ -14,13 +14,11 @@ import (
 
 // Model contains state of the list
 type Model struct {
-	title        string
-	height       int
-	items        []list.Item
-	selected     int
-	titleStyle   lipgloss.Style
-	noItemsStyle lipgloss.Style
-	itemStyle    lipgloss.Style
+	title    string
+	height   int
+	items    []list.Item
+	selected int
+	style    listStyle
 }
 
 // New creates a new list
@@ -28,18 +26,7 @@ func New(title string, height int) Model {
 	return Model{
 		title:  title,
 		height: height,
-		titleStyle: lipgloss.NewStyle().
-			Foreground(style.GlobalColorscheme.Color1).
-			MarginLeft(3).
-			PaddingBottom(1),
-		noItemsStyle: lipgloss.NewStyle().
-			MarginLeft(3).
-			Foreground(style.GlobalColorscheme.Color2).
-			Italic(true),
-		itemStyle: lipgloss.NewStyle().
-			MarginLeft(3).
-			MarginRight(3).
-			Foreground(style.GlobalColorscheme.Color2),
+		style:  newDefaultListStyle(),
 	}
 }
 
@@ -76,11 +63,11 @@ func (m Model) View() string {
 	sections := make([]string, 1)
 
 	// Create the title
-	sections = append(sections, m.titleStyle.Render(m.title))
+	sections = append(sections, m.style.titleStyle.Render(m.title))
 
 	// If the list is empty show a message
 	if len(m.items) == 0 {
-		sections = append(sections, m.noItemsStyle.Render("<no items>"))
+		sections = append(sections, m.style.noItemsStyle.Render("<no items>"))
 		return lipgloss.JoinVertical(lipgloss.Top, sections...)
 	}
 
@@ -88,7 +75,7 @@ func (m Model) View() string {
 	for i, item := range m.items {
 		isSelected := i == m.selected
 		itemText := fmt.Sprintf("%s  %s", style.Index(i, isSelected), item.FilterValue())
-		itemLine := m.itemStyle.Render(itemText)
+		itemLine := m.style.itemStyle.Render(itemText)
 		sections = append(sections, itemLine)
 	}
 
