@@ -81,7 +81,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case backend.NewItemMessage:
 		// Initialize the new Item model
-		m.input = input.New(msg.Type, msg.New, msg.Fields)
+		m.input = input.New(msg.Type, msg.New, msg.Fields, msg.ItemPath)
 		m.newItem = true
 		return m, m.input.Init()
 
@@ -226,7 +226,7 @@ func (m Model) updateItemCreation(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 
 	case input.Cancel:
-		m.message = "Cancelled adding item"
+		m.message = "Cancelled adding or editing item"
 		m.newItem = false
 		return m, cmd
 
@@ -283,10 +283,16 @@ func (m Model) addItem() (tea.Model, tea.Cmd) {
 
 	// Check if the values are valid
 	if m.input.Type == backend.Category {
-		// Check if the category already exists
-		err := m.backend.Rss().AddCategory(values[0], values[1])
+		var err error
+		if m.input.Creating {
+			err = m.backend.Rss().AddCategory(values[0], values[1])
+		} else {
+			err = m.backend.Rss().UpdateCategory(values[0], values[1], m.input.Path[0])
+		}
+
+		// Check if there was an error
 		if err != nil {
-			m.message = "Error adding category: " + err.Error()
+			m.message = "Error adding or updating category: " + err.Error()
 			return m, nil
 		}
 
@@ -295,9 +301,16 @@ func (m Model) addItem() (tea.Model, tea.Cmd) {
 	}
 
 	// Check if the feed already exists
-	err := m.backend.Rss().AddFeed(m.tabs[m.activeTab].Title(), values[0], values[1])
+	var err error
+	if m.input.Creating {
+		err = m.backend.Rss().AddFeed(m.tabs[m.activeTab].Title(), values[0], values[1])
+	} else {
+		err = m.backend.Rss().UpdateFeed(values[0], values[1], m.input.Path[0], m.input.Path[1])
+	}
+
+	// Check if there was an error
 	if err != nil {
-		m.message = "Error adding feed: " + err.Error()
+		m.message = "Error adding or updating feed: " + err.Error()
 		return m, nil
 	}
 

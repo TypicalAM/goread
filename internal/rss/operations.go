@@ -90,3 +90,59 @@ func (rss *Rss) RemoveFeed(category string, name string) error {
 	// We couldn't remove the feed
 	return ErrNotFound
 }
+
+// UpdateCategory will change the name/description of a category by a string key
+func (rss *Rss) UpdateCategory(name, desc string, key string) error {
+	// Check if the category already exists
+	for _, cat := range rss.Categories {
+		if cat.Name == name {
+			return ErrAlreadyExists
+		}
+	}
+
+	// Find the category
+	for i, cat := range rss.Categories {
+		if cat.Name == key {
+			// Update the category
+			rss.Categories[i].Name = name
+			rss.Categories[i].Description = desc
+			return nil
+		}
+	}
+
+	// We couldn't find the category
+	return ErrNotFound
+}
+
+// UdpateFeed will change the name/url of a feed by a string key and a category
+func (rss *Rss) UpdateFeed(name, url, category, key string) error {
+	// Find the category
+	for _, cat := range rss.Categories {
+		if cat.Name == category {
+			// Find the feed
+			for _, feed := range cat.Subscriptions {
+				if feed.Name == name {
+					return ErrAlreadyExists
+				}
+			}
+		}
+	}
+
+	// Find the category
+	for i, cat := range rss.Categories {
+		if cat.Name == category {
+			// Find the feed
+			for j, feed := range cat.Subscriptions {
+				if feed.Name == key {
+					// Update the feed
+					rss.Categories[i].Subscriptions[j].Name = name
+					rss.Categories[i].Subscriptions[j].URL = url
+					return nil
+				}
+			}
+		}
+	}
+
+	// We couldn't find the feed
+	return ErrNotFound
+}

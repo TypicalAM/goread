@@ -79,12 +79,14 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 		case "n":
 			// Add a new category
-			return m, backend.NewItem(backend.Category, true)
+			categoryPath := []string{m.list.SelectedItem().FilterValue()}
+			return m, backend.NewItem(backend.Category, true, categoryPath)
 
 		case "e":
 			// Edit the selected category
 			if !m.list.IsEmpty() {
-				return m, backend.NewItem(backend.Category, false)
+				categoryPath := []string{m.list.SelectedItem().FilterValue()}
+				return m, backend.NewItem(backend.Category, false, categoryPath)
 			}
 
 		case "d":
