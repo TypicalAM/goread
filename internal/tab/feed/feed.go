@@ -17,6 +17,8 @@ import (
 
 // Model contains the state of this tab
 type Model struct {
+	width           int
+	height          int
 	title           string
 	loaded          bool
 	loadingSpinner  spinner.Model
@@ -25,16 +27,14 @@ type Model struct {
 	isViewportOpen  bool
 	viewport        viewport.Model
 	viewportFocused bool
-	availableWidth  int
-	availableHeight int
 
-	// readerFunc is a function which returns a tea.Cmd which will be executed
+	// reader is a function which returns a tea.Cmd which will be executed
 	// when the tab is initialized
-	readerFunc func(string) tea.Cmd
+	reader func(string) tea.Cmd
 }
 
 // New creates a new feed tab with sensible defaults
-func New(availableWidth, availableHeight int, title string, readerFunc func(string) tea.Cmd) Model {
+func New(width, height int, title string, reader func(string) tea.Cmd) Model {
 	// Create a spinner for loading the data
 	spin := spinner.New()
 	spin.Spinner = spinner.Points
@@ -42,11 +42,11 @@ func New(availableWidth, availableHeight int, title string, readerFunc func(stri
 
 	// Create the model
 	return Model{
-		availableWidth:  availableWidth,
-		availableHeight: availableHeight,
-		loadingSpinner:  spin,
-		title:           title,
-		readerFunc:      readerFunc,
+		width:          width,
+		height:         height,
+		loadingSpinner: spin,
+		title:          title,
+		reader:         reader,
 	}
 }
 
@@ -62,7 +62,7 @@ func (m Model) Type() tab.Type {
 
 // Init initializes the tab
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(m.readerFunc(m.title), m.loadingSpinner.Tick)
+	return tea.Batch(m.reader(m.title), m.loadingSpinner.Tick)
 }
 
 // Update the variables of the tab
@@ -93,7 +93,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			// Refresh the contents of the tab
 			m.isViewportOpen = false
 			m.loaded = false
-			return m, m.readerFunc(m.title)
+			return m, m.reader(m.title)
 
 		case "left", "right":
 			// If the viewport isn't open, don't do anything
@@ -136,8 +136,8 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 // initializes the list and the viewport
 func (m Model) loadTab(items []list.Item) (tab.Tab, tea.Cmd) {
 	// Set the width and the height of the components
-	listWidth := m.availableWidth / 4
-	viewportWidth := m.availableHeight - listWidth - 4
+	listWidth := m.width / 4
+	viewportWidth := m.width - listWidth - 2
 
 	// Create the styles for the list items
 	delegateStyles := list.NewDefaultItemStyles()
@@ -158,7 +158,7 @@ func (m Model) loadTab(items []list.Item) (tab.Tab, tea.Cmd) {
 	itemDelegate.SetHeight(3)
 
 	// Initialize the list
-	m.list = list.New(items, itemDelegate, listWidth, m.availableHeight-5)
+	m.list = list.New(items, itemDelegate, listWidth, m.height)
 
 	// Set some attributes for the list
 	m.list.SetShowHelp(false)
@@ -166,7 +166,7 @@ func (m Model) loadTab(items []list.Item) (tab.Tab, tea.Cmd) {
 	m.list.SetShowStatusBar(false)
 
 	// Initialize the viewport
-	m.viewport = viewport.New(viewportWidth, m.availableHeight-5)
+	m.viewport = viewport.New(viewportWidth, m.height)
 
 	// We are locked and loaded
 	m.loaded = true
@@ -182,7 +182,7 @@ func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
 	}
 
 	// Set the width of the styled content for word wrapping
-	contentWidth := m.availableWidth - m.availableWidth/4 - 4
+	contentWidth := m.width - m.width/4 - 2
 
 	// Get the content of the selected item
 	content, err := m.list.SelectedItem().(simplelist.Item).StyleContent(contentWidth)
@@ -252,6 +252,6 @@ func (m Model) showLoading() string {
 	}
 
 	// Pad the message with empty lines
-	padding := m.availableHeight - 3 - lipgloss.Height(loadingMsg)
+	padding := m.height - lipgloss.Height(loadingMsg)
 	return loadingMsg + strings.Repeat("\n", padding)
 }

@@ -199,7 +199,7 @@ func (m Model) waitForSize(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Append a new welcome tab
 		m.tabs = append(m.tabs, welcome.New(
 			m.windowWidth,
-			m.windowHeight,
+			m.windowHeight-5,
 			"Welcome",
 			m.backend.FetchCategories,
 		))
@@ -240,14 +240,14 @@ func (m *Model) createNewTab(title string, tabType tab.Type) {
 	case tab.Category:
 		newTab = category.New(
 			m.windowWidth,
-			m.windowHeight-4,
+			m.windowHeight-5,
 			title,
 			m.backend.FetchFeeds,
 		)
 	case tab.Feed:
 		newTab = feed.New(
 			m.windowWidth,
-			m.windowHeight,
+			m.windowHeight-5,
 			title,
 			m.backend.FetchArticles,
 		)

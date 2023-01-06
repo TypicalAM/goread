@@ -9,24 +9,24 @@ import (
 
 // Model contains the state of this tab
 type Model struct {
-	title           string
-	loaded          bool
-	list            simplelist.Model
-	availableWidth  int
-	availableHeight int
+	width  int
+	height int
+	title  string
+	loaded bool
+	list   simplelist.Model
 
-	// readerFunc is a function which returns a tea.Cmd which will be executed
+	// reader is a function which returns a tea.Cmd which will be executed
 	// when the tab is initialized
-	readerFunc func() tea.Cmd
+	reader func() tea.Cmd
 }
 
 // New creates a new welcome tab with sensible defaults
-func New(availableWidth, availableHeight int, title string, readerFunc func() tea.Cmd) Model {
+func New(width, height int, title string, reader func() tea.Cmd) Model {
 	return Model{
-		availableWidth:  availableWidth,
-		availableHeight: availableHeight,
-		title:           title,
-		readerFunc:      readerFunc,
+		width:  width,
+		height: height,
+		title:  title,
+		reader: reader,
 	}
 }
 
@@ -42,7 +42,7 @@ func (m Model) Type() tab.Type {
 
 // Init initializes the tab
 func (m Model) Init() tea.Cmd {
-	return m.readerFunc()
+	return m.reader()
 }
 
 // Update the variables of the tab
@@ -55,7 +55,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		}
 
 		// Initialize the list of categories, items will be set later
-		m.list = simplelist.New("Categories", m.availableHeight-5)
+		m.list = simplelist.New("Categories", m.height)
 
 		// Add the categories
 		m.loaded = true
