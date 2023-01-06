@@ -13,6 +13,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// ErrNotFound is returned when a feed or category is not found
+var ErrNotFound = errors.New("not found")
+
 // Rss will be used to structurize the rss feeds and categories
 // it will usually be read from a file
 type Rss struct {
@@ -22,7 +25,7 @@ type Rss struct {
 
 // Category will be used to structurize the rss feeds
 type Category struct {
-	Name          string
+	Name          string `yaml:"name"`
 	Description   string `yaml:"desc"`
 	Subscriptions []Feed `yaml:"subscriptions"`
 }
@@ -34,17 +37,18 @@ type Feed struct {
 	URL         string `yaml:"url"`
 }
 
-// ErrNotFound is returned when a feed or category is not found
-var ErrNotFound = errors.New("not found")
-
 // New will create a new Rss structure
 func New(urlFilePath string) Rss {
+	// Create the rss object
 	rss := Rss{filePath: urlFilePath}
+
+	// Check if we can load it from file
 	err := rss.loadFromFile()
 	if err == nil {
 		return rss
 	}
 
+	// Append some default categories
 	rss.Categories = append(rss.Categories, createBasicCategories()...)
 	return rss
 }
@@ -161,8 +165,21 @@ func (rss Rss) GetFeedURL(feedName string) (string, error) {
 	return "", ErrNotFound
 }
 
-// Markdownize will return a string that can be used to display the rss feeds
-func Markdownize(item gofeed.Item) string {
+// getDefaultPath will return the default path for the urls file
+func getDefaultPath() (string, error) {
+	// Get the default config path
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
+	}
+
+	// Create the config path
+	return filepath.Join(configDir, "goread", "urls.yml"), nil
+}
+
+// YassifyItem will return a yassified string which is used in the viewport
+// to view a single item
+func YassifyItem(item *gofeed.Item) string {
 	var mdown string
 
 	// Add the title
@@ -181,44 +198,43 @@ func Markdownize(item gofeed.Item) string {
 
 	// Convert the html to markdown
 	mdown += "\n\n"
-	mdown += htmlToMarkdown(item.Description)
+	htmlMarkdown, err := HTMLToMarkdown(item.Description)
+	if err != nil {
+		// If there is an error, then just print the html
+		mdown += item.Description
+	} else {
+		mdown += htmlMarkdown
+	}
+
+	// Return the markdown
 	return mdown
 }
 
-// htmlToMarkdown converts html to markdown using the html-to-markdown library
-func htmlToMarkdown(content string) string {
+// HTMLToMarkdown converts html to markdown using the html-to-markdown library
+func HTMLToMarkdown(content string) (string, error) {
+	// Create a new converter
 	converter := md.NewConverter("", true, nil)
 
+	// Convert the html to markdown
 	markdown, err := converter.ConvertString(content)
-	if err != nil {
-		panic(err)
-	}
-
-	return markdown
-}
-
-// HTMLToText converts html to text using the goquery library
-func HTMLToText(content string) string {
-	// Create a new document
-	doc, err := goquery.NewDocumentFromReader(strings.NewReader(content))
-	if err != nil {
-		panic(err)
-	}
-
-	// Return the text
-	return doc.Text()
-}
-
-// getDefaultPath will return the default path for the urls file
-func getDefaultPath() (string, error) {
-	// Get the default config path
-	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return "", err
 	}
 
-	// Create the config path
-	return filepath.Join(configDir, "goread", "urls.yml"), nil
+	// Return the markdown
+	return markdown, nil
+}
+
+// HTMLToText converts html to text using the goquery library
+func HTMLToText(content string) (string, error) {
+	// Create a new document
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(content))
+	if err != nil {
+		return "", err
+	}
+
+	// Return the text
+	return doc.Text(), nil
 }
 
 // createBasicCategories will create some basic categories

@@ -106,11 +106,21 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 
 		// Create the list of list items
 		var result []list.Item
-		for _, item := range items {
+		for i, item := range items {
+			// Check if the description can be converted to a string
+			var description string
+			text, err := rss.HTMLToText(item.Description)
+			if err != nil {
+				description = item.Description
+			} else {
+				description = text
+			}
+
+			// Create the list item
 			result = append(result, simplelist.NewItem(
 				item.Title,
-				rss.HTMLToText(item.Description),
-				rss.Markdownize(item),
+				description,
+				rss.YassifyItem(&items[i]),
 			))
 		}
 
