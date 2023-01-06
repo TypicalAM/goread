@@ -20,7 +20,7 @@ type Model struct {
 	readerFunc func() tea.Cmd
 }
 
-// New creates a new RssFeedTab with sensible defaults
+// New creates a new welcome tab with sensible defaults
 func New(availableWidth, availableHeight int, title string, readerFunc func() tea.Cmd) Model {
 	return Model{
 		availableWidth:  availableWidth,

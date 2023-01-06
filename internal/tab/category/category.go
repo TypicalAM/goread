@@ -20,7 +20,7 @@ type Model struct {
 	readerFunc func(string) tea.Cmd
 }
 
-// New creates a new Category with sensible defaults
+// New creates a new category tab with sensible defaults
 func New(availableWidth, availableHeight int, title string, readerFunc func(string) tea.Cmd) Model {
 	return Model{
 		availableWidth:  availableWidth,
