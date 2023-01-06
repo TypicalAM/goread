@@ -1,7 +1,10 @@
 package style
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 
@@ -76,4 +79,49 @@ func (c Colorscheme) TestColors() string {
 	}
 
 	return strings.Join(result, "\n")
+}
+
+// LoadColorscheme loads a colorscheme from a JSON file
+func LoadColorscheme(path string) Colorscheme {
+	// Create the colorscheme
+	colorscheme := NewDefaultColorscheme()
+
+	// Check if the path is valid
+	if path == "" {
+		// Get the default path
+		defaultPath, err := getDefaultPath()
+		if err != nil {
+			panic(err)
+		}
+
+		// Set the path
+		path = defaultPath
+	}
+
+	// Try to open the file
+	fileContent, err := os.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+
+	// Try to decode the file
+	err = json.Unmarshal(fileContent, &colorscheme)
+	if err != nil {
+		panic(err)
+	}
+
+	// Successfully loaded the file
+	return colorscheme
+}
+
+// getDefaultPath returns the default path for the colorscheme file
+func getDefaultPath() (string, error) {
+	// Get the default config path
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
+	}
+
+	// Create the config path
+	return filepath.Join(configDir, "goread", "colorscheme.json"), nil
 }
