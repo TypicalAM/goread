@@ -9,14 +9,16 @@ import (
 	model "github.com/TypicalAM/goread/internal/model/main"
 	"github.com/TypicalAM/goread/internal/style"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // parseCmdLine parses the command line arguments
-func parseCmdLine() (urlPath string, backend string, testColors bool, err error) {
+func parseCmdLine() (urlPath, backend string, testColors, pywalConvert bool) {
 	// Create the flagset
 	backendPtr := flag.String("backend", "cache", "The backend to use for the config file")
 	urlPathPtr := flag.String("url_path", "", "The path to the url file")
 	testColorsPtr := flag.Bool("colors", false, "Test the colorscheme")
+	pywalConvertPtr := flag.Bool("pywal", false, "Convert a pywal colorscheme to a goread colorschemea and save it to the config directory")
 
 	// Parse the flags
 	flag.Parse()
@@ -24,22 +26,20 @@ func parseCmdLine() (urlPath string, backend string, testColors bool, err error)
 	backend = *backendPtr
 	urlPath = *urlPathPtr
 	testColors = *testColorsPtr
-
-	// Check if the backend is valid
-	if backend != config.BackendCache && backend != config.BackendWeb {
-		return "", "", false, fmt.Errorf("invalid backend: %s", backend)
-	}
+	pywalConvert = *pywalConvertPtr
 
 	// Return the default path
-	return urlPath, backend, testColors, nil
+	return urlPath, backend, testColors, pywalConvert
 }
 
 func main() {
 	// Parse the command line arguments
-	urlPath, backend, testColors, err := parseCmdLine()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	urlPath, backend, testColors, pywalConvert := parseCmdLine()
+
+	// If the user wants to convert a pywal colorscheme to a goread colorscheme
+	if pywalConvert {
+		convertFromPywal()
+		os.Exit(0)
 	}
 
 	// If the user wants to test the colors, do that and exit
@@ -64,4 +64,25 @@ func main() {
 	if _, err = p.Run(); err != nil {
 		fmt.Println("Oh no, it didn't work:", err)
 	}
+}
+
+func convertFromPywal() {
+	// Convert the pywal colorscheme
+	err := style.GlobalColorscheme.Convert()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	// Save the colorscheme
+	err = style.GlobalColorscheme.Save("")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	// Notify the user
+	messageStyle := lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("#6bae6c"))
+	fmt.Println(messageStyle.Render("The new colorscheme was saved to the config directory\n"))
+	fmt.Println(style.GlobalColorscheme.TestColors())
 }
