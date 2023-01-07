@@ -40,6 +40,16 @@ func (m Model) Type() tab.Type {
 	return tab.Category
 }
 
+// Help returns the help for the tab
+func (m Model) Help() tab.Help {
+	return tab.Help{
+		tab.KeyBind{Key: "enter", Description: "Open"},
+		tab.KeyBind{Key: "n", Description: "New"},
+		tab.KeyBind{Key: "e", Description: "Edit"},
+		tab.KeyBind{Key: "d", Description: "Delete"},
+	}
+}
+
 // Init initializes the tab
 func (m Model) Init() tea.Cmd {
 	return m.reader(m.title)

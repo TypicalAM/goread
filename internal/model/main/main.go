@@ -137,6 +137,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Set the message
 			m.message = fmt.Sprintf("Closed tab - %s", m.tabs[m.activeTab].Title())
 			return m, nil
+
+		case "h":
+			// View the help page
+			return m.showHelp()
 		}
 	}
 
@@ -165,9 +169,7 @@ func (m Model) View() string {
 	sections = append(sections, m.renderTabBar())
 
 	// Render the tab content and the status bar
-	// TODO: Move the height constrain to the child models
-	constrainHeight := lipgloss.NewStyle().Height(m.windowHeight - 3)
-	sections = append(sections, constrainHeight.Render(m.tabs[m.activeTab].View()))
+	sections = append(sections, m.tabs[m.activeTab].View())
 
 	// Render the status bar
 	sections = append(sections, m.renderStatusBar())
@@ -341,6 +343,19 @@ func (m Model) deleteItem(msg backend.DeleteItemMessage) (tea.Model, tea.Cmd) {
 
 	// Fetch the feeds again to update the list
 	return m, m.backend.FetchFeeds(m.tabs[m.activeTab].Title())
+}
+
+// showHelp() shows the help menu at the bottom of the screen
+func (m Model) showHelp() (tea.Model, tea.Cmd) {
+	// Create the help menu
+	message := "Help: "
+	for _, keyBind := range m.tabs[m.activeTab].Help() {
+		message += fmt.Sprintf("[%s] %s, ", keyBind.Key, keyBind.Description)
+	}
+
+	// Set the message
+	m.message = message[:len(message)-2]
+	return m, nil
 }
 
 // renderTabBar renders the tab bar on the top of the screen

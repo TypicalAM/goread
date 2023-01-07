@@ -60,6 +60,14 @@ func (m Model) Type() tab.Type {
 	return tab.Feed
 }
 
+// Help returns the help for the tab
+func (m Model) Help() tab.Help {
+	return tab.Help{
+		tab.KeyBind{Key: "enter", Description: "Open"},
+		tab.KeyBind{Key: "left/right", Description: "Toggle focus"},
+	}
+}
+
 // Init initializes the tab
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(m.reader(m.title), m.loadingSpinner.Tick)
