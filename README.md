@@ -40,12 +40,20 @@ Here are the things that I've not yet implemented
 
 ## 📸 Here is a demo of what it looks like:
 
+Here is some basic usage:
+
 <p align="center">
     <img width="700" src="assets/example1.gif" />
 </p>
 
 <p align="center">
     <img width="700" src="assets/example2.gif" />
+</p>
+
+Here we use `pywal` to generate a colorscheme and then convert it to a goread colorscheme!
+
+<p align="center">
+    <img width="700" src="assets/example3.gif" />
 </p>
 
 ## 💁 Credit where credit is due
