@@ -33,10 +33,10 @@ Here are the things that I've not yet implemented
 - [X] Waiting for the window size message before adding the first tab
 - [X] Adding and removing items
 - [X] Verbose UI mode
+- [X] Loadable colorschemes
+- [X] Generating colorschemes from a file
 - [ ] A main category where all the feeds are aggregated
-- [ ] Loadable colorschemes
 - [ ] Help interface with the key bindings
-- [ ] Generating colorschemes from a file
 
 ## 📸 Here is a demo of what it looks like:
 
