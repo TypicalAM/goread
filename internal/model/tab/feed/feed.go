@@ -2,7 +2,6 @@ package feed
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/model/simplelist"
@@ -259,7 +258,6 @@ func (m Model) showLoading() string {
 		)
 	}
 
-	// Pad the message with empty lines
-	padding := m.height - lipgloss.Height(loadingMsg)
-	return loadingMsg + strings.Repeat("\n", padding)
+	// Render the message
+	return loadingMsg
 }

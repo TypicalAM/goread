@@ -169,7 +169,8 @@ func (m Model) View() string {
 	sections = append(sections, m.renderTabBar())
 
 	// Render the tab content and the status bar
-	sections = append(sections, m.tabs[m.activeTab].View())
+	constrainHeight := lipgloss.NewStyle().Height(m.windowHeight - 3)
+	sections = append(sections, constrainHeight.Render(m.tabs[m.activeTab].View()))
 
 	// Render the status bar
 	sections = append(sections, m.renderStatusBar())

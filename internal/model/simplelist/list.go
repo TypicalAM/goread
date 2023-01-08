@@ -2,7 +2,6 @@ package simplelist
 
 import (
 	"strconv"
-	"strings"
 	"unicode"
 
 	"github.com/TypicalAM/goread/internal/style"
@@ -11,6 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// TODO: Add vertical scrolling
 // Model contains state of the list
 type Model struct {
 	title    string
@@ -92,8 +92,7 @@ func (m Model) View() string {
 	// Append a blank line at the end
 	sections = append(sections, "")
 
-	// Add padding
-	sections = append(sections, strings.Repeat("\n", m.height-len(sections)))
+	// Join the sections and return the view
 	return lipgloss.JoinVertical(lipgloss.Top, sections...)
 }
 
