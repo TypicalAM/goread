@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	md "github.com/JohannesKaufmann/html-to-markdown"
@@ -110,7 +109,7 @@ func (rss *Rss) Save() error {
 	return nil
 }
 
-// GetCategories will return a alphabetically sorted list of all categories
+// GetCategories will return a list of all the names and descriptions of the categories
 func (rss Rss) GetCategories() (names []string, descs []string) {
 	// Create a list of categories
 	names = make([]string, len(rss.Categories))
@@ -125,28 +124,27 @@ func (rss Rss) GetCategories() (names []string, descs []string) {
 	return names, descs
 }
 
-// GetFeeds will return a alphabetically sorted list of the feeds
+// GetFeeds will return a list of all the names and descriptions of the feeds
 // in a category denoted by the name
-func (rss Rss) GetFeeds(categoryName string) ([]string, error) {
+func (rss Rss) GetFeeds(categoryName string) (names []string, urls []string, err error) {
 	// Find the category
 	for _, cat := range rss.Categories {
 		if cat.Name == categoryName {
 			// Create a list of feeds
 			feeds := make([]string, len(cat.Subscriptions))
+			urls = make([]string, len(cat.Subscriptions))
 			for i, feed := range cat.Subscriptions {
 				feeds[i] = feed.Name
+				urls[i] = feed.URL
 			}
 
-			// Sort the list
-			sort.Strings(feeds)
-
 			// Return the list
-			return feeds, nil
+			return feeds, urls, nil
 		}
 	}
 
 	// Category not found
-	return nil, ErrNotFound
+	return nil, nil, ErrNotFound
 }
 
 // GetFeedURL will return the url of a feed denoted by the name

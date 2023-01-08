@@ -63,7 +63,7 @@ func (b Backend) FetchCategories() tea.Cmd {
 func (b Backend) FetchFeeds(catName string) tea.Cmd {
 	return func() tea.Msg {
 		// Create a list of feeds
-		feeds, err := b.rss.GetFeeds(catName)
+		names, urls, err := b.rss.GetFeeds(catName)
 		if err != nil {
 			return backend.FetchErrorMessage{
 				Description: "Failed to get feeds",
@@ -72,9 +72,9 @@ func (b Backend) FetchFeeds(catName string) tea.Cmd {
 		}
 
 		// Create a list of list items
-		items := make([]list.Item, len(feeds))
-		for i, feed := range feeds {
-			items[i] = simplelist.NewItem(feed, "", "")
+		items := make([]list.Item, len(names))
+		for i := range names {
+			items[i] = simplelist.NewItem(names[i], urls[i], "")
 		}
 
 		// Return the message
