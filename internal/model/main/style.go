@@ -1,6 +1,7 @@
-package tab
+package model
 
 import (
+	"github.com/TypicalAM/goread/internal/model/tab"
 	"github.com/TypicalAM/goread/internal/style"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -11,27 +12,27 @@ var (
 			Padding(0, 1).
 			Foreground(style.GlobalColorscheme.BgDark)
 
-	iconColors = map[Type]lipgloss.Color{
-		Welcome:  style.GlobalColorscheme.Color4,
-		Category: style.GlobalColorscheme.Color5,
-		Feed:     style.GlobalColorscheme.Color3,
+	iconColors = map[tab.Type]lipgloss.Color{
+		tab.Welcome:  style.GlobalColorscheme.Color4,
+		tab.Category: style.GlobalColorscheme.Color5,
+		tab.Feed:     style.GlobalColorscheme.Color3,
 	}
 
-	icons = map[Type]string{
-		Welcome:  "﫢",
-		Category: "﫜",
-		Feed:     "",
+	icons = map[tab.Type]string{
+		tab.Welcome:  "﫢",
+		tab.Category: "﫜",
+		tab.Feed:     "",
 	}
 
-	texts = map[Type]string{
-		Welcome:  "MAIN",
-		Category: "CATEGORY",
-		Feed:     "FEED",
+	texts = map[tab.Type]string{
+		tab.Welcome:  "MAIN",
+		tab.Category: "CATEGORY",
+		tab.Feed:     "FEED",
 	}
 )
 
 // Style the text depending on the type of the tab
-func AttachIconToTab(text string, tabType Type, isActive bool) string {
+func attachIconToTab(text string, tabType tab.Type, isActive bool) string {
 	var iconStyle, textStyle lipgloss.Style
 	if isActive {
 		iconStyle = style.ActiveTabIcon
@@ -54,7 +55,7 @@ func AttachIconToTab(text string, tabType Type, isActive bool) string {
 }
 
 // Style the status bar cell depending on the the of the current tab
-func StyleStatusBarCell(tabType Type) string {
+func styleStatusBarCell(tabType tab.Type) string {
 	return statusBarCell.Copy().
 		Background(iconColors[tabType]).
 		Render(texts[tabType])

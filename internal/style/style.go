@@ -46,14 +46,6 @@ var (
 			Background(GlobalColorscheme.BgDark)
 )
 
-// Utility function to output the bigger nubmer
-func Max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 // Style an index value
 func Index(index int, isSelected bool) string {
 	// Define the styles used in the index styling

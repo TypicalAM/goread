@@ -364,7 +364,7 @@ func (m *Model) renderTabBar() string {
 	// Render the tab bar at the top of the screen
 	tabs := make([]string, len(m.tabs))
 	for i, tabObj := range m.tabs {
-		tabs[i] = tab.AttachIconToTab(tabObj.Title(), tabObj.Type(), i == m.activeTab)
+		tabs[i] = attachIconToTab(tabObj.Title(), tabObj.Type(), i == m.activeTab)
 	}
 
 	// Make the row of the tabs
@@ -386,7 +386,7 @@ func (m *Model) renderTabBar() string {
 // renderStatusBar is used to render the status bar at the bottom of the screen
 func (m *Model) renderStatusBar() string {
 	// Render the status bar at the bottom of the screen
-	row := lipgloss.JoinHorizontal(lipgloss.Top, tab.StyleStatusBarCell(m.tabs[m.activeTab].Type()))
+	row := lipgloss.JoinHorizontal(lipgloss.Top, styleStatusBarCell(m.tabs[m.activeTab].Type()))
 
 	// Calculate the gap amount
 	var gapAmount int
