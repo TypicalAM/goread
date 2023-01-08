@@ -22,18 +22,18 @@ type Item struct {
 }
 
 // newCache creates a new cache
-func newCache() Cache {
+func newCache() (Cache, error) {
 	// Get the path to the cache file
 	path, err := getDefaultPath()
-	// TODO: Handle error
 	if err != nil {
-		panic(err)
+		return Cache{}, err
 	}
 
+	// Create the cache
 	return Cache{
 		filePath: path,
 		Content:  make(map[string]Item),
-	}
+	}, nil
 }
 
 // Load reads the cache from disk

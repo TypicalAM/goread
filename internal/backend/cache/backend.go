@@ -17,14 +17,16 @@ type Backend struct {
 }
 
 // New creates a new Cache Backend
-func New(urlFilePath string) Backend {
-	// TODO: Make the path configurable
-	cache := newCache()
+func New(urlFilePath string) (Backend, error) {
+	// Create the cache
+	cache, err := newCache()
+	if err != nil {
+		return Backend{}, err
+	}
 
-	// Save the cache if it doesn't exist (crate the file)
+	// Try to load the cache
 	if err := cache.Load(); err != nil {
-		// TODO: Logging
-		fmt.Println("Cache doesn't exist ", err)
+		fmt.Printf("Failed to load the cache: %v, creating a new one", err)
 	}
 
 	// Return the backend
@@ -32,7 +34,7 @@ func New(urlFilePath string) Backend {
 	return Backend{
 		Cache: &cache,
 		rss:   &rss,
-	}
+	}, nil
 }
 
 // Name returns the name of the backend

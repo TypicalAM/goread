@@ -34,7 +34,11 @@ func New(backendType string, urlPath string) (Config, error) {
 	case BackendWeb:
 		backend = web.New(config.urlPath)
 	case BackendCache:
-		backend = cache.New(config.urlPath)
+		var err error
+		backend, err = cache.New(config.urlPath)
+		if err != nil {
+			return Config{}, err
+		}
 	default:
 		return Config{}, fmt.Errorf("invalid backend type: %s", backendType)
 	}
