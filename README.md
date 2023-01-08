@@ -35,8 +35,8 @@ Here are the things that I've not yet implemented
 - [X] Verbose UI mode
 - [X] Loadable colorschemes
 - [X] Generating colorschemes from a file
+- [X] Help interface with the key bindings
 - [ ] A main category where all the feeds are aggregated
-- [ ] Help interface with the key bindings
 
 ## 📸 Here is a demo of what it looks like:
 
