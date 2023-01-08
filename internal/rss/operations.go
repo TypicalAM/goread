@@ -2,7 +2,8 @@ package rss
 
 import "errors"
 
-var ErrAlreadyExists = errors.New("category already exists")
+// ErrAlreadyExists is returned when a category/feed already exists
+var ErrAlreadyExists = errors.New("already exists")
 
 // AddCategory will add a category to the Rss structure
 func (rss *Rss) AddCategory(name string, description string) error {
@@ -95,8 +96,7 @@ func (rss *Rss) RemoveFeed(category string, name string) error {
 func (rss *Rss) UpdateCategory(name, desc string, key string) error {
 	// Check if the category already exists
 	for _, cat := range rss.Categories {
-		if cat.Name == name && cat.Description == desc {
-			// FIXME: Name clash
+		if cat.Name == name && name != key {
 			return ErrAlreadyExists
 		}
 	}
@@ -122,7 +122,7 @@ func (rss *Rss) UpdateFeed(name, url, category, key string) error {
 		if cat.Name == category {
 			// Find the feed
 			for _, feed := range cat.Subscriptions {
-				if feed.Name == name {
+				if feed.Name == name && name != key {
 					return ErrAlreadyExists
 				}
 			}

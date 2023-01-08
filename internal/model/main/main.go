@@ -81,7 +81,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case backend.NewItemMessage:
 		// Initialize the new Item model
-		m.input = input.New(msg.Type, msg.New, msg.Fields, msg.ItemPath)
+		m.input = input.New(msg.Type, msg.New, msg.Fields, msg.ItemPath, msg.OldFields)
 		m.newItem = true
 		return m, m.input.Init()
 

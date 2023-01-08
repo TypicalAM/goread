@@ -26,10 +26,11 @@ type Model struct {
 	Creating    bool
 	Path        []string
 	Type        backend.ItemType
+	OldFields   []string
 }
 
 // New creates a new instance of the create item model
-func New(itemType backend.ItemType, creating bool, fields []string, path []string) Model {
+func New(itemType backend.ItemType, creating bool, fields []string, path []string, oldFields []string) Model {
 	// Create an empty instance
 	c := Model{}
 
@@ -45,6 +46,9 @@ func New(itemType backend.ItemType, creating bool, fields []string, path []strin
 	// Set the old item path if we are updating
 	c.Path = path
 
+	// Set the old fields
+	c.OldFields = oldFields
+
 	// Create the textfields
 	c.inputs = make([]textinput.Model, len(fields))
 
@@ -56,6 +60,7 @@ func New(itemType backend.ItemType, creating bool, fields []string, path []strin
 			t.Prompt = fmt.Sprintf("Enter %s: ", fields[i])
 		} else {
 			t.Prompt = fmt.Sprintf("Update %s: ", fields[i])
+			t.SetValue(oldFields[i])
 		}
 		c.inputs[i] = t
 	}

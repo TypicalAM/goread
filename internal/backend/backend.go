@@ -51,15 +51,16 @@ type FetchErrorMessage struct {
 // NewItemMessage is a message to tell the main model that a new item
 // needs to be added to the list
 type NewItemMessage struct {
-	Type     ItemType
-	New      bool
-	Fields   []string
-	ItemPath []string
+	Type      ItemType
+	New       bool
+	Fields    []string
+	ItemPath  []string
+	OldFields []string
 }
 
 // NewItem is a function to tell the main model that a new item
 // needs to be added to the list
-func NewItem(itemType ItemType, newItem bool, itemPath []string) tea.Cmd {
+func NewItem(itemType ItemType, newItem bool, itemPath []string, oldFields []string) tea.Cmd {
 	return func() tea.Msg {
 		var textFields []string
 		if itemType == Category {
@@ -69,10 +70,11 @@ func NewItem(itemType ItemType, newItem bool, itemPath []string) tea.Cmd {
 		}
 
 		return NewItemMessage{
-			Type:     itemType,
-			New:      newItem,
-			Fields:   textFields,
-			ItemPath: itemPath,
+			Type:      itemType,
+			New:       newItem,
+			Fields:    textFields,
+			ItemPath:  itemPath,
+			OldFields: oldFields,
 		}
 	}
 }
