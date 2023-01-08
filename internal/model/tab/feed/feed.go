@@ -214,23 +214,23 @@ func (m Model) View() string {
 
 	// If the view is not open show just the rss list
 	if !m.isViewportOpen {
-		return style.FocusedStyle.Render(m.list.View())
+		return focusedStyle.Render(m.list.View())
 	}
 
 	// If the viewport is focused, render it with the focused style
 	if m.viewportFocused {
 		return lipgloss.JoinHorizontal(
 			lipgloss.Left,
-			style.ColumnStyle.Render(m.list.View()),
-			style.FocusedStyle.Render(m.viewport.View()),
+			columnStyle.Render(m.list.View()),
+			focusedStyle.Render(m.viewport.View()),
 		)
 	}
 
 	// Otherwise render it with the default style
 	return lipgloss.JoinHorizontal(
 		lipgloss.Left,
-		style.FocusedStyle.Render(m.list.View()),
-		style.ColumnStyle.Render(m.viewport.View()),
+		focusedStyle.Render(m.list.View()),
+		columnStyle.Render(m.viewport.View()),
 	)
 }
 

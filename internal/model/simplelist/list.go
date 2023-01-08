@@ -4,7 +4,6 @@ import (
 	"strconv"
 	"unicode"
 
-	"github.com/TypicalAM/goread/internal/style"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -77,7 +76,7 @@ func (m Model) View() string {
 		isSelected := i == m.selected
 		sections = append(sections, lipgloss.JoinHorizontal(
 			lipgloss.Left,
-			style.Index(i, isSelected),
+			m.style.styleIndex(i, isSelected),
 			m.style.itemStyle.Render(item.FilterValue()),
 		))
 

@@ -7,6 +7,33 @@ import (
 )
 
 var (
+	activeTab = lipgloss.NewStyle().
+			Padding(0, 7, 0, 1).
+			Italic(true).
+			Bold(true)
+
+	activeTabIcon = lipgloss.NewStyle().
+			Padding(0, 0, 0, 3).
+			Bold(true).
+			Border(lipgloss.Border{Left: "┃"}, false, false, false, true).
+			BorderForeground(style.GlobalColorscheme.TextDark)
+
+	tabStyle = lipgloss.NewStyle().
+			Padding(0, 7, 0, 1).
+			Background(style.GlobalColorscheme.BgDark).
+			Foreground(style.GlobalColorscheme.TextDark)
+
+	tabIcon = activeTabIcon.Copy().
+		Background(style.GlobalColorscheme.BgDark).
+		BorderForeground(style.GlobalColorscheme.BgDarker).
+		BorderBackground(style.GlobalColorscheme.BgDark)
+
+	tabGap = lipgloss.NewStyle().
+		Background(style.GlobalColorscheme.BgDarker)
+
+	statusBarGap = lipgloss.NewStyle().
+			Background(style.GlobalColorscheme.BgDark)
+
 	statusBarCell = lipgloss.NewStyle().
 			Bold(true).
 			Padding(0, 1).
@@ -35,11 +62,11 @@ var (
 func attachIconToTab(text string, tabType tab.Type, isActive bool) string {
 	var iconStyle, textStyle lipgloss.Style
 	if isActive {
-		iconStyle = style.ActiveTabIcon
-		textStyle = style.ActiveTab
+		iconStyle = activeTabIcon
+		textStyle = activeTab
 	} else {
-		iconStyle = style.TabIcon
-		textStyle = style.TabStyle
+		iconStyle = tabIcon
+		textStyle = tabStyle
 	}
 
 	// Cut the text if the tab length is too much to handle

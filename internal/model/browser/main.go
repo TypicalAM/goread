@@ -10,7 +10,6 @@ import (
 	"github.com/TypicalAM/goread/internal/model/tab/category"
 	"github.com/TypicalAM/goread/internal/model/tab/feed"
 	"github.com/TypicalAM/goread/internal/model/tab/welcome"
-	"github.com/TypicalAM/goread/internal/style"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -379,7 +378,7 @@ func (m *Model) renderTabBar() string {
 	}
 
 	// Create the gap on the right
-	gap := style.TabGap.Render(strings.Repeat(" ", gapAmount))
+	gap := tabGap.Render(strings.Repeat(" ", gapAmount))
 	return lipgloss.JoinHorizontal(lipgloss.Left, row, gap)
 }
 
@@ -397,6 +396,6 @@ func (m *Model) renderStatusBar() string {
 	}
 
 	// Render the gap on the right
-	gap := style.StatusBarGap.Render(strings.Repeat(" ", gapAmount))
+	gap := statusBarGap.Render(strings.Repeat(" ", gapAmount))
 	return lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap)
 }
