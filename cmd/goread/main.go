@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/TypicalAM/goread/internal/config"
-	model "github.com/TypicalAM/goread/internal/model/main"
+	"github.com/TypicalAM/goread/internal/model/browser"
 	"github.com/TypicalAM/goread/internal/style"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -57,7 +57,7 @@ func main() {
 	defer cfg.Close()
 
 	// Create the main model
-	model := model.New(cfg.Getbackend())
+	model := browser.New(cfg.Getbackend())
 
 	// Start the program
 	p := tea.NewProgram(model)

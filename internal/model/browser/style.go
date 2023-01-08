@@ -1,4 +1,4 @@
-package model
+package browser
 
 import (
 	"github.com/TypicalAM/goread/internal/model/tab"

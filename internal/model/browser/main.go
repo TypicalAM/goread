@@ -1,4 +1,4 @@
-package model
+package browser
 
 import (
 	"fmt"
@@ -39,7 +39,7 @@ type Model struct {
 	quitting bool
 }
 
-// NewModel returns a new model with some sensible defaults
+// New returns a new model with some sensible defaults
 func New(backend backend.Backend) Model {
 	return Model{
 		waitingForSize: true,
