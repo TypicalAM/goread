@@ -289,7 +289,7 @@ func (m Model) addItem() (tea.Model, tea.Cmd) {
 		if m.input.Creating {
 			err = m.backend.Rss().AddCategory(values[0], values[1])
 		} else {
-			err = m.backend.Rss().UpdateCategory(values[0], values[1], m.input.Path[0])
+			err = m.backend.Rss().UpdateCategory(m.input.Path[0], values[0], values[1])
 		}
 
 		// Check if there was an error
@@ -307,7 +307,7 @@ func (m Model) addItem() (tea.Model, tea.Cmd) {
 	if m.input.Creating {
 		err = m.backend.Rss().AddFeed(m.tabs[m.activeTab].Title(), values[0], values[1])
 	} else {
-		err = m.backend.Rss().UpdateFeed(values[0], values[1], m.input.Path[0], m.input.Path[1])
+		err = m.backend.Rss().UpdateFeed(m.input.Path[0], m.input.Path[1], values[0], values[1])
 	}
 
 	// Check if there was an error

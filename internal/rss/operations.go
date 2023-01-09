@@ -44,11 +44,12 @@ func (rss *Rss) AddFeed(category string, name string, url string) error {
 				Name: name,
 				URL:  url,
 			})
+			return nil
 		}
 	}
 
-	// Return no errors
-	return nil
+	// We couldn't find the category
+	return ErrNotFound
 }
 
 // RemoveCategory will remove a category from the Rss structure
@@ -93,7 +94,7 @@ func (rss *Rss) RemoveFeed(category string, name string) error {
 }
 
 // UpdateCategory will change the name/description of a category by a string key
-func (rss *Rss) UpdateCategory(name, desc string, key string) error {
+func (rss *Rss) UpdateCategory(key, name, desc string) error {
 	// Check if the category already exists
 	for _, cat := range rss.Categories {
 		if cat.Name == name && name != key {
@@ -116,7 +117,7 @@ func (rss *Rss) UpdateCategory(name, desc string, key string) error {
 }
 
 // UdpateFeed will change the name/url of a feed by a string key and a category
-func (rss *Rss) UpdateFeed(name, url, category, key string) error {
+func (rss *Rss) UpdateFeed(category, key, name, url string) error {
 	// Find the category
 	for _, cat := range rss.Categories {
 		if cat.Name == category {

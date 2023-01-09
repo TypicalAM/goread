@@ -25,7 +25,7 @@ func getCache() (*Cache, error) {
 	return &cache, nil
 }
 
-// TestCacheLoadNoFile if we get an error when there's no cache file
+// TestCacheLoadNoFile if we get an error then there's no cache file
 func TestCacheLoadNoFile(t *testing.T) {
 	cache, err := newStore()
 	if err != nil {
