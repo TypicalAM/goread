@@ -1,98 +1,137 @@
 package backend
 
 import (
+	"fmt"
+
+	"github.com/TypicalAM/goread/internal/model/simplelist"
 	"github.com/TypicalAM/goread/internal/rss"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-// ItemType is the type of the added item
-type ItemType int
-
-const (
-	Category ItemType = iota
-	Feed
-)
-
-// The Backend is the model for the backend of the program. It is responsible
-// for managing the data in the categories and feeds
-type Backend interface {
-	// Name returns the name of the backend to show in the logs
-	Name() string
-	// FetchCategories returns a tea.Cmd which gets the category list
-	// fron the backend
-	FetchCategories() tea.Cmd
-	// FetchFeeds returns a tea.Cmd which gets the feed list from
-	// the backend via a string key
-	FetchFeeds(catName string) tea.Cmd
-	// FetchArticles returns a tea.Cmd which gets the articles from
-	// the backend via a string key
-	FetchArticles(feedName string) tea.Cmd
-	// Rss returns the pointer to the RSS struct, it can be used
-	// to add and remove items
-	Rss() *rss.Rss
-	// Close closes the backend
-	Close() error
+// The Backend uses a local cache to get all the feeds and their articles
+type Backend struct {
+	Cache *Cache
+	Rss   *rss.Rss
 }
 
-// FetchSuccessMessage is a message that is sent when the fetching of the
-// categories or feeds was successful
-type FetchSuccessMessage struct {
-	Items []list.Item
+// New creates a new Cache Backend
+func New(urlFilePath string) (Backend, error) {
+	// Create the cache
+	cache, err := newStore()
+	if err != nil {
+		return Backend{}, err
+	}
+
+	// Try to load the cache
+	if err := cache.Load(); err != nil {
+		fmt.Printf("Failed to load the cache: %v, creating a new one", err)
+	}
+
+	// Return the backend
+	rss := rss.New(urlFilePath)
+	return Backend{
+		Cache: &cache,
+		Rss:   &rss,
+	}, nil
 }
 
-// FetchErrorMessage is a message that is sent when the fetching of the
-// categories or feeds failed
-type FetchErrorMessage struct {
-	Description string
-	Err         error
-}
-
-// NewItemMessage is a message to tell the main model that a new item
-// needs to be added to the list
-type NewItemMessage struct {
-	Type      ItemType
-	New       bool
-	Fields    []string
-	ItemPath  []string
-	OldFields []string
-}
-
-// NewItem is a function to tell the main model that a new item
-// needs to be added to the list
-func NewItem(itemType ItemType, newItem bool, itemPath []string, oldFields []string) tea.Cmd {
+// FetchCategories returns a tea.Cmd which gets the category list
+// fron the backend
+func (b Backend) FetchCategories() tea.Cmd {
 	return func() tea.Msg {
-		var textFields []string
-		if itemType == Category {
-			textFields = []string{"Name", "Description"}
-		} else {
-			textFields = []string{"Name", "URL"}
+		// Create a list of categories
+		names, descs := b.Rss.GetCategories()
+
+		// Create a list of list items
+		items := make([]list.Item, len(names))
+		for i := range names {
+			items[i] = simplelist.NewItem(names[i], descs[i], "")
 		}
 
-		return NewItemMessage{
-			Type:      itemType,
-			New:       newItem,
-			Fields:    textFields,
-			ItemPath:  itemPath,
-			OldFields: oldFields,
-		}
+		// Return the message
+		return FetchSuccessMessage{Items: items}
 	}
 }
 
-// DeleteItemMessage is a message to tell the main model that a new item
-// needs to be removed from the list
-type DeleteItemMessage struct {
-	Type ItemType
-	Key  string
+// FetchFeeds returns a tea.Cmd which gets the feed list from
+// the backend via a string key
+func (b Backend) FetchFeeds(catName string) tea.Cmd {
+	return func() tea.Msg {
+		// Create a list of feeds
+		names, urls, err := b.Rss.GetFeeds(catName)
+		if err != nil {
+			return FetchErrorMessage{
+				Description: "Failed to get feeds",
+				Err:         err,
+			}
+		}
+
+		// Create a list of list items
+		items := make([]list.Item, len(names))
+		for i := range names {
+			items[i] = simplelist.NewItem(names[i], urls[i], "")
+		}
+
+		// Return the message
+		return FetchSuccessMessage{Items: items}
+	}
 }
 
-// DeleteItem is a function to tell the main model that a new item
-// needs to be removed from the list
-func DeleteItem(itemType ItemType, key string) tea.Cmd {
+// FetchArticles returns a tea.Cmd which gets the articles from
+// the backend via a string key
+func (b Backend) FetchArticles(feedName string) tea.Cmd {
 	return func() tea.Msg {
-		return DeleteItemMessage{
-			Type: itemType,
-			Key:  key,
+		// Create a list of articles
+		url, err := b.Rss.GetFeedURL(feedName)
+		if err != nil {
+			return FetchErrorMessage{
+				Description: "Failed to get the article url",
+				Err:         err,
+			}
 		}
+
+		// Get the items from the cache
+		items, err := b.Cache.GetArticle(url)
+		if err != nil {
+			return FetchErrorMessage{
+				Description: "Failed to parse the article",
+				Err:         err,
+			}
+		}
+
+		// Create the list of list items
+		var result []list.Item
+		for i, item := range items {
+			// Check if the description can be converted to a string
+			var description string
+			text, err := rss.HTMLToText(item.Description)
+			if err != nil {
+				description = item.Description
+			} else {
+				description = text
+			}
+
+			// Create the list item
+			result = append(result, simplelist.NewItem(
+				item.Title,
+				description,
+				rss.YassifyItem(&items[i]),
+			))
+		}
+
+		// Return the message
+		return FetchSuccessMessage{Items: result}
 	}
+}
+
+// Close closes the backend
+func (b Backend) Close() error {
+	// Try to save the rss
+	if err := b.Rss.Save(); err != nil {
+		return err
+	}
+
+	// Try to save the cache
+	return b.Cache.Save()
 }

@@ -13,9 +13,8 @@ import (
 )
 
 // parseCmdLine parses the command line arguments
-func parseCmdLine() (urlPath, backend string, testColors, pywalConvert bool) {
+func parseCmdLine() (urlPath string, testColors, pywalConvert bool) {
 	// Create the flagset
-	backendPtr := flag.String("backend", "cache", "The backend to use for the config file")
 	urlPathPtr := flag.String("url_path", "", "The path to the url file")
 	testColorsPtr := flag.Bool("colors", false, "Test the colorscheme")
 	pywalConvertPtr := flag.Bool("pywal", false, "Convert a pywal colorscheme to a goread colorschemea and save it to the config directory")
@@ -23,18 +22,17 @@ func parseCmdLine() (urlPath, backend string, testColors, pywalConvert bool) {
 	// Parse the flags
 	flag.Parse()
 
-	backend = *backendPtr
 	urlPath = *urlPathPtr
 	testColors = *testColorsPtr
 	pywalConvert = *pywalConvertPtr
 
 	// Return the default path
-	return urlPath, backend, testColors, pywalConvert
+	return urlPath, testColors, pywalConvert
 }
 
 func main() {
 	// Parse the command line arguments
-	urlPath, backend, testColors, pywalConvert := parseCmdLine()
+	urlPath, testColors, pywalConvert := parseCmdLine()
 
 	// TODO: configurable
 	colors := colorscheme.New("")
@@ -52,7 +50,7 @@ func main() {
 	}
 
 	// Create the config
-	cfg, err := config.New(backend, urlPath, colors)
+	cfg, err := config.New(urlPath, colors)
 	if err != nil {
 		fmt.Println(err)
 		return

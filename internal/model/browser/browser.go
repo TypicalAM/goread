@@ -46,7 +46,7 @@ func New(cfg config.Config) Model {
 		config:         cfg,
 		style:          newStyle(cfg.Colors),
 		waitingForSize: true,
-		message:        fmt.Sprintf("Using backend - %s", cfg.Backend.Name()),
+		message:        "Pro-tip use \"h\" to view the help page",
 	}
 }
 
@@ -293,9 +293,9 @@ func (m Model) addItem() (tea.Model, tea.Cmd) {
 	if m.input.Type == backend.Category {
 		var err error
 		if m.input.Creating {
-			err = m.config.Backend.Rss().AddCategory(values[0], values[1])
+			err = m.config.Backend.Rss.AddCategory(values[0], values[1])
 		} else {
-			err = m.config.Backend.Rss().UpdateCategory(m.input.Path[0], values[0], values[1])
+			err = m.config.Backend.Rss.UpdateCategory(m.input.Path[0], values[0], values[1])
 		}
 
 		// Check if there was an error
@@ -311,9 +311,9 @@ func (m Model) addItem() (tea.Model, tea.Cmd) {
 	// Check if the feed already exists
 	var err error
 	if m.input.Creating {
-		err = m.config.Backend.Rss().AddFeed(m.tabs[m.activeTab].Title(), values[0], values[1])
+		err = m.config.Backend.Rss.AddFeed(m.tabs[m.activeTab].Title(), values[0], values[1])
 	} else {
-		err = m.config.Backend.Rss().UpdateFeed(m.input.Path[0], m.input.Path[1], values[0], values[1])
+		err = m.config.Backend.Rss.UpdateFeed(m.input.Path[0], m.input.Path[1], values[0], values[1])
 	}
 
 	// Check if there was an error
@@ -332,7 +332,7 @@ func (m Model) deleteItem(msg backend.DeleteItemMessage) (tea.Model, tea.Cmd) {
 
 	// Check the type of the item
 	if msg.Type == backend.Category {
-		err := m.config.Backend.Rss().RemoveCategory(msg.Key)
+		err := m.config.Backend.Rss.RemoveCategory(msg.Key)
 		if err != nil {
 			m.message = fmt.Sprintf("Error deleting category %s - %s", msg.Key, err.Error())
 		}
@@ -342,7 +342,7 @@ func (m Model) deleteItem(msg backend.DeleteItemMessage) (tea.Model, tea.Cmd) {
 	}
 
 	// Delete the feed
-	err := m.config.Backend.Rss().RemoveFeed(m.tabs[m.activeTab].Title(), msg.Key)
+	err := m.config.Backend.Rss.RemoveFeed(m.tabs[m.activeTab].Title(), msg.Key)
 	if err != nil {
 		m.message = fmt.Sprintf("Error deleting feed %s - %s", msg.Key, err.Error())
 	}

@@ -1,11 +1,10 @@
-package cache
+package backend
 
 import (
 	"fmt"
 	"testing"
 	"time"
 
-	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/rss"
 )
 
@@ -16,7 +15,7 @@ func getCache() (*Cache, error) {
 		return nil, err
 	}
 
-	cache.filePath = "../../test/data/cache.json"
+	cache.filePath = "../test/data/cache.json"
 	err = cache.Load()
 	if err != nil {
 		return nil, err
@@ -118,7 +117,7 @@ func TestCacheGetArticleExpired(t *testing.T) {
 
 // getBackend creates a fake backend
 func getBackend() (*Backend, error) {
-	b, err := New("../../test/data/urls.yml")
+	b, err := New("../test/data/urls.yml")
 	if err != nil {
 		return nil, err
 	}
@@ -138,8 +137,8 @@ func TestBackendLoad(t *testing.T) {
 		t.Errorf("couldn't get the urls from the file")
 	}
 
-	if len(b.rss.Categories) != 2 {
-		t.Errorf("expected 2 categories, got %d", len(b.rss.Categories))
+	if len(b.Rss.Categories) != 2 {
+		t.Errorf("expected 2 categories, got %d", len(b.Rss.Categories))
 	}
 }
 
@@ -151,7 +150,7 @@ func TestBackendGetCategories(t *testing.T) {
 	}
 
 	result := b.FetchCategories()()
-	if msg, ok := result.(backend.FetchSuccessMessage); ok {
+	if msg, ok := result.(FetchSuccessMessage); ok {
 		if len(msg.Items) != 2 {
 			t.Errorf("expected 2 items, got %d", len(msg.Items))
 		}
@@ -169,12 +168,12 @@ func TestBackendGetFeeds(t *testing.T) {
 
 	result := b.FetchFeeds("News")()
 	switch msg := result.(type) {
-	case backend.FetchSuccessMessage:
+	case FetchSuccessMessage:
 		if len(msg.Items) != 1 {
 			t.Errorf("expected 1 item, got %d", len(msg.Items))
 		}
 
-	case backend.FetchErrorMessage:
+	case FetchErrorMessage:
 		t.Errorf("expected FetchSuccessMessage, got a FetchError message %v", msg.Err)
 
 	default:
@@ -183,10 +182,10 @@ func TestBackendGetFeeds(t *testing.T) {
 
 	result = b.FetchFeeds("No Category")()
 	switch msg := result.(type) {
-	case backend.FetchSuccessMessage:
+	case FetchSuccessMessage:
 		t.Errorf("expected FetchErrorMessage, got a FetchSuccessMessage with %v items", len(msg.Items))
 
-	case backend.FetchErrorMessage:
+	case FetchErrorMessage:
 		if msg.Err != rss.ErrNotFound {
 			t.Errorf("expected ErrNotFound, got %v", msg.Err)
 		}
@@ -205,7 +204,7 @@ func TestBackendGetArticles(t *testing.T) {
 
 	result := b.FetchArticles("Primordial soup")()
 	switch msg := result.(type) {
-	case backend.FetchSuccessMessage:
+	case FetchSuccessMessage:
 		if len(msg.Items) != 9 {
 			t.Errorf("expected 9 items, got %d", len(msg.Items))
 		}
@@ -214,7 +213,7 @@ func TestBackendGetArticles(t *testing.T) {
 			t.Errorf("expected BBC, got %s", msg.Items[0].FilterValue())
 		}
 
-	case backend.FetchErrorMessage:
+	case FetchErrorMessage:
 		t.Errorf("expected FetchSuccessMessage, got a FetchErrorMessage with %v", msg.Err)
 
 	default:
@@ -223,10 +222,10 @@ func TestBackendGetArticles(t *testing.T) {
 
 	result = b.FetchArticles("No Feed")()
 	switch msg := result.(type) {
-	case backend.FetchSuccessMessage:
+	case FetchSuccessMessage:
 		t.Errorf("expected FetchErrorMessage, got a FetchSuccessMessage with %v items", len(msg.Items))
 
-	case backend.FetchErrorMessage:
+	case FetchErrorMessage:
 		if msg.Err != rss.ErrNotFound {
 			t.Errorf("expected ErrNotFound, got %v", msg.Err)
 		}
