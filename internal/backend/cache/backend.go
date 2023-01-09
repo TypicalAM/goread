@@ -19,7 +19,7 @@ type Backend struct {
 // New creates a new Cache Backend
 func New(urlFilePath string) (Backend, error) {
 	// Create the cache
-	cache, err := newCache()
+	cache, err := newStore()
 	if err != nil {
 		return Backend{}, err
 	}

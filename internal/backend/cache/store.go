@@ -9,6 +9,9 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
+// defaultCacheDuration is the default duration for which an item is cached
+var defaultCacheDuration = 24 * time.Hour
+
 // Cache is a basic cache to read and write gofeed.Items based on the URL
 type Cache struct {
 	filePath string
@@ -21,8 +24,8 @@ type Item struct {
 	Items  []gofeed.Item
 }
 
-// newCache creates a new cache
-func newCache() (Cache, error) {
+// newStore creates a new cache
+func newStore() (Cache, error) {
 	// Get the path to the cache file
 	path, err := getDefaultPath()
 	if err != nil {
@@ -87,14 +90,12 @@ func (c *Cache) Save() error {
 	return nil
 }
 
-// GetArticle returns an article list from the cache or
-// fetches it from the internet if it is not in the cache
+// GetArticle returns an article list from the cache or fetches it from the internet
+// if it is not cached and updates the cache, it also updates expired items
 func (c *Cache) GetArticle(url string) ([]gofeed.Item, error) {
 	// Check if the cache contains the url
 	if item, ok := c.Content[url]; ok {
-		// Check if the item is expired
 		if item.Expire.After(time.Now()) {
-			// Return the items
 			return item.Items, nil
 		}
 
@@ -120,8 +121,7 @@ func (c *Cache) GetArticle(url string) ([]gofeed.Item, error) {
 	return cacheItem.Items, nil
 }
 
-// fetchArticle fetches an article list from the internet and
-// reutrns a slice of gofeed.Items
+// fetchArticle fetches an article list from the internet and returns a slice of items
 func fetchArticle(url string) (Item, error) {
 	// Create a new feed parser
 	fp := gofeed.NewParser()
@@ -140,7 +140,7 @@ func fetchArticle(url string) (Item, error) {
 
 	// Return the items
 	return Item{
-		Expire: time.Now().Add(24 * time.Hour),
+		Expire: time.Now().Add(defaultCacheDuration),
 		Items:  items,
 	}, nil
 }
