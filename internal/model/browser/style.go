@@ -1,8 +1,8 @@
 package browser
 
 import (
+	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/TypicalAM/goread/internal/model/tab"
-	"github.com/TypicalAM/goread/internal/style"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -16,33 +16,33 @@ var (
 			Padding(0, 0, 0, 3).
 			Bold(true).
 			Border(lipgloss.Border{Left: "┃"}, false, false, false, true).
-			BorderForeground(style.GlobalColorscheme.TextDark)
+			BorderForeground(colorscheme.Global.TextDark)
 
 	tabStyle = lipgloss.NewStyle().
 			Padding(0, 7, 0, 1).
-			Background(style.GlobalColorscheme.BgDark).
-			Foreground(style.GlobalColorscheme.TextDark)
+			Background(colorscheme.Global.BgDark).
+			Foreground(colorscheme.Global.TextDark)
 
 	tabIcon = activeTabIcon.Copy().
-		Background(style.GlobalColorscheme.BgDark).
-		BorderForeground(style.GlobalColorscheme.BgDarker).
-		BorderBackground(style.GlobalColorscheme.BgDark)
+		Background(colorscheme.Global.BgDark).
+		BorderForeground(colorscheme.Global.BgDarker).
+		BorderBackground(colorscheme.Global.BgDark)
 
 	tabGap = lipgloss.NewStyle().
-		Background(style.GlobalColorscheme.BgDarker)
+		Background(colorscheme.Global.BgDarker)
 
 	statusBarGap = lipgloss.NewStyle().
-			Background(style.GlobalColorscheme.BgDark)
+			Background(colorscheme.Global.BgDark)
 
 	statusBarCell = lipgloss.NewStyle().
 			Bold(true).
 			Padding(0, 1).
-			Foreground(style.GlobalColorscheme.BgDark)
+			Foreground(colorscheme.Global.BgDark)
 
 	iconColors = map[tab.Type]lipgloss.Color{
-		tab.Welcome:  style.GlobalColorscheme.Color4,
-		tab.Category: style.GlobalColorscheme.Color5,
-		tab.Feed:     style.GlobalColorscheme.Color3,
+		tab.Welcome:  colorscheme.Global.Color4,
+		tab.Category: colorscheme.Global.Color5,
+		tab.Feed:     colorscheme.Global.Color3,
 	}
 
 	icons = map[tab.Type]string{

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/TypicalAM/goread/internal/config"
 	"github.com/TypicalAM/goread/internal/model/browser"
-	"github.com/TypicalAM/goread/internal/style"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -44,7 +44,7 @@ func main() {
 
 	// If the user wants to test the colors, do that and exit
 	if testColors {
-		fmt.Println(style.GlobalColorscheme.TestColors())
+		fmt.Println(colorscheme.Global.TestColors())
 		os.Exit(0)
 	}
 
@@ -68,14 +68,14 @@ func main() {
 
 func convertFromPywal() {
 	// Convert the pywal colorscheme
-	err := style.GlobalColorscheme.Convert()
+	err := colorscheme.Global.Convert()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
 	// Save the colorscheme
-	err = style.GlobalColorscheme.Save("")
+	err = colorscheme.Global.Save("")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -84,5 +84,5 @@ func convertFromPywal() {
 	// Notify the user
 	messageStyle := lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("#6bae6c"))
 	fmt.Println(messageStyle.Render("The new colorscheme was saved to the config directory\n"))
-	fmt.Println(style.GlobalColorscheme.TestColors())
+	fmt.Println(colorscheme.Global.TestColors())
 }

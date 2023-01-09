@@ -3,7 +3,7 @@ package simplelist
 import (
 	"fmt"
 
-	"github.com/TypicalAM/goread/internal/style"
+	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -24,28 +24,28 @@ func newListStyle() listStyle {
 
 	// titleStyle is used to style the title of the list
 	newStyle.titleStyle = lipgloss.NewStyle().
-		Foreground(style.GlobalColorscheme.Color1).
+		Foreground(colorscheme.Global.Color1).
 		MarginLeft(3).
 		PaddingBottom(1)
 
 	// newItemsStyle is used to style the message when there are no items
 	newStyle.noItemsStyle = lipgloss.NewStyle().
 		MarginLeft(3).
-		Foreground(style.GlobalColorscheme.Color2).
+		Foreground(colorscheme.Global.Color2).
 		Italic(true)
 
 	// newItemsStyle is used to style the items in the list
 	newStyle.itemStyle = lipgloss.NewStyle().
 		MarginLeft(3).
-		Foreground(style.GlobalColorscheme.Color2)
+		Foreground(colorscheme.Global.Color2)
 
 	// bracketStyle is used to style the brackets around the index
 	newStyle.bracketStyle = lipgloss.NewStyle().
-		Foreground(style.GlobalColorscheme.Color7)
+		Foreground(colorscheme.Global.Color7)
 
 	// numberStyle is used to style the number in the index
 	newStyle.numberStyle = lipgloss.NewStyle().
-		Foreground(style.GlobalColorscheme.Color6)
+		Foreground(colorscheme.Global.Color6)
 
 	// Return the new style
 	return newStyle
@@ -56,12 +56,12 @@ func (s listStyle) styleDescription(description string) string {
 	// Create the arrow style
 	arrowStyle := lipgloss.NewStyle().
 		MarginLeft(10).
-		Foreground(style.GlobalColorscheme.Color3)
+		Foreground(colorscheme.Global.Color3)
 
 	// Create the text style
 	textStyle := lipgloss.NewStyle().
 		MarginLeft(1).
-		Foreground(style.GlobalColorscheme.Color3)
+		Foreground(colorscheme.Global.Color3)
 
 	return arrowStyle.Render("⮡") + textStyle.Render(description)
 }
@@ -71,7 +71,7 @@ func (s listStyle) styleIndex(index int, isSelected bool) string {
 	// If the index is the active index render it differently
 	numberStyle := s.numberStyle.Copy()
 	if isSelected {
-		numberStyle = numberStyle.Background(style.GlobalColorscheme.Text)
+		numberStyle = numberStyle.Background(colorscheme.Global.Text)
 	}
 
 	// Check if the index is a digit

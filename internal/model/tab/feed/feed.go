@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/TypicalAM/goread/internal/backend"
+	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/TypicalAM/goread/internal/model/simplelist"
 	"github.com/TypicalAM/goread/internal/model/tab"
-	"github.com/TypicalAM/goread/internal/style"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -37,7 +37,7 @@ func New(width, height int, title string, reader func(string) tea.Cmd) Model {
 	// Create a spinner for loading the data
 	spin := spinner.New()
 	spin.Spinner = spinner.Points
-	spin.Style = lipgloss.NewStyle().Foreground(style.GlobalColorscheme.Color1)
+	spin.Style = lipgloss.NewStyle().Foreground(colorscheme.Global.Color1)
 
 	// Create the model
 	return Model{
@@ -149,13 +149,13 @@ func (m Model) loadTab(items []list.Item) (tab.Tab, tea.Cmd) {
 	// Create the styles for the list items
 	delegateStyles := list.NewDefaultItemStyles()
 	delegateStyles.SelectedTitle = delegateStyles.SelectedTitle.Copy().
-		BorderForeground(style.GlobalColorscheme.Color3).
-		Foreground(style.GlobalColorscheme.Color3).
+		BorderForeground(colorscheme.Global.Color3).
+		Foreground(colorscheme.Global.Color3).
 		Italic(true)
 
 	delegateStyles.SelectedDesc = delegateStyles.SelectedDesc.Copy().
-		BorderForeground(style.GlobalColorscheme.Color3).
-		Foreground(style.GlobalColorscheme.Color2).
+		BorderForeground(colorscheme.Global.Color3).
+		Foreground(colorscheme.Global.Color2).
 		Italic(true)
 
 	// Create the list
@@ -245,7 +245,7 @@ func (m Model) showLoading() string {
 	if m.fetchFailed {
 		// Render the failed message with an cross mark
 		errorMsgStyle := messageStyle.Copy().
-			Foreground(style.GlobalColorscheme.Color4)
+			Foreground(colorscheme.Global.Color4)
 		loadingMsg = lipgloss.JoinHorizontal(
 			lipgloss.Top,
 			errorMsgStyle.Render(" "),

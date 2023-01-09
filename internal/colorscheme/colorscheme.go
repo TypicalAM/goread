@@ -1,4 +1,4 @@
-package style
+package colorscheme
 
 import (
 	"encoding/json"
@@ -11,8 +11,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// Create the basic colorscheme on startup
-var GlobalColorscheme = Load("")
+// Create the colorscheme on startup
+var Global = Load("")
 
 // The basic colorscheme to use in the app
 type Colorscheme struct {
