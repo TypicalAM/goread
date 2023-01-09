@@ -9,12 +9,11 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
-// defaultCacheDuration is the default duration for which an item is cached
-var defaultCacheDuration = 24 * time.Hour
+// DefaultCacheDuration is the default duration for which an item is cached
+var DefaultCacheDuration = 24 * time.Hour
 
-// defaultCacheSize is the default size of the cache
-// TODO: Make this configurable
-var defaultCacheSize = 100
+// DefaultCacheSize is the default size of the cache
+var DefaultCacheSize = 100
 
 // Cache is a basic cache to read and write gofeed.Items based on the URL
 type Cache struct {
@@ -122,7 +121,7 @@ func (c *Cache) GetArticle(url string) ([]gofeed.Item, error) {
 
 	// Check if the cache is full
 	// TODO: We should probably use a LRU cache here
-	if len(c.Content) >= defaultCacheSize {
+	if len(c.Content) >= DefaultCacheSize {
 		// Find the oldest item
 		var oldestKey string
 		var oldestTime time.Time
@@ -161,7 +160,7 @@ func fetchArticle(url string) (Item, error) {
 
 	// Return the items
 	return Item{
-		Expire: time.Now().Add(defaultCacheDuration),
+		Expire: time.Now().Add(DefaultCacheDuration),
 		Items:  items,
 	}, nil
 }

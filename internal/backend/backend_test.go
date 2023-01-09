@@ -96,7 +96,7 @@ func TestCacheGetArticleExpired(t *testing.T) {
 		t.Fatal("expected https://primordialsoup.info/feed in cache")
 	}
 
-	oldItem.Expire = time.Now().Add(-2 * defaultCacheDuration)
+	oldItem.Expire = time.Now().Add(-2 * DefaultCacheDuration)
 	cache.Content["https://primordialsoup.info/feed"] = oldItem
 
 	_, err = cache.GetArticle("https://primordialsoup.info/feed")
