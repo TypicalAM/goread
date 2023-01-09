@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/TypicalAM/goread/internal/backend"
+	"github.com/TypicalAM/goread/internal/config"
 	"github.com/TypicalAM/goread/internal/model/input"
 	"github.com/TypicalAM/goread/internal/model/tab"
 	"github.com/TypicalAM/goread/internal/model/tab/category"
@@ -17,8 +18,9 @@ import (
 
 // Model is used to store the state of the application
 type Model struct {
-	// backend is the backend that is being used
-	backend backend.Backend
+	// config is the config of the application
+	config config.Config
+	style  style
 
 	// managing tabs
 	tabs      []tab.Tab
@@ -39,11 +41,12 @@ type Model struct {
 }
 
 // New returns a new model with some sensible defaults
-func New(backend backend.Backend) Model {
+func New(cfg config.Config) Model {
 	return Model{
+		config:         cfg,
+		style:          newStyle(cfg.Colors),
 		waitingForSize: true,
-		backend:        backend,
-		message:        fmt.Sprintf("Using backend - %s", backend.Name()),
+		message:        fmt.Sprintf("Using backend - %s", cfg.Backend.Name()),
 	}
 }
 
@@ -201,10 +204,11 @@ func (m Model) waitForSize(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Append a new welcome tab
 		m.tabs = append(m.tabs, welcome.New(
+			m.config.Colors,
 			m.windowWidth,
 			m.windowHeight-5,
 			"Welcome",
-			m.backend.FetchCategories,
+			m.config.Backend.FetchCategories,
 		))
 
 		// Return the init of the tab
@@ -249,17 +253,19 @@ func (m *Model) createNewTab(title string, tabType tab.Type) {
 	switch tabType {
 	case tab.Category:
 		newTab = category.New(
+			m.config.Colors,
 			m.windowWidth,
 			m.windowHeight-5,
 			title,
-			m.backend.FetchFeeds,
+			m.config.Backend.FetchFeeds,
 		)
 	case tab.Feed:
 		newTab = feed.New(
+			m.config.Colors,
 			m.windowWidth,
 			m.windowHeight-5,
 			title,
-			m.backend.FetchArticles,
+			m.config.Backend.FetchArticles,
 		)
 	}
 
@@ -287,9 +293,9 @@ func (m Model) addItem() (tea.Model, tea.Cmd) {
 	if m.input.Type == backend.Category {
 		var err error
 		if m.input.Creating {
-			err = m.backend.Rss().AddCategory(values[0], values[1])
+			err = m.config.Backend.Rss().AddCategory(values[0], values[1])
 		} else {
-			err = m.backend.Rss().UpdateCategory(m.input.Path[0], values[0], values[1])
+			err = m.config.Backend.Rss().UpdateCategory(m.input.Path[0], values[0], values[1])
 		}
 
 		// Check if there was an error
@@ -299,15 +305,15 @@ func (m Model) addItem() (tea.Model, tea.Cmd) {
 		}
 
 		// Refresh the categories
-		return m, m.backend.FetchCategories()
+		return m, m.config.Backend.FetchCategories()
 	}
 
 	// Check if the feed already exists
 	var err error
 	if m.input.Creating {
-		err = m.backend.Rss().AddFeed(m.tabs[m.activeTab].Title(), values[0], values[1])
+		err = m.config.Backend.Rss().AddFeed(m.tabs[m.activeTab].Title(), values[0], values[1])
 	} else {
-		err = m.backend.Rss().UpdateFeed(m.input.Path[0], m.input.Path[1], values[0], values[1])
+		err = m.config.Backend.Rss().UpdateFeed(m.input.Path[0], m.input.Path[1], values[0], values[1])
 	}
 
 	// Check if there was an error
@@ -317,7 +323,7 @@ func (m Model) addItem() (tea.Model, tea.Cmd) {
 	}
 
 	// Refresh the feeds
-	return m, m.backend.FetchFeeds(m.tabs[m.activeTab].Title())
+	return m, m.config.Backend.FetchFeeds(m.tabs[m.activeTab].Title())
 }
 
 // deleteItem deletes the focused item from the backend
@@ -326,23 +332,23 @@ func (m Model) deleteItem(msg backend.DeleteItemMessage) (tea.Model, tea.Cmd) {
 
 	// Check the type of the item
 	if msg.Type == backend.Category {
-		err := m.backend.Rss().RemoveCategory(msg.Key)
+		err := m.config.Backend.Rss().RemoveCategory(msg.Key)
 		if err != nil {
 			m.message = fmt.Sprintf("Error deleting category %s - %s", msg.Key, err.Error())
 		}
 
 		// Refresh the categories
-		return m, m.backend.FetchCategories()
+		return m, m.config.Backend.FetchCategories()
 	}
 
 	// Delete the feed
-	err := m.backend.Rss().RemoveFeed(m.tabs[m.activeTab].Title(), msg.Key)
+	err := m.config.Backend.Rss().RemoveFeed(m.tabs[m.activeTab].Title(), msg.Key)
 	if err != nil {
 		m.message = fmt.Sprintf("Error deleting feed %s - %s", msg.Key, err.Error())
 	}
 
 	// Fetch the feeds again to update the list
-	return m, m.backend.FetchFeeds(m.tabs[m.activeTab].Title())
+	return m, m.config.Backend.FetchFeeds(m.tabs[m.activeTab].Title())
 }
 
 // showHelp() shows the help menu at the bottom of the screen
@@ -363,7 +369,7 @@ func (m *Model) renderTabBar() string {
 	// Render the tab bar at the top of the screen
 	tabs := make([]string, len(m.tabs))
 	for i, tabObj := range m.tabs {
-		tabs[i] = attachIconToTab(tabObj.Title(), tabObj.Type(), i == m.activeTab)
+		tabs[i] = m.style.attachIconToTab(tabObj.Title(), tabObj.Type(), i == m.activeTab)
 	}
 
 	// Make the row of the tabs
@@ -378,14 +384,14 @@ func (m *Model) renderTabBar() string {
 	}
 
 	// Create the gap on the right
-	gap := tabGap.Render(strings.Repeat(" ", gapAmount))
+	gap := m.style.tabGap.Render(strings.Repeat(" ", gapAmount))
 	return lipgloss.JoinHorizontal(lipgloss.Left, row, gap)
 }
 
 // renderStatusBar is used to render the status bar at the bottom of the screen
 func (m *Model) renderStatusBar() string {
 	// Render the status bar at the bottom of the screen
-	row := lipgloss.JoinHorizontal(lipgloss.Top, styleStatusBarCell(m.tabs[m.activeTab].Type()))
+	row := lipgloss.JoinHorizontal(lipgloss.Top, m.style.styleStatusBarCell(m.tabs[m.activeTab].Type()))
 
 	// Calculate the gap amount
 	var gapAmount int
@@ -396,6 +402,6 @@ func (m *Model) renderStatusBar() string {
 	}
 
 	// Render the gap on the right
-	gap := statusBarGap.Render(strings.Repeat(" ", gapAmount))
+	gap := m.style.statusBarGap.Render(strings.Repeat(" ", gapAmount))
 	return lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap)
 }

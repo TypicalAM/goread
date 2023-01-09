@@ -11,9 +11,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// Create the colorscheme on startup
-var Global = New("")
-
 // The basic colorscheme to use in the app
 type Colorscheme struct {
 	// The path to the colorscheme
@@ -72,7 +69,7 @@ func newDefault() Colorscheme {
 }
 
 // Save saves the colorscheme to a JSON file
-func (c Colorscheme) Save(path string) error {
+func (c Colorscheme) Save() error {
 	// Try to marshall the data
 	yamlData, err := json.Marshal(c)
 	if err != nil {
@@ -80,7 +77,7 @@ func (c Colorscheme) Save(path string) error {
 	}
 
 	// Check if the path exists
-	if path == "" {
+	if c.path == "" {
 		// Get the default path
 		defaultPath, err := getDefaultPath()
 		if err != nil {
@@ -88,19 +85,19 @@ func (c Colorscheme) Save(path string) error {
 		}
 
 		// Set the path
-		path = defaultPath
+		c.path = defaultPath
 	}
 
 	// Try to write the data to the file
-	if err = os.WriteFile(path, yamlData, 0600); err != nil {
+	if err = os.WriteFile(c.path, yamlData, 0600); err != nil {
 		// Try to create the directory
-		err = os.MkdirAll(filepath.Dir(path), 0755)
+		err = os.MkdirAll(filepath.Dir(c.path), 0755)
 		if err != nil {
 			return err
 		}
 
 		// Try to write to the file again
-		err = os.WriteFile(path, yamlData, 0600)
+		err = os.WriteFile(c.path, yamlData, 0600)
 		if err != nil {
 			return err
 		}

@@ -36,20 +36,23 @@ func main() {
 	// Parse the command line arguments
 	urlPath, backend, testColors, pywalConvert := parseCmdLine()
 
+	// TODO: configurable
+	colors := colorscheme.New("")
+
 	// If the user wants to convert a pywal colorscheme to a goread colorscheme
 	if pywalConvert {
-		convertFromPywal()
+		convertFromPywal(colors, "")
 		os.Exit(0)
 	}
 
 	// If the user wants to test the colors, do that and exit
 	if testColors {
-		fmt.Println(colorscheme.Global.TestColors())
+		fmt.Println(colors.TestColors())
 		os.Exit(0)
 	}
 
 	// Create the config
-	cfg, err := config.New(backend, urlPath)
+	cfg, err := config.New(backend, urlPath, colors)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -57,7 +60,7 @@ func main() {
 	defer cfg.Close()
 
 	// Create the main model
-	model := browser.New(cfg.Getbackend())
+	model := browser.New(cfg)
 
 	// Start the program
 	p := tea.NewProgram(model)
@@ -66,17 +69,16 @@ func main() {
 	}
 }
 
-func convertFromPywal() {
+func convertFromPywal(colors colorscheme.Colorscheme, pywalFilePath string) {
 	// Convert the pywal colorscheme
-	// TODO: Make this configurable
-	err := colorscheme.Global.Convert("")
+	err := colors.Convert(pywalFilePath)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
 	// Save the colorscheme
-	err = colorscheme.Global.Save("")
+	err = colors.Save()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -85,5 +87,5 @@ func convertFromPywal() {
 	// Notify the user
 	messageStyle := lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("#6bae6c"))
 	fmt.Println(messageStyle.Render("The new colorscheme was saved to the config directory\n"))
-	fmt.Println(colorscheme.Global.TestColors())
+	fmt.Println(colors.TestColors())
 }

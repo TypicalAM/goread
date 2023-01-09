@@ -5,12 +5,20 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var (
-	columnStyle = lipgloss.NewStyle().
-			Border(lipgloss.NormalBorder()).
-			BorderForeground(colorscheme.Global.TextDark)
+// style is the style of the feed tab.
+type style struct {
+	columnStyle  lipgloss.Style
+	focusedStyle lipgloss.Style
+}
 
-	focusedStyle = lipgloss.NewStyle().
+// newStyle creates a new style for the feed tab.
+func newStyle(colors colorscheme.Colorscheme) style {
+	return style{
+		columnStyle: lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder()).
-			BorderForeground(colorscheme.Global.Color1)
-)
+			BorderForeground(colors.TextDark),
+		focusedStyle: lipgloss.NewStyle().
+			Border(lipgloss.NormalBorder()).
+			BorderForeground(colors.Color1),
+	}
+}

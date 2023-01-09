@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"unicode"
 
+	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -12,6 +13,7 @@ import (
 // TODO: Add vertical scrolling
 // Model contains state of the list
 type Model struct {
+	colors   colorscheme.Colorscheme
 	title    string
 	height   int
 	items    []list.Item
@@ -21,12 +23,13 @@ type Model struct {
 }
 
 // New creates a new list
-func New(title string, height int, showDesc bool) Model {
+func New(colors colorscheme.Colorscheme, title string, height int, showDesc bool) Model {
 	return Model{
+		colors:   colors,
 		title:    title,
 		height:   height,
 		showDesc: showDesc,
-		style:    newListStyle(),
+		style:    newListStyle(colors),
 	}
 }
 

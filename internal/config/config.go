@@ -6,6 +6,7 @@ import (
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/backend/cache"
 	"github.com/TypicalAM/goread/internal/backend/web"
+	"github.com/TypicalAM/goread/internal/colorscheme"
 )
 
 // Define the basic backend types
@@ -16,17 +17,21 @@ const (
 
 // Config is the configuration for the program
 type Config struct {
-	backend backend.Backend
+	Colors  colorscheme.Colorscheme
+	Backend backend.Backend
 	urlPath string
 }
 
 // New returns a new Config
-func New(backendType string, urlPath string) (Config, error) {
+func New(backendType string, urlPath string, colors colorscheme.Colorscheme) (Config, error) {
 	// Create a new config
 	config := Config{}
 
 	// Set the url path
 	config.urlPath = urlPath
+
+	// Set the colorscheme
+	config.Colors = colors
 
 	// Determine the backend
 	var backend backend.Backend
@@ -44,18 +49,13 @@ func New(backendType string, urlPath string) (Config, error) {
 	}
 
 	// Set the backend
-	config.backend = backend
+	config.Backend = backend
 
 	// Return the config
 	return config, nil
 }
 
-// Getbackend returns the backend
-func (c Config) Getbackend() backend.Backend {
-	return c.backend
-}
-
 // Close closes the backend
 func (c Config) Close() error {
-	return c.backend.Close()
+	return c.Backend.Close()
 }

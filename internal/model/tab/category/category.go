@@ -2,6 +2,7 @@ package category
 
 import (
 	"github.com/TypicalAM/goread/internal/backend"
+	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/TypicalAM/goread/internal/model/simplelist"
 	"github.com/TypicalAM/goread/internal/model/tab"
 	tea "github.com/charmbracelet/bubbletea"
@@ -9,6 +10,7 @@ import (
 
 // Model contains the state of this tab
 type Model struct {
+	colors colorscheme.Colorscheme
 	width  int
 	height int
 	title  string
@@ -21,8 +23,9 @@ type Model struct {
 }
 
 // New creates a new category tab with sensible defaults
-func New(width, height int, title string, reader func(string) tea.Cmd) Model {
+func New(colors colorscheme.Colorscheme, width, height int, title string, reader func(string) tea.Cmd) Model {
 	return Model{
+		colors: colors,
 		width:  width,
 		height: height,
 		title:  title,
@@ -61,7 +64,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	case backend.FetchSuccessMessage:
 		// The data fetch was successful
 		if !m.loaded {
-			m.list = simplelist.New(m.title, m.height, false)
+			m.list = simplelist.New(m.colors, m.title, m.height, false)
 			m.loaded = true
 		}
 

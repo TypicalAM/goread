@@ -16,6 +16,8 @@ import (
 
 // Model contains the state of this tab
 type Model struct {
+	colors          colorscheme.Colorscheme
+	style           style
 	width           int
 	height          int
 	title           string
@@ -33,14 +35,16 @@ type Model struct {
 }
 
 // New creates a new feed tab with sensible defaults
-func New(width, height int, title string, reader func(string) tea.Cmd) Model {
+func New(colors colorscheme.Colorscheme, width, height int, title string, reader func(string) tea.Cmd) Model {
 	// Create a spinner for loading the data
 	spin := spinner.New()
 	spin.Spinner = spinner.Points
-	spin.Style = lipgloss.NewStyle().Foreground(colorscheme.Global.Color1)
+	spin.Style = lipgloss.NewStyle().Foreground(colors.Color1)
 
 	// Create the model
 	return Model{
+		colors:         colors,
+		style:          newStyle(colors),
 		width:          width,
 		height:         height,
 		loadingSpinner: spin,
@@ -149,13 +153,13 @@ func (m Model) loadTab(items []list.Item) (tab.Tab, tea.Cmd) {
 	// Create the styles for the list items
 	delegateStyles := list.NewDefaultItemStyles()
 	delegateStyles.SelectedTitle = delegateStyles.SelectedTitle.Copy().
-		BorderForeground(colorscheme.Global.Color3).
-		Foreground(colorscheme.Global.Color3).
+		BorderForeground(m.colors.Color3).
+		Foreground(m.colors.Color3).
 		Italic(true)
 
 	delegateStyles.SelectedDesc = delegateStyles.SelectedDesc.Copy().
-		BorderForeground(colorscheme.Global.Color3).
-		Foreground(colorscheme.Global.Color2).
+		BorderForeground(m.colors.Color3).
+		Foreground(m.colors.Color2).
 		Italic(true)
 
 	// Create the list
@@ -214,23 +218,23 @@ func (m Model) View() string {
 
 	// If the view is not open show just the rss list
 	if !m.isViewportOpen {
-		return focusedStyle.Render(m.list.View())
+		return m.style.focusedStyle.Render(m.list.View())
 	}
 
 	// If the viewport is focused, render it with the focused style
 	if m.viewportFocused {
 		return lipgloss.JoinHorizontal(
 			lipgloss.Left,
-			columnStyle.Render(m.list.View()),
-			focusedStyle.Render(m.viewport.View()),
+			m.style.columnStyle.Render(m.list.View()),
+			m.style.focusedStyle.Render(m.viewport.View()),
 		)
 	}
 
 	// Otherwise render it with the default style
 	return lipgloss.JoinHorizontal(
 		lipgloss.Left,
-		focusedStyle.Render(m.list.View()),
-		columnStyle.Render(m.viewport.View()),
+		m.style.focusedStyle.Render(m.list.View()),
+		m.style.columnStyle.Render(m.viewport.View()),
 	)
 }
 
@@ -245,7 +249,7 @@ func (m Model) showLoading() string {
 	if m.fetchFailed {
 		// Render the failed message with an cross mark
 		errorMsgStyle := messageStyle.Copy().
-			Foreground(colorscheme.Global.Color4)
+			Foreground(m.colors.Color4)
 		loadingMsg = lipgloss.JoinHorizontal(
 			lipgloss.Top,
 			errorMsgStyle.Render(" "),
