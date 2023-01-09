@@ -68,7 +68,8 @@ func main() {
 
 func convertFromPywal() {
 	// Convert the pywal colorscheme
-	err := colorscheme.Global.Convert()
+	// TODO: Make this configurable
+	err := colorscheme.Global.Convert("")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

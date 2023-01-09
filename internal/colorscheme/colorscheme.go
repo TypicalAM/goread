@@ -12,10 +12,13 @@ import (
 )
 
 // Create the colorscheme on startup
-var Global = Load("")
+var Global = New("")
 
 // The basic colorscheme to use in the app
 type Colorscheme struct {
+	// The path to the colorscheme
+	path string
+
 	// Background color
 	BgDark   lipgloss.Color
 	BgDarker lipgloss.Color
@@ -34,8 +37,23 @@ type Colorscheme struct {
 	Color7 lipgloss.Color
 }
 
+// New will create a new colorscheme
+func New(path string) Colorscheme {
+	// Create a new colorscheme
+	colors := Colorscheme{path: path}
+
+	// Check if we can load from a file
+	err := colors.load()
+	if err == nil {
+		return colors
+	}
+
+	// Return the default colorscheme
+	return newDefault()
+}
+
 // A function which returns a new default colorscheme
-func NewDefaultColorscheme() Colorscheme {
+func newDefault() Colorscheme {
 	return Colorscheme{
 		BgDark:   lipgloss.Color("#161622"),
 		BgDarker: lipgloss.Color("#11111a"),
@@ -93,49 +111,49 @@ func (c Colorscheme) Save(path string) error {
 }
 
 // Load loads a colorscheme from a JSON file
-func Load(path string) Colorscheme {
-	// Create the colorscheme
-	colorscheme := NewDefaultColorscheme()
-
+func (c *Colorscheme) load() error {
 	// Check if the path is valid
-	if path == "" {
+	if c.path == "" {
 		// Get the default path
 		defaultPath, err := getDefaultPath()
 		if err != nil {
-			return colorscheme
+			return err
 		}
 
 		// Set the path
-		path = defaultPath
+		c.path = defaultPath
 	}
 
 	// Try to open the file
-	fileContent, err := os.ReadFile(path)
-	if err != nil {
-		return colorscheme
-	}
-
-	// Try to decode the file
-	err = json.Unmarshal(fileContent, &colorscheme)
-	if err != nil {
-		return colorscheme
-	}
-
-	// Successfully loaded the file
-	return colorscheme
-}
-
-// Convert takes the information from a pywal file and converts it to a colorscheme
-func (c *Colorscheme) Convert() error {
-	// Get the path to the cache dir
-	cacheDir, err := os.UserCacheDir()
+	fileContent, err := os.ReadFile(c.path)
 	if err != nil {
 		return err
 	}
 
+	// Try to decode the file
+	err = json.Unmarshal(fileContent, &c)
+	if err != nil {
+		return err
+	}
+
+	// Successfully loaded the file
+	return nil
+}
+
+// Convert takes the information from a pywal file and converts it to a colorscheme
+func (c *Colorscheme) Convert(filePath string) error {
+	if filePath == "" {
+		// Get the path to the cache dir
+		cacheDir, err := os.UserCacheDir()
+		if err != nil {
+			return err
+		}
+
+		filePath = filepath.Join(cacheDir, "wal", "colors.json")
+	}
+
 	// Try to open the file
-	path := filepath.Join(cacheDir, "wal", "colors.json")
-	fileContent, err := os.ReadFile(path)
+	fileContent, err := os.ReadFile(filePath)
 	if err != nil {
 		return err
 	}

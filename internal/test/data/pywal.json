@@ -1,0 +1,28 @@
+{
+    "wallpaper": "/home/adam/pictures/wallpapers/Sunny outside.webp",
+    "alpha": "100",
+
+    "special": {
+        "background": "#141018",
+        "foreground": "#e0d3cf",
+        "cursor": "#e0d3cf"
+    },
+    "colors": {
+        "color0": "#141018",
+        "color1": "#6DA96E",
+        "color2": "#F89763",
+        "color3": "#C9C755",
+        "color4": "#3A409E",
+        "color5": "#6056A7",
+        "color6": "#9D6CB7",
+        "color7": "#e0d3cf",
+        "color8": "#9c9390",
+        "color9": "#6DA96E",
+        "color10": "#F89763",
+        "color11": "#C9C755",
+        "color12": "#3A409E",
+        "color13": "#6056A7",
+        "color14": "#9D6CB7",
+        "color15": "#e0d3cf"
+    }
+}
