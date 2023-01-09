@@ -1,0 +1,16 @@
+categories:
+    - name: News
+      desc: News from around the globe!
+      subscriptions:
+        - name: Primordial soup
+          desc: ""
+          url: https://primordialsoup.info/feed
+    - name: Technology
+      desc: Discover a new use for your spare transistors!
+      subscriptions:
+        - name: Chris titus - virtualization
+          desc: ""
+          url: https://christitus.com/categories/virtualization/index.xml
+        - name: Ars Technica
+          desc: ""
+          url: http://feeds.arstechnica.com/arstechnica/technology-lab
