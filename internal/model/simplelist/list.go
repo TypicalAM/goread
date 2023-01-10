@@ -13,23 +13,35 @@ import (
 // TODO: Add vertical scrolling
 // Model contains state of the list
 type Model struct {
-	colors   colorscheme.Colorscheme
-	title    string
-	height   int
-	items    []list.Item
-	selected int
-	showDesc bool
-	style    listStyle
+	colors       colorscheme.Colorscheme
+	title        string
+	height       int
+	page         int
+	itemsPerPage int
+	items        []list.Item
+	selected     int
+	showDesc     bool
+	style        listStyle
 }
 
 // New creates a new list
 func New(colors colorscheme.Colorscheme, title string, height int, showDesc bool) Model {
+	// Calculate the items per page
+	style := newListStyle(colors)
+	var itemsPerPage int
+	if showDesc {
+		itemsPerPage = (height - lipgloss.Height(style.titleStyle.Render(""))) / 2
+	} else {
+		itemsPerPage = height - lipgloss.Height(style.titleStyle.Render(""))
+	}
+
 	return Model{
-		colors:   colors,
-		title:    title,
-		height:   height,
-		showDesc: showDesc,
-		style:    newListStyle(colors),
+		colors:       colors,
+		title:        title,
+		height:       height,
+		itemsPerPage: itemsPerPage,
+		showDesc:     showDesc,
+		style:        style,
 	}
 }
 
@@ -47,11 +59,24 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			m.selected++
 			if m.selected >= len(m.items) {
 				m.selected = 0
+				m.page = 0
 			}
+
+			// Check if the page needs to be changed
+			if m.selected >= (m.page+1)*m.itemsPerPage {
+				m.page++
+			}
+
 		case "k", "up":
 			m.selected--
 			if m.selected < 0 {
 				m.selected = len(m.items) - 1
+				m.page = len(m.items) / m.itemsPerPage
+			}
+
+			// Check if the page needs to be changed
+			if m.selected < m.page*m.itemsPerPage {
+				m.page--
 			}
 		}
 	}
@@ -75,18 +100,24 @@ func (m Model) View() string {
 	}
 
 	// If the list has items, style them
-	for i, item := range m.items {
+	for i := m.itemsPerPage * m.page; i < m.itemsPerPage*(m.page+1); i++ {
+		// Check if the index is in the list
+		if i >= len(m.items) {
+			break
+		}
+
+		// Render the item
 		isSelected := i == m.selected
 		sections = append(sections, lipgloss.JoinHorizontal(
 			lipgloss.Left,
 			m.style.styleIndex(i, isSelected),
-			m.style.itemStyle.Render(item.FilterValue()),
+			m.style.itemStyle.Render(m.items[i].FilterValue()),
 		))
 
 		// If the description is shown add the description
 		if m.showDesc {
 			sections = append(sections,
-				m.style.styleDescription(item.(Item).Description()),
+				m.style.styleDescription(m.items[i].(Item).Description()),
 			)
 		}
 	}
