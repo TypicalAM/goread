@@ -27,7 +27,6 @@ func New(urlPath, cachePath string, resetCache bool) (Backend, error) {
 	if !resetCache {
 		err = cache.Load()
 		if err != nil {
-			// TODO: Logging
 			fmt.Printf("Failed to load the cache: %v, creating a new one", err)
 		}
 	}

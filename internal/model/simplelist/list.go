@@ -10,7 +10,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// TODO: Add vertical scrolling
 // Model contains state of the list
 type Model struct {
 	colors       colorscheme.Colorscheme
@@ -131,7 +130,6 @@ func (m Model) View() string {
 
 // SetItems sets the items in the list
 func (m *Model) SetItems(items []list.Item) {
-	// FIXME: Error propagation
 	if len(items) > 36 {
 		panic("List: too many items")
 	}

@@ -124,7 +124,6 @@ func (c *Cache) GetArticle(url string) ([]gofeed.Item, error) {
 	}
 
 	// Check if the cache is full
-	// TODO: We should probably use a LRU cache here
 	if len(c.Content) >= DefaultCacheSize {
 		// Find the oldest item
 		var oldestKey string
