@@ -75,9 +75,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.message = fmt.Sprintf("%s - %s", msg.Description, msg.Err.Error())
 
 		// Update the underlying tab in case it also handles error input
-		var cmd tea.Cmd
-		m.tabs[m.activeTab], cmd = m.tabs[m.activeTab].Update(msg)
-		return m, cmd
+		m.tabs[m.activeTab], _ = m.tabs[m.activeTab].Update(msg)
+		return m, nil
 
 	case tab.NewTabMessage:
 		// Create the new tab
