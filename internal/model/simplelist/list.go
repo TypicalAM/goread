@@ -122,8 +122,12 @@ func (m Model) SelectedItem() list.Item {
 // GetItem checks if the list has an item by a [0-9] index and also
 // a [a-z] index if the list has more than 10 elements
 func (m Model) GetItem(text string) (list.Item, bool) {
-	// Convert the text to an integer and
-	// check if the index is in the list
+	// Check if the string is more than one character (left, right, up, down, etc)
+	if len(text) > 1 {
+		return nil, false
+	}
+
+	// Convert the text to an integer and check if the index is in the list
 	if index, err := strconv.Atoi(text); err == nil {
 		inList := index < len(m.items)
 		if !inList {
