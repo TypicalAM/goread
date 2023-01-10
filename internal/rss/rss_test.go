@@ -2,6 +2,7 @@ package rss
 
 import (
 	"reflect"
+	"strconv"
 	"testing"
 )
 
@@ -152,6 +153,16 @@ func TestRssCategoryAdd(t *testing.T) {
 
 	if err != ErrAlreadyExists {
 		t.Errorf("incorrect error, expected ErrAlreadyExists, got %s", err)
+	}
+
+	// Check if we can add a new category if there are more than 36 already
+	for i := 0; i < 36; i++ {
+		_ = myRss.AddCategory(strconv.Itoa(i), "Some other new category")
+	}
+
+	err = myRss.AddCategory("37", "Some other new category")
+	if err == nil {
+		t.Errorf("expected an error, got nil")
 	}
 }
 
@@ -304,6 +315,16 @@ func TestRssFeedAdd(t *testing.T) {
 
 	if err != ErrNotFound {
 		t.Errorf("incorrect error, expected ErrNotFound, got %s", err)
+	}
+
+	// Check if we can add a new feed when there are more than 36 already
+	for i := 0; i < 36; i++ {
+		_ = myRss.AddFeed("News", strconv.Itoa(i), "https://new.feed")
+	}
+
+	err = myRss.AddFeed("News", "New feed37", "https://new.feed")
+	if err == nil {
+		t.Errorf("expected an error, got nil")
 	}
 }
 

@@ -4,9 +4,15 @@ import "errors"
 
 // ErrAlreadyExists is returned when a category/feed already exists
 var ErrAlreadyExists = errors.New("already exists")
+var ErrTooManyItems = errors.New("too many items")
 
 // AddCategory will add a category to the Rss structure
 func (rss *Rss) AddCategory(name string, description string) error {
+	// Check if there are too many categories
+	if len(rss.Categories) >= 36 {
+		return ErrTooManyItems
+	}
+
 	// Check if the category already exists
 	for _, cat := range rss.Categories {
 		if cat.Name == name {
@@ -29,6 +35,12 @@ func (rss *Rss) AddFeed(category string, name string, url string) error {
 	// Check if the feed already exists
 	for _, cat := range rss.Categories {
 		if cat.Name == category {
+			// Check if there are too many feeds
+			if len(cat.Subscriptions) >= 36 {
+				return ErrTooManyItems
+			}
+
+			// Check if the feed already exists
 			for _, feed := range cat.Subscriptions {
 				if feed.Name == name {
 					return ErrAlreadyExists
