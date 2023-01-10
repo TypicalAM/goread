@@ -73,7 +73,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// If there is an error, display it on the status bar
 		// the error message will be cleared when the user closes the tab
 		m.message = fmt.Sprintf("%s - %s", msg.Description, msg.Err.Error())
-		return m, nil
+
+		// Update the underlying tab in case it also handles error input
+		var cmd tea.Cmd
+		m.tabs[m.activeTab], cmd = m.tabs[m.activeTab].Update(msg)
+		return m, cmd
 
 	case tab.NewTabMessage:
 		// Create the new tab
