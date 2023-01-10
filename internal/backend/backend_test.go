@@ -10,12 +10,11 @@ import (
 
 // getCache returns a new cache with the fake data
 func getCache() (*Cache, error) {
-	cache, err := newStore()
+	cache, err := newStore("../test/data/cache.json")
 	if err != nil {
 		return nil, err
 	}
 
-	cache.filePath = "../test/data/cache.json"
 	err = cache.Load()
 	if err != nil {
 		return nil, err
@@ -26,12 +25,11 @@ func getCache() (*Cache, error) {
 
 // TestCacheLoadNoFile if we get an error then there's no cache file
 func TestCacheLoadNoFile(t *testing.T) {
-	cache, err := newStore()
+	cache, err := newStore("../test/data/no-file")
 	if err != nil {
 		t.Fatalf("couldn't get default path: %v", err)
 	}
 
-	cache.filePath = "../test/data/no-file"
 	err = cache.Load()
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -117,7 +115,7 @@ func TestCacheGetArticleExpired(t *testing.T) {
 
 // getBackend creates a fake backend
 func getBackend() (*Backend, error) {
-	b, err := New("../test/data/urls.yml")
+	b, err := New("../test/data/urls.yml", "", false)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +125,7 @@ func getBackend() (*Backend, error) {
 
 // TestBackendLoad if we get an error loading doesn't work
 func TestBackendLoad(t *testing.T) {
-	_, err := New("../test/data/no-file")
+	_, err := New("../test/data/no-file", "", false)
 	if err != nil {
 		t.Fatal("expected no error, got", err)
 	}

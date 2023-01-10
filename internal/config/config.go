@@ -19,7 +19,7 @@ type Config struct {
 }
 
 // New returns a new Config
-func New(urlPath string, colors colorscheme.Colorscheme) (Config, error) {
+func New(colors colorscheme.Colorscheme, urlPath, cachePath string, resetCache bool) (Config, error) {
 	// Create a new config
 	config := Config{}
 
@@ -30,7 +30,7 @@ func New(urlPath string, colors colorscheme.Colorscheme) (Config, error) {
 	config.Colors = colors
 
 	// Get the backend
-	backend, err := backend.New(urlPath)
+	backend, err := backend.New(urlPath, cachePath, resetCache)
 	if err != nil {
 		return config, err
 	}

@@ -28,11 +28,15 @@ type Item struct {
 }
 
 // newStore creates a new cache
-func newStore() (Cache, error) {
+func newStore(path string) (Cache, error) {
 	// Get the path to the cache file
-	path, err := getDefaultPath()
-	if err != nil {
-		return Cache{}, err
+	if path == "" {
+		defaultPath, err := getDefaultPath()
+		if err != nil {
+			return Cache{}, err
+		}
+
+		path = defaultPath
 	}
 
 	// Create the cache

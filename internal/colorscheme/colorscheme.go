@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -184,24 +183,21 @@ func (c Colorscheme) TestColors() string {
 	// Create the result variable
 	result := []string{"A table of all the colors:"}
 
-	// Loop through the colors and add the text to the result
-	v := reflect.ValueOf(c)
-	typeOfV := v.Type()
-	for i := 0; i < v.NumField(); i++ {
-		result = append(
-			result,
-			fmt.Sprintf(
-				"%s: %s%s\t%s",
-				typeOfV.Field(i).Name,
-				strings.Repeat(" ", 15-len(typeOfV.Field(i).Name)),
-				lipgloss.NewStyle().
-					Foreground(v.Field(i).Interface().(lipgloss.Color)).
-					Render("Foreground"),
-				lipgloss.NewStyle().
-					Background(v.Field(i).Interface().(lipgloss.Color)).
-					Render("Background"),
-			),
-		)
+	// Iterate over every color
+	for _, color := range []lipgloss.Color{c.BgDark, c.BgDarker, c.Text, c.TextDark, c.Color1, c.Color2, c.Color3, c.Color4, c.Color5, c.Color6, c.Color7} {
+		// Create the foreground
+		foreground := lipgloss.NewStyle().Foreground(color)
+
+		// Create the background
+		background := lipgloss.NewStyle().Background(color)
+
+		// Add the color to the result
+		result = append(result, fmt.Sprintf(
+			"%s %s %s",
+			foreground.Render("foreground"),
+			background.Render("background"),
+			color,
+		))
 	}
 
 	return strings.Join(result, "\n")

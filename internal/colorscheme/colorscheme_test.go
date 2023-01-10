@@ -8,17 +8,17 @@ import (
 // getTestColorscheme returns a test colorscheme
 func getTestColorscheme() Colorscheme {
 	return Colorscheme{
-		BgDark:   "#141018",
-		BgDarker: "#141018",
-		Text:     "#e0d3cf",
-		TextDark: "#e0d3cf",
-		Color1:   "#6DA96E",
-		Color2:   "#F89763",
-		Color3:   "#C9C755",
-		Color4:   "#3A409E",
-		Color5:   "#6056A7",
-		Color6:   "#9D6CB7",
-		Color7:   "#e0d3cf",
+		BgDark:   "#040612",
+		BgDarker: "#040612",
+		Text:     "#98ccdc",
+		TextDark: "#98ccdc",
+		Color1:   "#625160",
+		Color2:   "#BD4354",
+		Color3:   "#985063",
+		Color4:   "#BA9C6A",
+		Color5:   "#1E5AA6",
+		Color6:   "#C25C9F",
+		Color7:   "#98ccdc",
 	}
 }
 
