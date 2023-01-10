@@ -29,7 +29,7 @@ func New(urlPath string, colors colorscheme.Colorscheme) (Config, error) {
 	// Set the colorscheme
 	config.Colors = colors
 
-	// Determine the backend
+	// Get the backend
 	backend, err := backend.New(urlPath)
 	if err != nil {
 		return config, err
