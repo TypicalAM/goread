@@ -16,26 +16,31 @@ git clone --depth=1 https://github.com/TypicalAM/goread && cd goread
 
 ### 2. Build the executable
 
+#### On linux
+
 ```sh
-go build -o goread cmd/goread/main.go
+go build -o goread cmd/main.go
+```
+
+#### On windows
+
+```sh
+go build -o goread.exe cmd/main.go
 ```
 
 ### 3. Run the program!
 
 ```sh
-./goread
+./goread --help
 ```
 
 ## ✨ Tasks to do
 
 Here are the things that I've not yet implemented
 
-- [X] Waiting for the window size message before adding the first tab
-- [X] Adding and removing items
-- [X] Verbose UI mode
-- [X] Loadable colorschemes
-- [X] Generating colorschemes from a file
 - [X] Help interface with the key bindings
+- [ ] Moving list items up/down
+- [ ] Better action keys
 - [ ] A main category where all the feeds are aggregated
 
 ## 📸 Here is a demo of what it looks like:
