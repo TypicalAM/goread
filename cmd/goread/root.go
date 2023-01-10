@@ -91,6 +91,8 @@ func Run() error {
 		if err := colors.Convert(opts.getColors); err != nil {
 			return err
 		}
+
+		return nil
 	}
 
 	// Set the cache size
