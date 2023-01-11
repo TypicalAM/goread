@@ -68,6 +68,7 @@ func (m Model) Help() tab.Help {
 	return tab.Help{
 		tab.KeyBind{Key: "enter", Description: "Open"},
 		tab.KeyBind{Key: "left/right", Description: "Toggle focus"},
+		tab.KeyBind{Key: "r", Description: "Refresh"},
 	}
 }
 
