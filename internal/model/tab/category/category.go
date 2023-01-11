@@ -47,9 +47,9 @@ func (m Model) Type() tab.Type {
 func (m Model) Help() tab.Help {
 	return tab.Help{
 		tab.KeyBind{Key: "enter", Description: "Open"},
-		tab.KeyBind{Key: "n", Description: "New"},
-		tab.KeyBind{Key: "e", Description: "Edit"},
-		tab.KeyBind{Key: "d", Description: "Delete"},
+		tab.KeyBind{Key: "ctrl+n", Description: "New"},
+		tab.KeyBind{Key: "ctrl+e", Description: "Edit"},
+		tab.KeyBind{Key: "ctrl+d", Description: "Delete"},
 	}
 }
 
@@ -88,11 +88,11 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			// If the list is empty, return nothing
 			return m, nil
 
-		case "n":
+		case "ctrl+n":
 			// Add a new category
 			return m, backend.NewItem(backend.Feed, true, nil, nil)
 
-		case "e":
+		case "ctrl+e":
 			// If the list is empty, return nothing
 			if m.list.IsEmpty() {
 				return m, nil
@@ -108,7 +108,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 				[]string{item.FilterValue(), item.Description()},
 			)
 
-		case "d":
+		case "ctrl+d":
 			// Delete the selected category
 			if !m.list.IsEmpty() {
 				return m, backend.DeleteItem(backend.Feed, m.list.SelectedItem().FilterValue())
