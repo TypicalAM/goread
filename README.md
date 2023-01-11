@@ -38,10 +38,10 @@ go build -o goread.exe cmd/main.go
 
 Here are the things that I've not yet implemented
 
-- [X] Help interface with the key bindings
 - [X] Better action keys
-- [ ] Moving list items up/down
 - [ ] A main category where all the feeds are aggregated
+- [ ] Moving list items up/down
+- [ ] Moving the help to the bubbletea `help` bubble
 
 ## 📸 Here is a demo of what it looks like:
 
