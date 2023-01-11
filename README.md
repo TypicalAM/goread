@@ -39,8 +39,8 @@ go build -o goread.exe cmd/main.go
 Here are the things that I've not yet implemented
 
 - [X] Help interface with the key bindings
+- [X] Better action keys
 - [ ] Moving list items up/down
-- [ ] Better action keys
 - [ ] A main category where all the feeds are aggregated
 
 ## 📸 Here is a demo of what it looks like:
