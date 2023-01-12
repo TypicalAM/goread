@@ -1,4 +1,4 @@
-package goread
+package main
 
 import (
 	"fmt"
@@ -122,4 +122,8 @@ func Run() error {
 
 	// Close the config
 	return cfg.Close()
+}
+
+func main() {
+	Execute()
 }

@@ -19,13 +19,13 @@ git clone --depth=1 https://github.com/TypicalAM/goread && cd goread
 #### On Linux
 
 ```sh
-go build -o goread cmd/main.go
+go build -o goread cmd/goread/main.go
 ```
 
 #### On Windows
 
 ```sh
-go build -o goread.exe cmd/main.go
+go build -o goread.exe cmd/goread/main.go
 ```
 
 ### 3. Run the program!
