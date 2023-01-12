@@ -20,7 +20,7 @@ type options struct {
 	colorschemePath string
 	urlsPath        string
 	getColors       string
-	colorTest       bool
+	testColors      bool
 	resetCache      bool
 	cacheSize       int
 	cacheDuration   int
@@ -45,7 +45,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&opts.cachePath, "cache_path", "c", "", "The path to the cache file")
 	rootCmd.Flags().StringVarP(&opts.colorschemePath, "colorscheme_path", "s", "", "The path to the colorscheme file")
 	rootCmd.Flags().StringVarP(&opts.urlsPath, "urls_path", "u", "", "The path to the urls file")
-	rootCmd.Flags().BoolVarP(&opts.colorTest, "color_test", "t", false, "Test the colorscheme")
+	rootCmd.Flags().BoolVarP(&opts.testColors, "test_colors", "t", false, "Test the colorscheme")
 	rootCmd.Flags().StringVarP(&opts.getColors, "get_colors", "g", "", "Get the colors from pywal and save them to the colorscheme file")
 	rootCmd.Flags().BoolVarP(&opts.resetCache, "reset_cache", "r", false, "Reset the cache")
 	rootCmd.Flags().IntVarP(&opts.cacheSize, "cache_size", "z", 0, "The size of the cache")
@@ -64,7 +64,7 @@ func Run() error {
 	colors := colorscheme.New(opts.colorschemePath)
 
 	// If the user wants to test the colors, do that and exit
-	if opts.colorTest {
+	if opts.testColors {
 		fmt.Println(colors.TestColors())
 		return nil
 	}
