@@ -256,15 +256,15 @@ func createBasicCategories() []Category {
 	})
 
 	categories[1].Subscriptions = append(categories[1].Subscriptions, Feed{
-		Name:        "Hacker News",
-		Description: "News from Hacker News",
-		URL:         "https://news.ycombinator.com/rss",
+		Name:        "Wired",
+		Description: "News from the wired team",
+		URL:         "https://www.wired.com/feed/rss",
 	})
 
 	categories[1].Subscriptions = append(categories[1].Subscriptions, Feed{
-		Name:        "Golang subreddit",
-		Description: "News from the Golang subreddit",
-		URL:         "https://www.reddit.com/r/golang/.rss",
+		Name:        "Chris Titus Tech (virtualization)",
+		Description: "Chris Titus Tech on virtualization",
+		URL:         "https://christitus.com/categories/virtualization/index.xml",
 	})
 
 	return categories

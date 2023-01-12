@@ -46,7 +46,7 @@ func New(cfg config.Config) Model {
 		config:         cfg,
 		style:          newStyle(cfg.Colors),
 		waitingForSize: true,
-		message:        "Pro-tip press [ctrl-h] to view the help page",
+		message:        "Pro-tip - press [ctrl-h] to view the help page",
 	}
 }
 
