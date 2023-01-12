@@ -46,7 +46,7 @@ func New(cfg config.Config) Model {
 		config:         cfg,
 		style:          newStyle(cfg.Colors),
 		waitingForSize: true,
-		message:        "Pro-tip use \"h\" to view the help page",
+		message:        "Pro-tip press [ctrl-h] to view the help page",
 	}
 }
 
@@ -143,7 +143,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.message = fmt.Sprintf("Closed tab - %s", m.tabs[m.activeTab].Title())
 			return m, nil
 
-		case "h":
+		case "ctrl+h":
 			// View the help page
 			return m.showHelp()
 		}
@@ -357,7 +357,7 @@ func (m Model) deleteItem(msg backend.DeleteItemMessage) (tea.Model, tea.Cmd) {
 // showHelp() shows the help menu at the bottom of the screen
 func (m Model) showHelp() (tea.Model, tea.Cmd) {
 	// Create the help menu
-	message := "Help: "
+	message := "Help: [ctrl+w] Close tab, [Tab] Cycle tabs, "
 	for _, keyBind := range m.tabs[m.activeTab].Help() {
 		message += fmt.Sprintf("[%s] %s, ", keyBind.Key, keyBind.Description)
 	}
