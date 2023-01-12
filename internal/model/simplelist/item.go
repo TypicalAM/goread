@@ -2,6 +2,7 @@ package simplelist
 
 import (
 	"github.com/charmbracelet/glamour"
+	"github.com/muesli/reflow/wrap"
 )
 
 // Item is a single item in a list
@@ -50,4 +51,10 @@ func (m Item) StyleContent(width int) (string, error) {
 
 	// Return the styled content
 	return styledContent, nil
+}
+
+// WrapDescription wraps the description to the given width
+func (m Item) WrapDescription(width int) Item {
+	m.description = wrap.String(m.description, width)
+	return m
 }

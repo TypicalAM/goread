@@ -151,6 +151,14 @@ func (m Model) loadTab(items []list.Item) (tab.Tab, tea.Cmd) {
 	listWidth := m.width / 4
 	viewportWidth := m.width - listWidth - 2
 
+	// Check if the items are simplelist.Item compliant
+	wrappedItems := make([]list.Item, len(items))
+	for i, item := range items {
+		if _, ok := item.(simplelist.Item); ok {
+			wrappedItems[i] = item.(simplelist.Item).WrapDescription(m.width/4 - 3)
+		}
+	}
+
 	// Create the styles for the list items
 	delegateStyles := list.NewDefaultItemStyles()
 	delegateStyles.SelectedTitle = delegateStyles.SelectedTitle.Copy().
@@ -161,7 +169,10 @@ func (m Model) loadTab(items []list.Item) (tab.Tab, tea.Cmd) {
 	delegateStyles.SelectedDesc = delegateStyles.SelectedDesc.Copy().
 		BorderForeground(m.colors.Color3).
 		Foreground(m.colors.Color2).
+		Height(2).
 		Italic(true)
+
+	delegateStyles.NormalDesc = delegateStyles.NormalDesc.Copy().Height(2)
 
 	// Create the list
 	itemDelegate := list.NewDefaultDelegate()
@@ -170,12 +181,13 @@ func (m Model) loadTab(items []list.Item) (tab.Tab, tea.Cmd) {
 	itemDelegate.SetHeight(3)
 
 	// Initialize the list
-	m.list = list.New(items, itemDelegate, listWidth, m.height)
+	m.list = list.New(wrappedItems, itemDelegate, listWidth, m.height)
 
 	// Set some attributes for the list
 	m.list.SetShowHelp(false)
 	m.list.SetShowTitle(false)
 	m.list.SetShowStatusBar(false)
+	m.list.DisableQuitKeybindings()
 
 	// Initialize the viewport
 	m.viewport = viewport.New(viewportWidth, m.height)
