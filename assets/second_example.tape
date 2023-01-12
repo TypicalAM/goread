@@ -1,38 +1,28 @@
 Output example2.gif
 
-Set TypingSpeed 30ms
+Set TypingSpeed 20ms
 Set FontFamily "Cartograph CF"
 Set FontSize 15
 Set Width 1280
 Set Height 720
 Set Theme "Desert"
 
-Type "cd .."
-
+# Show the current colorscheme of the app
+Type "../goread --test_colors"
 Enter
-
-Type "go run cmd/goread/main.go"
-
-Enter
-
-# Wait for the program to start
-Sleep 1s
-
-# Select technology
-Type "j"
-
-Sleep 3s
-
-Enter
-
-# Wait until the category is loaded
 Sleep 5s
 
-Type "1"
-
-# Wait until the feed is loaded
+# Change the currnent pywal scheme
+Type "wal -stni /home/adam/pictures/wallpapers/Sunny\ outside.webp > /dev/null"
+Enter
 Sleep 3s
 
+# Show the new colorscheme of the app
+Type "../goread --get_colors ~/.cache/wal/colors.json"
 Enter
+Sleep 5s
 
+# Run the app
+Type "../goread"
+Enter
 Sleep 5s
