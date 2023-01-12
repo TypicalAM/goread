@@ -219,6 +219,7 @@ func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
 
 	// Set the content of the viewport
 	m.viewport.SetContent(content)
+	m.viewport.SetYOffset(0)
 	return m, nil
 }
 
