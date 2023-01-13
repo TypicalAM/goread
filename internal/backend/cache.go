@@ -1,7 +1,9 @@
 package backend
 
 import (
+	"crypto/tls"
 	"encoding/json"
+	"net/http"
 	"os"
 	"path/filepath"
 	"time"
@@ -146,11 +148,8 @@ func (c *Cache) GetArticle(url string) ([]gofeed.Item, error) {
 
 // fetchArticle fetches an article list from the internet and returns a slice of items
 func fetchArticle(url string) (Item, error) {
-	// Create a new feed parser
-	fp := gofeed.NewParser()
-
-	// Parse the feed
-	feed, err := fp.ParseURL(url)
+	// Parse the url
+	feed, err := parseURL(url)
 	if err != nil {
 		return Item{}, err
 	}
@@ -166,6 +165,51 @@ func fetchArticle(url string) (Item, error) {
 		Expire: time.Now().Add(DefaultCacheDuration),
 		Items:  items,
 	}, nil
+}
+
+// parseURL parses a url and attempts to return a parsed feed
+// authors note: this is made because the gofeed parser does not support some feeds, namely the ones from reddit
+func parseURL(feedURL string) (*gofeed.Feed, error) {
+	// Create a new client
+	var client = http.Client{
+		Transport: &http.Transport{
+			TLSNextProto: map[string]func(authority string, c *tls.Conn) http.RoundTripper{},
+		},
+	}
+
+	// Create a new request with our user agent
+	req, err := http.NewRequest("GET", feedURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", "goread:v1.0.0 (by /u/TypicalAM)")
+
+	// Send the request
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check the response
+	if resp != nil {
+		defer func() {
+			ce := resp.Body.Close()
+			if ce != nil {
+				err = ce
+			}
+		}()
+	}
+
+	// Check the status code
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, gofeed.HTTPError{
+			StatusCode: resp.StatusCode,
+			Status:     resp.Status,
+		}
+	}
+
+	// Try to parse the body
+	return gofeed.NewParser().Parse(resp.Body)
 }
 
 // getDefaultPath returns the default path to the cache file
