@@ -120,6 +120,23 @@ func TestRssGetFeedURL(t *testing.T) {
 	}
 }
 
+// TestRssGetAllURLs if we get an error then all the urls are not retrieved correctly
+func TestRssGetAllURLs(t *testing.T) {
+	// Create the rss object with a valid file
+	myRss := New("../test/data/urls.yml")
+
+	// Check if the urls are returned correctly
+	urls := myRss.GetAllURLs()
+
+	if len(urls) != 3 {
+		t.Errorf("incorrect number of urls, expected 2, got %d", len(urls))
+	}
+
+	if urls[0] != "https://primordialsoup.info/feed" {
+		t.Errorf("incorrect url, expected https://primordialsoup.info/feed, got %s", urls[0])
+	}
+}
+
 // TestRssCategoryAdd if we get an error adding a category doesn't work
 func TestRssCategoryAdd(t *testing.T) {
 	// Create the rss object with a valid file

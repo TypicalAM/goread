@@ -68,7 +68,7 @@ func TestColorschemeConvert(t *testing.T) {
 	testColors := getTestColorscheme()
 
 	// Check if the colors are the same
-	if !reflect.DeepEqual(colors, testColors) {
+	if colors == testColors {
 		t.Errorf("Colorscheme not converted correctly")
 	}
 }
