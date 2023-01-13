@@ -375,8 +375,14 @@ func (m *Model) renderTabBar() string {
 		tabs[i] = m.style.attachIconToTab(tabObj.Title(), tabObj.Type(), i == m.activeTab)
 	}
 
-	// Make the row of the tabs
-	row := lipgloss.JoinHorizontal(lipgloss.Top, tabs...)
+	// Check if the row exceeds the width of the screen
+	if lipgloss.Width(strings.Join(tabs, "")) > m.windowWidth {
+		// Trim the tabs to fit the screen
+		tabs = tabs[m.activeTab:]
+	}
+
+	// Create the row
+	row := strings.Join(tabs, "")
 
 	// Calculate the gap amount
 	var gapAmount int
