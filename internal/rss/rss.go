@@ -273,6 +273,11 @@ func createBasicCategories() []Category {
 	var categories []Category
 
 	categories = append(categories, Category{
+		Name:        AllFeedsName,
+		Description: "All feeds",
+	})
+
+	categories = append(categories, Category{
 		Name:        "News",
 		Description: "News from around the world",
 	})
