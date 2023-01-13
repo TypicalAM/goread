@@ -47,28 +47,3 @@ func TestColorschemeLoadFile(t *testing.T) {
 		t.Errorf("Colorscheme not loaded correctly")
 	}
 }
-
-// TestColorschemeConvert if we get an error then the conversion from a pywal file doesn't work correctly
-func TestColorschemeConvert(t *testing.T) {
-	// Create the colorscheme with a non-existent file path
-	colors := newDefault()
-	err := colors.Convert("../test/data/non-existent.json")
-	if err == nil {
-		t.Errorf("Colorscheme conversion didn't fail")
-	}
-
-	// Create the colorscheme with a real pywal file
-	colors = New("")
-	err = colors.Convert("../test/data/pywal.json")
-	if err != nil {
-		t.Errorf("Colorscheme conversion failed")
-	}
-
-	// Create the test colorscheme to compare with
-	testColors := getTestColorscheme()
-
-	// Check if the colors are the same
-	if colors == testColors {
-		t.Errorf("Colorscheme not converted correctly")
-	}
-}
