@@ -204,6 +204,17 @@ func YassifyItem(item *gofeed.Item) string {
 		mdown += htmlMarkdown
 	}
 
+	// Add the links if there are any
+	if len(item.Links) > 0 {
+		mdown += "\n## Links\n"
+		for _, link := range item.Links {
+			mdown += "- " + link + "\n"
+		}
+	}
+
+	// Add padding
+	mdown += "\n\n"
+
 	// Return the markdown
 	return mdown
 }
