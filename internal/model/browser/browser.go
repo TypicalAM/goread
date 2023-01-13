@@ -11,6 +11,7 @@ import (
 	"github.com/TypicalAM/goread/internal/model/tab/category"
 	"github.com/TypicalAM/goread/internal/model/tab/feed"
 	"github.com/TypicalAM/goread/internal/model/tab/welcome"
+	"github.com/TypicalAM/goread/internal/rss"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -263,6 +264,17 @@ func (m *Model) createNewTab(title string, tabType tab.Type) {
 			m.config.Backend.FetchFeeds,
 		)
 	case tab.Feed:
+		newTab = feed.New(
+			m.config.Colors,
+			m.windowWidth,
+			m.windowHeight-5,
+			title,
+			m.config.Backend.FetchArticles,
+		)
+	}
+
+	// If it is a category tab with the name of rss.AllFeedsName, create a new feed tab
+	if tabType == tab.Category && title == rss.AllFeedsName {
 		newTab = feed.New(
 			m.config.Colors,
 			m.windowWidth,

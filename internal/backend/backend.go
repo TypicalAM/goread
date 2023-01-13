@@ -7,6 +7,7 @@ import (
 	"github.com/TypicalAM/goread/internal/rss"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/mmcdole/gofeed"
 )
 
 // The Backend uses a local cache to get all the feeds and their articles
@@ -85,21 +86,35 @@ func (b Backend) FetchFeeds(catName string) tea.Cmd {
 // the backend via a string key
 func (b Backend) FetchArticles(feedName string) tea.Cmd {
 	return func() tea.Msg {
-		// Create a list of articles
-		url, err := b.Rss.GetFeedURL(feedName)
-		if err != nil {
-			return FetchErrorMessage{
-				Description: "Failed to get the article url",
-				Err:         err,
-			}
-		}
+		var items []gofeed.Item
+		var err error
 
-		// Get the items from the cache
-		items, err := b.Cache.GetArticle(url)
-		if err != nil {
-			return FetchErrorMessage{
-				Description: "Failed to parse the article",
-				Err:         err,
+		if feedName == rss.AllFeedsName {
+			// Get all the articles and fetch them
+			items, err = b.Cache.GetAllArticles(b.Rss.GetAllURLs())
+			if err != nil {
+				return FetchErrorMessage{
+					Description: "Failed to parse the article",
+					Err:         err,
+				}
+			}
+		} else {
+			// Create a list of articles
+			url, err := b.Rss.GetFeedURL(feedName)
+			if err != nil {
+				return FetchErrorMessage{
+					Description: "Failed to get the article url",
+					Err:         err,
+				}
+			}
+
+			// Get the items from the cache
+			items, err = b.Cache.GetArticle(url)
+			if err != nil {
+				return FetchErrorMessage{
+					Description: "Failed to parse the article",
+					Err:         err,
+				}
 			}
 		}
 

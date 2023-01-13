@@ -191,6 +191,16 @@ func TestRssCategoryUpdate(t *testing.T) {
 		t.Errorf("incorrect description, expected New category, got %s", descs[0])
 	}
 
+	// Check if we can update a category to have the name AllFeedsName
+	err = myRss.UpdateCategory("New", AllFeedsName, "New category")
+	if err == nil {
+		t.Errorf("expected an error, got nil")
+	}
+
+	if err != ErrReservedName {
+		t.Errorf("incorrect error, expected ErrReservedName, got %s", err)
+	}
+
 	// Check if we can update a non-existent category
 	err = myRss.UpdateCategory("Non-existent", "A little bit of trolling", "Some other new category")
 	if err == nil {
@@ -307,6 +317,16 @@ func TestRssFeedAdd(t *testing.T) {
 		t.Errorf("incorrect error, expected ErrAlreadyExists, got %s", err)
 	}
 
+	// Check if we can add a new feed with the name AllFeedsName
+	err = myRss.AddFeed("News", AllFeedsName, "https://new.feed")
+	if err == nil {
+		t.Errorf("expected an error, got nil")
+	}
+
+	if err != ErrReservedName {
+		t.Errorf("incorrect error, expected ErrReservedName, got %s", err)
+	}
+
 	// Check if we can add a new to a non-existent category
 	err = myRss.AddFeed("Non-existent", "New feed", "https://new.feed")
 	if err == nil {
@@ -355,6 +375,16 @@ func TestRssFeedUpdate(t *testing.T) {
 
 	if urls[0] != "https://new.feed" {
 		t.Errorf("incorrect url, expected https://new.feed, got %s", urls[0])
+	}
+
+	// Check if we can update a feed to have the name AllFeedsName
+	err = myRss.UpdateFeed("News", "New feed", AllFeedsName, "https://new.feed")
+	if err == nil {
+		t.Errorf("expected an error, got nil")
+	}
+
+	if err != ErrReservedName {
+		t.Errorf("incorrect error, expected ErrReservedName, got %s", err)
 	}
 
 	// Check if we can update a non-existent feed

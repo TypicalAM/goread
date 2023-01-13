@@ -81,7 +81,7 @@ If you use the `--get_colors` flag to generate a colorscheme from pywal you have
 
 Here are the things that I've not yet implemented, contributions and suggestions are very welcome!
 
-- [ ] A main category where all the feeds are aggregated
+- [X] A main category where all the feeds are aggregated
 - [ ] Moving the help to the bubbletea `help` bubble
 
 ## 💁 Credit where credit is due

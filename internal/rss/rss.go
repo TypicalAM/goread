@@ -12,6 +12,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// AllFeedsName is the name of the all feeds category
+var AllFeedsName = "All Feeds"
+
 // ErrNotFound is returned when a feed or category is not found
 var ErrNotFound = errors.New("not found")
 
@@ -161,6 +164,25 @@ func (rss Rss) GetFeedURL(feedName string) (string, error) {
 
 	// Feed not found
 	return "", ErrNotFound
+}
+
+// GetAllURLs will return a list of all the urls
+func (rss Rss) GetAllURLs() []string {
+	// Create a list of urls
+	var urls []string
+
+	// Iterate over all categories
+	for _, cat := range rss.Categories {
+		// Iterate over all feeds
+		for _, feed := range cat.Subscriptions {
+			if feed.URL != AllFeedsName {
+				urls = append(urls, feed.URL)
+			}
+		}
+	}
+
+	// Return the list
+	return urls
 }
 
 // getDefaultPath will return the default path for the urls file
