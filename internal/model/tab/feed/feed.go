@@ -261,7 +261,7 @@ func (m Model) showLoading() string {
 
 	var loadingMsg string
 	if m.fetchFailed {
-		// Render the failed message with an cross mark
+		// Render the failed message with a cross mark
 		errorMsgStyle := messageStyle.Copy().
 			Foreground(m.colors.Color4)
 		loadingMsg = lipgloss.JoinHorizontal(

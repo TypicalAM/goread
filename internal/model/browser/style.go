@@ -111,7 +111,7 @@ func (s style) attachIconToTab(text string, tabType tab.Type, isActive bool) str
 	)
 }
 
-// Style the status bar cell depending on the the of the current tab
+// Style the status bar cell depending on the of the current tab
 func (s style) styleStatusBarCell(tabType tab.Type) string {
 	return s.statusBarCell.Copy().
 		Background(s.iconColors[tabType]).
