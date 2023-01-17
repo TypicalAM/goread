@@ -379,7 +379,7 @@ func (m Model) showHelp() (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-// renderTabBar renders the tab bar on the top of the screen
+// renderTabBar renders the tab bar at the top of the screen
 func (m *Model) renderTabBar() string {
 	// Render the tab bar at the top of the screen
 	tabs := make([]string, len(m.tabs))
