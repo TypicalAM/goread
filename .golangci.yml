@@ -10,8 +10,8 @@ linters:
     - unparam
     - goimports
     - whitespace
-    - revive 
-    - errcheck 
+    - revive
+    - errcheck
     - nilerr
 
 linters-settings:
