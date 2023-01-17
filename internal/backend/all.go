@@ -25,7 +25,7 @@ func (i itemList) Swap(a, b int) {
 	i[a], i[b] = i[b], i[a]
 }
 
-// GetAllArticles reutrns an article list from the cache or fetches it from the internet
+// GetAllArticles returns an article list from the cache or fetches it from the internet
 // if it is not cached and updates the cache, it also updates expired items and sorts
 // the items by publish date
 func (c *Cache) GetAllArticles(urls []string) ([]gofeed.Item, error) {

@@ -414,7 +414,7 @@ func TestRssFeedUpdate(t *testing.T) {
 		t.Errorf("incorrect error, expected ErrNotFound, got %s", err)
 	}
 
-	// Check if we can update a feed with the same name but diffferent url
+	// Check if we can update a feed with the same name but different url
 	err = myRss.UpdateFeed("News", "New feed", "New feed", "https://new.feed2")
 	if err != nil {
 		t.Errorf("failed to update feed, %s", err)

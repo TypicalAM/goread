@@ -12,7 +12,7 @@ Type "../goread --test_colors"
 Enter
 Sleep 5s
 
-# Change the currnent pywal scheme
+# Change the current pywal scheme
 Type "wal -stni /home/adam/pictures/wallpapers/Sunny\ outside.webp > /dev/null"
 Enter
 Sleep 3s

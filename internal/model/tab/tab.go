@@ -43,7 +43,7 @@ type NewTabMessage struct {
 	Type  Type
 }
 
-// Help is strcure containing the keys and their descriptions
+// Help is a struct containing the keys and their descriptions
 // for a given tab
 type Help []KeyBind
 

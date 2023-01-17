@@ -49,10 +49,10 @@ func New(itemType backend.ItemType, creating bool, fields []string, path []strin
 	// Set the old fields
 	c.OldFields = oldFields
 
-	// Create the textfields
+	// Create the text-fields
 	c.inputs = make([]textinput.Model, len(fields))
 
-	// Set the textfields
+	// Set the text-fields
 	for i := range c.inputs {
 		t := textinput.New()
 		t.Focus()
@@ -65,7 +65,7 @@ func New(itemType backend.ItemType, creating bool, fields []string, path []strin
 		c.inputs[i] = t
 	}
 
-	// Set the active textbox
+	// Set the active text box
 	c.activeInput = 0
 	return c
 }
@@ -77,7 +77,7 @@ func (m Model) Init() tea.Cmd {
 
 // Update the model
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
-	// Update the textfields
+	// Update the text-fields
 	var cmd tea.Cmd
 	m.inputs[m.activeInput], cmd = m.inputs[m.activeInput].Update(msg)
 

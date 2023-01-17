@@ -51,13 +51,13 @@ func New(cfg config.Config) Model {
 	}
 }
 
-// Init initializes the model, there are no no I/O operations needed
+// Init initializes the model, there are no I/O operations needed
 func (m Model) Init() tea.Cmd {
 	return nil
 }
 
-// Update handles the terminal size, modifing rss items
-// and modifing tabs
+// Update handles the terminal size, modifying rss items
+// and modifying tabs
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Check if we have the window size, if not, we wait for it
 	if m.waitingForSize {
@@ -181,7 +181,7 @@ func (m Model) View() string {
 	// Render the status bar
 	sections = append(sections, m.renderStatusBar())
 
-	// If we are typing, shift the focus onto the textfield
+	// If we are typing, shift the focus onto the text-field
 	var messageBar string
 	if m.newItem {
 		messageBar = m.input.View()

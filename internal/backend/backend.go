@@ -41,7 +41,7 @@ func New(urlPath, cachePath string, resetCache bool) (Backend, error) {
 }
 
 // FetchCategories returns a tea.Cmd which gets the category list
-// fron the backend
+// from the backend
 func (b Backend) FetchCategories() tea.Cmd {
 	return func() tea.Msg {
 		// Create a list of categories
