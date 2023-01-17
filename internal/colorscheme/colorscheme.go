@@ -51,19 +51,19 @@ func New(path string) Colorscheme {
 // A function which returns a new default colorscheme
 func newDefault() Colorscheme {
 	return Colorscheme{
-		BgDark:   lipgloss.Color("#161622"),
-		BgDarker: lipgloss.Color("#11111a"),
+		BgDark:   "#161622",
+		BgDarker: "#11111a",
 
-		Text:     lipgloss.Color("#FFFFFF"),
-		TextDark: lipgloss.Color("#47485b"),
+		Text:     "#FFFFFF",
+		TextDark: "#47485b",
 
-		Color1: lipgloss.Color("#c29fec"),
-		Color2: lipgloss.Color("#ddbec0"),
-		Color3: lipgloss.Color("#89b4fa"),
-		Color4: lipgloss.Color("#e06c75"),
-		Color5: lipgloss.Color("#98c379"),
-		Color6: lipgloss.Color("#fab387"),
-		Color7: lipgloss.Color("#f1c1e4"),
+		Color1: "#c29fec",
+		Color2: "#ddbec0",
+		Color3: "#89b4fa",
+		Color4: "#e06c75",
+		Color5: "#98c379",
+		Color6: "#fab387",
+		Color7: "#f1c1e4",
 	}
 }
 
