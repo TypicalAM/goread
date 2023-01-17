@@ -139,7 +139,7 @@ func (rss *Rss) UpdateCategory(key, name, desc string) error {
 	return ErrNotFound
 }
 
-// UdpateFeed will change the name/url of a feed by a string key and a category
+// UpdateFeed will change the name/url of a feed by a string key and a category
 func (rss *Rss) UpdateFeed(category, key, name, url string) error {
 	// Check if the name is reserved
 	if name == AllFeedsName {

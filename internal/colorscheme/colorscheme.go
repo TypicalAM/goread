@@ -10,7 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// The basic colorscheme to use in the app
+// Colorscheme is the basic colorscheme to use in the app
 type Colorscheme struct {
 	// The path to the colorscheme
 	path string
