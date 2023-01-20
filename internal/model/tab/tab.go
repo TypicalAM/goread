@@ -19,6 +19,8 @@ type Tab interface {
 	Title() string
 	Type() Type
 	Help() Help
+	SetWidth(int) Tab
+	SetHeight(int) Tab
 
 	// bubbletea methods
 	Init() tea.Cmd

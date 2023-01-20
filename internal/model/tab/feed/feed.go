@@ -72,6 +72,18 @@ func (m Model) Help() tab.Help {
 	}
 }
 
+// SetWidth sets the width of the tab
+func (m Model) SetWidth(width int) tab.Tab {
+	m.width = width
+	return m
+}
+
+// SetHeight sets the height of the tab
+func (m Model) SetHeight(height int) tab.Tab {
+	m.height = height
+	return m
+}
+
 // Init initializes the tab
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(m.reader(m.title), m.loadingSpinner.Tick)

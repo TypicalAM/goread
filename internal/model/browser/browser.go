@@ -95,6 +95,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Delete the item
 		return m.deleteItem(msg)
 
+	case tea.WindowSizeMsg:
+		// Resize the window
+		m.windowWidth = msg.Width
+		m.windowHeight = msg.Height
+
+		// Resize every tab
+		for i := range m.tabs {
+			m.tabs[i] = m.tabs[i].SetWidth(m.windowWidth)
+			m.tabs[i] = m.tabs[i].SetHeight(m.windowHeight - 5)
+		}
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "esc":
