@@ -7,7 +7,6 @@ import (
 	"github.com/TypicalAM/goread/internal/rss"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/mmcdole/gofeed"
 )
 
 // The Backend uses a local cache to get all the feeds and their articles
@@ -86,35 +85,59 @@ func (b Backend) FetchFeeds(catName string) tea.Cmd {
 // the backend via a string key
 func (b Backend) FetchArticles(feedName string) tea.Cmd {
 	return func() tea.Msg {
-		var items []gofeed.Item
-		var err error
-
-		if feedName == rss.AllFeedsName {
-			// Get all the articles and fetch them
-			items, err = b.Cache.GetAllArticles(b.Rss.GetAllURLs())
-			if err != nil {
-				return FetchErrorMessage{
-					Description: "Failed to parse the article",
-					Err:         err,
-				}
+		// Create a list of articles
+		url, err := b.Rss.GetFeedURL(feedName)
+		if err != nil {
+			return FetchErrorMessage{
+				Description: "Failed to get the article url",
+				Err:         err,
 			}
-		} else {
-			// Create a list of articles
-			url, err := b.Rss.GetFeedURL(feedName)
+		}
+
+		// Get the items from the cache
+		items, err := b.Cache.GetArticle(url)
+		if err != nil {
+			return FetchErrorMessage{
+				Description: "Failed to parse the article",
+				Err:         err,
+			}
+		}
+
+		// Create the list of list items
+		var result []list.Item
+		for i, item := range items {
+			// Check if the description can be converted to a string
+			var description string
+			text, err := rss.HTMLToText(item.Description)
 			if err != nil {
-				return FetchErrorMessage{
-					Description: "Failed to get the article url",
-					Err:         err,
-				}
+				description = item.Description
+			} else {
+				description = text
 			}
 
-			// Get the items from the cache
-			items, err = b.Cache.GetArticle(url)
-			if err != nil {
-				return FetchErrorMessage{
-					Description: "Failed to parse the article",
-					Err:         err,
-				}
+			// Create the list item
+			result = append(result, simplelist.NewItem(
+				item.Title,
+				description,
+				rss.YassifyItem(&items[i]),
+			))
+		}
+
+		// Return the message
+		return FetchSuccessMessage{Items: result}
+	}
+}
+
+// FetchAllArticles returns a tea.Cmd which gets all the articles from
+// the backend
+func (b Backend) FetchAllArticles(_ string) tea.Cmd {
+	return func() tea.Msg {
+		// Get all the articles and fetch them
+		items, err := b.Cache.GetAllArticles(b.Rss.GetAllURLs())
+		if err != nil {
+			return FetchErrorMessage{
+				Description: "Failed to parse the article",
+				Err:         err,
 			}
 		}
 

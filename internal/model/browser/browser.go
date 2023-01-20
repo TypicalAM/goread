@@ -256,25 +256,24 @@ func (m *Model) createNewTab(title string, tabType tab.Type) {
 	// Create a new tab based on the type
 	switch tabType {
 	case tab.Category:
-		newTab = category.New(
-			m.config.Colors,
-			m.windowWidth,
-			m.windowHeight-5,
-			title,
-			m.config.Backend.FetchFeeds,
-		)
+		if title == rss.AllFeedsName {
+			newTab = feed.New(
+				m.config.Colors,
+				m.windowWidth,
+				m.windowHeight-5,
+				title,
+				m.config.Backend.FetchAllArticles,
+			)
+		} else {
+			newTab = category.New(
+				m.config.Colors,
+				m.windowWidth,
+				m.windowHeight-5,
+				title,
+				m.config.Backend.FetchFeeds,
+			)
+		}
 	case tab.Feed:
-		newTab = feed.New(
-			m.config.Colors,
-			m.windowWidth,
-			m.windowHeight-5,
-			title,
-			m.config.Backend.FetchArticles,
-		)
-	}
-
-	// If it is a category tab with the name of rss.AllFeedsName, create a new feed tab
-	if tabType == tab.Category && title == rss.AllFeedsName {
 		newTab = feed.New(
 			m.config.Colors,
 			m.windowWidth,
