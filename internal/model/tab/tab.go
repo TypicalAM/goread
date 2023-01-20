@@ -7,7 +7,7 @@ import (
 type Type int
 
 const (
-	Welcome Type = iota
+	Welcome Type = iota + 1
 	Feed
 	Category
 )

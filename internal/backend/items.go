@@ -9,7 +9,7 @@ import (
 type ItemType int
 
 const (
-	Category ItemType = iota
+	Category ItemType = iota + 1
 	Feed
 )
 
