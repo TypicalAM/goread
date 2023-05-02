@@ -7,6 +7,8 @@ import (
 	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/TypicalAM/goread/internal/model/simplelist"
 	"github.com/TypicalAM/goread/internal/model/tab"
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -28,10 +30,32 @@ type Model struct {
 	isViewportOpen  bool
 	viewport        viewport.Model
 	viewportFocused bool
+	keymap          keymap
+	help            help.Model
 
 	// reader is a function which returns a tea.Cmd which will be executed
 	// when the tab is initialized
 	reader func(string) tea.Cmd
+}
+
+type keymap struct {
+	CloseTab    key.Binding
+	CycleTabs   key.Binding
+	Open        key.Binding
+	ToggleFocus key.Binding
+	Refresh     key.Binding
+}
+
+func (k keymap) ShortHelp() []key.Binding {
+	return []key.Binding{
+		k.CloseTab, k.CycleTabs, k.Open, k.ToggleFocus, k.Refresh,
+	}
+}
+
+func (k keymap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.CloseTab, k.CycleTabs, k.Open, k.ToggleFocus, k.Refresh},
+	}
 }
 
 // New creates a new feed tab with sensible defaults
@@ -41,6 +65,8 @@ func New(colors colorscheme.Colorscheme, width, height int, title string, reader
 	spin.Spinner = spinner.Points
 	spin.Style = lipgloss.NewStyle().Foreground(colors.Color1)
 
+	help := help.New()
+	help.Styles.ShortDesc = lipgloss.NewStyle().Foreground(colors.Text)
 	// Create the model
 	return Model{
 		colors:         colors,
@@ -50,6 +76,29 @@ func New(colors colorscheme.Colorscheme, width, height int, title string, reader
 		loadingSpinner: spin,
 		title:          title,
 		reader:         reader,
+		help:           help,
+		keymap: keymap{
+			CloseTab: key.NewBinding(
+				key.WithKeys("ctrl+w"),
+				key.WithHelp("ctrl+w", "Close tab"),
+			),
+			CycleTabs: key.NewBinding(
+				key.WithKeys("tab"),
+				key.WithHelp("tab", "Cycle tabs"),
+			),
+			Open: key.NewBinding(
+				key.WithKeys("enter"),
+				key.WithHelp("enter", "Open"),
+			),
+			ToggleFocus: key.NewBinding(
+				key.WithKeys("left", "right"),
+				key.WithHelp("left/right", "Toggle focus"),
+			),
+			Refresh: key.NewBinding(
+				key.WithKeys("r"),
+				key.WithHelp("r", "Refresh"),
+			),
+		},
 	}
 }
 
@@ -63,15 +112,6 @@ func (m Model) Type() tab.Type {
 	return tab.Feed
 }
 
-// Help returns the help for the tab
-func (m Model) Help() tab.Help {
-	return tab.Help{
-		tab.KeyBind{Key: "enter", Description: "Open"},
-		tab.KeyBind{Key: "left/right", Description: "Toggle focus"},
-		tab.KeyBind{Key: "r", Description: "Refresh"},
-	}
-}
-
 // SetWidth sets the width of the tab
 func (m Model) SetWidth(width int) tab.Tab {
 	m.width = width
@@ -82,6 +122,10 @@ func (m Model) SetWidth(width int) tab.Tab {
 func (m Model) SetHeight(height int) tab.Tab {
 	m.height = height
 	return m
+}
+
+func (m Model) ShowHelp() string {
+	return m.help.View(m.keymap)
 }
 
 // Init initializes the tab

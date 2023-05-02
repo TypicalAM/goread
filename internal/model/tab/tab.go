@@ -18,9 +18,9 @@ type Tab interface {
 	// general fields
 	Title() string
 	Type() Type
-	Help() Help
 	SetWidth(int) Tab
 	SetHeight(int) Tab
+	ShowHelp() string
 
 	// bubbletea methods
 	Init() tea.Cmd
@@ -43,15 +43,4 @@ func NewTab(title string, tabType Type) tea.Cmd {
 type NewTabMessage struct {
 	Title string
 	Type  Type
-}
-
-// Help is a struct containing the keys and their descriptions
-// for a given tab
-type Help []KeyBind
-
-// KeyBind is a struct containing the description of a tab
-// and the keys that are used to interact with it
-type KeyBind struct {
-	Key         string
-	Description string
 }

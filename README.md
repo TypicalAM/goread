@@ -87,7 +87,7 @@ pywal `colors.json` file which is usually located at `~/.cache/wal/colors.json`.
 Here are the things that I've not yet implemented, contributions and suggestions are very welcome!
 
 - [X] A main category where all the feeds are aggregated
-- [ ] Moving the help to the bubbletea `help` bubble
+- [X] Moving the help to the bubbletea `help` bubble
 
 ## 💁 Credit where credit is due
 
