@@ -88,11 +88,7 @@ func Run() error {
 		fmt.Println(messageStyle.Render("The new colorscheme was saved to the config directory\n"))
 		fmt.Println(colors.TestColors())
 
-		if err := colors.Convert(opts.getColors); err != nil {
-			return err
-		}
-
-		return nil
+		return colors.Convert(opts.getColors)
 	}
 
 	// Set the cache size
