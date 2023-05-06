@@ -5,7 +5,10 @@ import (
 	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/TypicalAM/goread/internal/model/simplelist"
 	"github.com/TypicalAM/goread/internal/model/tab"
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 // Model contains the state of this tab
@@ -16,20 +19,73 @@ type Model struct {
 	title  string
 	loaded bool
 	list   simplelist.Model
+	keymap keymap
+	help   help.Model
 
 	// reader is a function which returns a tea.Cmd which will be executed
 	// when the tab is initialized
 	reader func() tea.Cmd
 }
 
+type keymap struct {
+	CloseTab  key.Binding
+	CycleTabs key.Binding
+	Enter     key.Binding
+	New       key.Binding
+	Edit      key.Binding
+	Delete    key.Binding
+}
+
+func (k keymap) ShortHelp() []key.Binding {
+	return []key.Binding{
+		k.CloseTab, k.CycleTabs, k.Enter, k.New, k.Edit, k.Delete,
+	}
+}
+
+func (k keymap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.CloseTab, k.CycleTabs, k.Enter, k.New, k.Edit, k.Delete},
+	}
+}
+
 // New creates a new welcome tab with sensible defaults
 func New(colors colorscheme.Colorscheme, width, height int, title string, reader func() tea.Cmd) Model {
+	help := help.New()
+	help.Styles.ShortDesc = lipgloss.NewStyle().Foreground(colors.Text)
+
 	return Model{
 		colors: colors,
 		width:  width,
 		height: height,
 		title:  title,
 		reader: reader,
+		help:   help,
+		keymap: keymap{
+			CloseTab: key.NewBinding(
+				key.WithKeys("ctrl+w"),
+				key.WithHelp("ctrl+w", "Close tab"),
+			),
+			CycleTabs: key.NewBinding(
+				key.WithKeys("tab"),
+				key.WithHelp("tab", "Cycle tabs"),
+			),
+			Enter: key.NewBinding(
+				key.WithKeys("enter"),
+				key.WithHelp("enter", "Open"),
+			),
+			New: key.NewBinding(
+				key.WithKeys("ctrl+n"),
+				key.WithHelp("ctrl+n", "New"),
+			),
+			Edit: key.NewBinding(
+				key.WithKeys("ctrl+e"),
+				key.WithHelp("ctrl+e", "Edit"),
+			),
+			Delete: key.NewBinding(
+				key.WithKeys("ctrl+d"),
+				key.WithHelp("ctrl+d", "Delete"),
+			),
+		},
 	}
 }
 
@@ -43,16 +99,6 @@ func (m Model) Type() tab.Type {
 	return tab.Welcome
 }
 
-// Help returns the help for the tab
-func (m Model) Help() tab.Help {
-	return tab.Help{
-		tab.KeyBind{Key: "enter", Description: "Open"},
-		tab.KeyBind{Key: "ctrl+n", Description: "New"},
-		tab.KeyBind{Key: "ctrl+e", Description: "Edit"},
-		tab.KeyBind{Key: "ctrl+d", Description: "Delete"},
-	}
-}
-
 // SetWidth sets the width of the tab
 func (m Model) SetWidth(width int) tab.Tab {
 	m.width = width
@@ -63,6 +109,10 @@ func (m Model) SetWidth(width int) tab.Tab {
 func (m Model) SetHeight(height int) tab.Tab {
 	m.height = height
 	return m
+}
+
+func (m Model) ShowHelp() string {
+	return m.help.View(m.keymap)
 }
 
 // Init initializes the tab

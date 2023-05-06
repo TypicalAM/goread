@@ -378,14 +378,7 @@ func (m Model) deleteItem(msg backend.DeleteItemMessage) (tea.Model, tea.Cmd) {
 
 // showHelp() shows the help menu at the bottom of the screen
 func (m Model) showHelp() (tea.Model, tea.Cmd) {
-	// Create the help menu
-	message := "Help: [ctrl+w] Close tab, [Tab] Cycle tabs, "
-	for _, keyBind := range m.tabs[m.activeTab].Help() {
-		message += fmt.Sprintf("[%s] %s, ", keyBind.Key, keyBind.Description)
-	}
-
-	// Set the message
-	m.message = message[:len(message)-2]
+	m.message = m.tabs[m.activeTab].ShowHelp()
 	return m, nil
 }
 
