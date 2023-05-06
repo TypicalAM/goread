@@ -161,7 +161,10 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			// Refresh the contents of the tab
 			m.isViewportOpen = false
 			m.loaded = false
-			return m, m.reader(m.title)
+			m.viewportFocused = false
+
+			// Rerun with data fetching and loading
+			return m, tea.Batch(m.reader(m.title), m.loadingSpinner.Tick)
 
 		case "left", "right":
 			// If the viewport isn't open, don't do anything
