@@ -52,6 +52,8 @@ func (k keymap) FullHelp() [][]key.Binding {
 func New(colors colorscheme.Colorscheme, width, height int, title string, reader func() tea.Cmd) Model {
 	help := help.New()
 	help.Styles.ShortDesc = lipgloss.NewStyle().Foreground(colors.Text)
+	help.Styles.ShortKey = lipgloss.NewStyle().Foreground(colors.Text)
+	help.Styles.Ellipsis = lipgloss.NewStyle().Foreground(colors.BgDark)
 
 	return Model{
 		colors: colors,

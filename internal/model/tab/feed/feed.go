@@ -67,6 +67,9 @@ func New(colors colorscheme.Colorscheme, width, height int, title string, reader
 
 	help := help.New()
 	help.Styles.ShortDesc = lipgloss.NewStyle().Foreground(colors.Text)
+	help.Styles.ShortKey = lipgloss.NewStyle().Foreground(colors.Text)
+	help.Styles.Ellipsis = lipgloss.NewStyle().Foreground(colors.BgDark)
+
 	// Create the model
 	return Model{
 		colors:         colors,
