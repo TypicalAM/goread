@@ -88,6 +88,7 @@ Here are the things that I've not yet implemented, contributions and suggestions
 
 - [X] A main category where all the feeds are aggregated
 - [X] Moving the help to the bubbletea `help` bubble
+- [ ] Adding customizable keybinds
 
 ## 💁 Credit where credit is due
 
