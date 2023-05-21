@@ -10,7 +10,7 @@ with [bubble tea](https://github.com/charmbracelet/bubbletea)
 Installing is extremely easy with `go install`
 
 ```
-go install github.com/TypicalAM/goread/cmd/goread@latest
+go install github.com/TypicalAM/goread@latest
 ```
 
 Which produces a `goread` executable

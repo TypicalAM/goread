@@ -1,4 +1,4 @@
-package main
+package goread
 
 import (
 	"fmt"
@@ -52,6 +52,7 @@ func init() {
 	rootCmd.Flags().IntVarP(&opts.cacheDuration, "cache_duration", "d", 0, "The duration of the cache in hours")
 }
 
+// Execute executes the commands
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "There has been an error executing the commands: '%s'", err)
@@ -59,6 +60,7 @@ func Execute() {
 	}
 }
 
+// Run runs the program
 func Run() error {
 	// Initialize the colorscheme
 	colors := colorscheme.New(opts.colorschemePath)
@@ -118,8 +120,4 @@ func Run() error {
 
 	// Close the config
 	return cfg.Close()
-}
-
-func main() {
-	Execute()
 }
