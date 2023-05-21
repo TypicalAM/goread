@@ -27,6 +27,7 @@ type Model struct {
 	reader func(string) tea.Cmd
 }
 
+// keymap contains the key bindings for this tab
 type keymap struct {
 	CloseTab  key.Binding
 	CycleTabs key.Binding
@@ -36,12 +37,14 @@ type keymap struct {
 	Delete    key.Binding
 }
 
+// ShortHelp returns the short help for this tab
 func (k keymap) ShortHelp() []key.Binding {
 	return []key.Binding{
 		k.CloseTab, k.CycleTabs, k.Enter, k.New, k.Edit, k.Delete,
 	}
 }
 
+// FullHelp returns the full help for this tab
 func (k keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.CloseTab, k.CycleTabs, k.Enter, k.New, k.Edit, k.Delete},
@@ -109,6 +112,7 @@ func (m Model) SetSize(width, height int) tab.Tab {
 	return m
 }
 
+// ShowHelp shows the help for this tab
 func (m Model) ShowHelp() string {
 	return m.help.View(m.keymap)
 }
@@ -118,7 +122,7 @@ func (m Model) Init() tea.Cmd {
 	return m.reader(m.title)
 }
 
-// Update the variables of the tab
+// Update updates the variables of the tab
 func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	switch msg := msg.(type) {
 	case backend.FetchSuccessMessage:
@@ -188,7 +192,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	return m, cmd
 }
 
-// View the tab
+// View returns the view of the tab
 func (m Model) View() string {
 	// Check if the program is loaded, if not, return a loading message
 	if !m.loaded {

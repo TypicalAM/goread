@@ -9,7 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-// The Backend uses a local cache to get all the feeds and their articles
+// Backend uses a local cache to get all the feeds and their articles
 type Backend struct {
 	Cache *Cache
 	Rss   *rss.Rss

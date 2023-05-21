@@ -10,7 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// Colorscheme is the basic colorscheme to use in the app
+// Colorscheme is a struct that contains all the colors for the application
 type Colorscheme struct {
 	// The path to the colorscheme
 	path string
@@ -48,7 +48,7 @@ func New(path string) Colorscheme {
 	return newDefault()
 }
 
-// A function which returns a new default colorscheme
+// newDefault returns a new default colorscheme
 func newDefault() Colorscheme {
 	return Colorscheme{
 		BgDark:   "#161622",

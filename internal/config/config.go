@@ -5,26 +5,16 @@ import (
 	"github.com/TypicalAM/goread/internal/colorscheme"
 )
 
-// Define the basic backend types
-const (
-	BackendWeb   = "web"
-	BackendCache = "cache"
-)
-
 // Config is the configuration for the program
 type Config struct {
 	Colors  colorscheme.Colorscheme
 	Backend backend.Backend
-	urlPath string
 }
 
 // New returns a new Config
 func New(colors colorscheme.Colorscheme, urlPath, cachePath string, resetCache bool) (Config, error) {
 	// Create a new config
 	config := Config{}
-
-	// Set the url path
-	config.urlPath = urlPath
 
 	// Set the colorscheme
 	config.Colors = colors
@@ -42,7 +32,7 @@ func New(colors colorscheme.Colorscheme, urlPath, cachePath string, resetCache b
 	return config, nil
 }
 
-// Close closes the backend
+// Close closes the config
 func (c Config) Close() error {
 	return c.Backend.Close()
 }

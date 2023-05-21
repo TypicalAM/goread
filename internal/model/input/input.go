@@ -17,7 +17,7 @@ const (
 	NotEnoughText
 )
 
-// Model contains the state of this tab
+// Model contains the state of this component
 type Model struct {
 	State       State
 	activeInput int
@@ -75,7 +75,7 @@ func (m Model) Init() tea.Cmd {
 	return nil
 }
 
-// Update the model
+// Update updates the model
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	// Update the text-fields
 	var cmd tea.Cmd
@@ -110,7 +110,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	return m, cmd
 }
 
-// View the selected input
+// View returns the view of the model
 func (m Model) View() string {
 	return m.inputs[m.activeInput].View()
 }

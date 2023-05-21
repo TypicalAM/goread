@@ -88,7 +88,7 @@ func newStyle(colors colorscheme.Colorscheme) style {
 	}
 }
 
-// Style the text depending on the type of the tab
+// attachIconToTab attaches an icon based on the tab type
 func (s style) attachIconToTab(text string, tabType tab.Type, isActive bool) string {
 	var iconStyle, textStyle lipgloss.Style
 	if isActive {
@@ -111,7 +111,7 @@ func (s style) attachIconToTab(text string, tabType tab.Type, isActive bool) str
 	)
 }
 
-// Style the status bar cell depending on the of the current tab
+// styleStatusBarCell styles the status bar cell based on the tab type
 func (s style) styleStatusBarCell(tabType tab.Type) string {
 	return s.statusBarCell.Copy().
 		Background(s.iconColors[tabType]).

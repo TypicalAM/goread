@@ -49,7 +49,7 @@ func (m Model) Init() tea.Cmd {
 	return nil
 }
 
-// Update the variables in the list
+// Update updates the model
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	// Handle key presses
 	if msg, ok := msg.(tea.KeyMsg); ok {
@@ -96,7 +96,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	return m, nil
 }
 
-// View the list
+// View returns the view of the list
 func (m Model) View() string {
 	// Sections will be used to build the view
 	sections := make([]string, 1)

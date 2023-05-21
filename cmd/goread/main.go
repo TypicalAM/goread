@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Options denote the flags that can be given to the program
+// options denote the flags that can be given to the program
 type options struct {
 	cachePath       string
 	colorschemePath string
@@ -30,8 +30,8 @@ var (
 	opts    = options{}
 	rootCmd = &cobra.Command{
 		Use:   "goread",
-		Short: "goread is a command line tool for reading RSS feeds",
-		Long:  `goread is a fancy TUI for reading and categorizing different RSS feeds`,
+		Short: "goread is a command line tool for reading RSS and ATOM feeds",
+		Long:  `goread is a fancy TUI for reading and categorizing different RSS and ATOM feeds`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := Run(); err != nil {
 				fmt.Fprintf(os.Stderr, "There has been an error executing the commands: '%s'", err)

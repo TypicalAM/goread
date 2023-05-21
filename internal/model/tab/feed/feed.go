@@ -38,6 +38,7 @@ type Model struct {
 	reader func(string) tea.Cmd
 }
 
+// keymap contains the key bindings for this tab
 type keymap struct {
 	CloseTab    key.Binding
 	CycleTabs   key.Binding
@@ -46,12 +47,14 @@ type keymap struct {
 	Refresh     key.Binding
 }
 
+// ShortHelp returns the short help for the tab
 func (k keymap) ShortHelp() []key.Binding {
 	return []key.Binding{
 		k.CloseTab, k.CycleTabs, k.Open, k.ToggleFocus, k.Refresh,
 	}
 }
 
+// FullHelp returns the full help for the tab
 func (k keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.CloseTab, k.CycleTabs, k.Open, k.ToggleFocus, k.Refresh},
@@ -128,6 +131,7 @@ func (m Model) SetSize(width, height int) tab.Tab {
 	return newTab
 }
 
+// ShowHelp shows the help screen
 func (m Model) ShowHelp() string {
 	return m.help.View(m.keymap)
 }

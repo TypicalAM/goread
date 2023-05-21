@@ -12,8 +12,7 @@ const (
 	Category
 )
 
-// Tab is an interface outlining the methods that a tab should implement
-// a bubbletea models' methods and also some more
+// Tab is an interface outlining the methods that a tab should implement including bubbletea's model methods
 type Tab interface {
 	// general fields
 	Title() string

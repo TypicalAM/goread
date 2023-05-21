@@ -258,7 +258,7 @@ func (m Model) updateItemCreation(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 }
 
-// Create the new tab and add it to the model
+// createNewTab bootstraps the new tab and adds it to the model
 func (m *Model) createNewTab(title string, tabType tab.Type) {
 	// Create and add the new tab
 	var newTab tab.Tab
