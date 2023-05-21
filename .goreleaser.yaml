@@ -3,7 +3,7 @@ before:
     - go mod tidy
 
 builds:
-  - main: cmd/goread/main.go
+  - main: main.go
     env:
       - CGO_ENABLED=0
     goos:
