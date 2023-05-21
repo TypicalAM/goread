@@ -102,8 +102,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Resize every tab
 		for i := range m.tabs {
-			m.tabs[i] = m.tabs[i].SetWidth(m.windowWidth)
-			m.tabs[i] = m.tabs[i].SetHeight(m.windowHeight - 5)
+			m.tabs[i] = m.tabs[i].SetSize(m.windowWidth, m.windowHeight-5)
 		}
 
 	case tea.KeyMsg:

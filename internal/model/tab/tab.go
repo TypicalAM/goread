@@ -18,8 +18,7 @@ type Tab interface {
 	// general fields
 	Title() string
 	Type() Type
-	SetWidth(int) Tab
-	SetHeight(int) Tab
+	SetSize(width, height int) Tab
 	ShowHelp() string
 
 	// bubbletea methods

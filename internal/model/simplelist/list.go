@@ -140,6 +140,23 @@ func (m Model) View() string {
 	return lipgloss.JoinVertical(lipgloss.Top, sections...)
 }
 
+// SetHeight sets the height of the list
+func (m *Model) SetHeight(height int) {
+	// Calculate the items per page
+	if m.showDesc {
+		m.itemsPerPage = (height - lipgloss.Height(m.style.titleStyle.Render(""))) / 2
+	} else {
+		m.itemsPerPage = height - lipgloss.Height(m.style.titleStyle.Render(""))
+	}
+
+	m.height = height
+}
+
+// Items returns the items in the list
+func (m Model) Items() []list.Item {
+	return m.items
+}
+
 // SetItems sets the items in the list
 func (m *Model) SetItems(items []list.Item) {
 	if len(items) > 36 {

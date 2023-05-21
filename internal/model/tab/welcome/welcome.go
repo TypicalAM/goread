@@ -101,15 +101,11 @@ func (m Model) Type() tab.Type {
 	return tab.Welcome
 }
 
-// SetWidth sets the width of the tab
-func (m Model) SetWidth(width int) tab.Tab {
+// SetSize sets the dimensions of the tab
+func (m Model) SetSize(width, height int) tab.Tab {
 	m.width = width
-	return m
-}
-
-// SetHeight sets the height of the tab
-func (m Model) SetHeight(height int) tab.Tab {
 	m.height = height
+	m.list.SetHeight(m.height)
 	return m
 }
 

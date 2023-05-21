@@ -115,16 +115,17 @@ func (m Model) Type() tab.Type {
 	return tab.Feed
 }
 
-// SetWidth sets the width of the tab
-func (m Model) SetWidth(width int) tab.Tab {
+// SetSize sets the dimensions of the tab
+func (m Model) SetSize(width, height int) tab.Tab {
+	listWidth := width / 4
+	viewportWidth := width - listWidth - 2
+	m.list.SetSize(listWidth, height)
+	m.viewport.Width = viewportWidth
+	m.viewport.Height = height
 	m.width = width
-	return m
-}
-
-// SetHeight sets the height of the tab
-func (m Model) SetHeight(height int) tab.Tab {
 	m.height = height
-	return m
+	newTab, _ := m.updateViewport()
+	return newTab
 }
 
 func (m Model) ShowHelp() string {
