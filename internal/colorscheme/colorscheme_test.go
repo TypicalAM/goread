@@ -1,7 +1,6 @@
 package colorscheme
 
 import (
-	"reflect"
 	"testing"
 )
 
@@ -10,23 +9,32 @@ func TestColorschemeLoadNoFile(t *testing.T) {
 	// Create the colorscheme with a non-existent file path
 	colors := New("non-existent")
 
-	// Create the default colorscheme to compare with
-	defaultColors := newDefault()
-
-	if !reflect.DeepEqual(colors, defaultColors) {
-		t.Errorf("Colorscheme not generated correctly")
+	if colors != newDefault() {
+		t.Error("Colorscheme not generated correctly")
 	}
 }
 
 // TestColorschemeLoadFile if we get an error then the loading doesn't work correctly
 func TestColorschemeLoadFile(t *testing.T) {
-	// Create the colorscheme with a non-existent file path
+	// Create a colorscheme with a real file path
 	colors := New("../test/data/colorscheme.json")
 
-	// Create the new default to compare with
-	testColors := newDefault()
+	if colors == newDefault() {
+		t.Error("Colorscheme not loaded correctly")
+	}
+}
 
-	if reflect.DeepEqual(colors, testColors) {
-		t.Errorf("Colorscheme not loaded correctly")
+// TestPywalConvert if we get an error then the conversion doesn't work correctly
+func TestPywalConvert(t *testing.T) {
+	// Create the colorscheme with a non-existent file path
+	colors := newDefault()
+
+	// Try to convert the colorscheme
+	if err := colors.Convert("../test/data/pywal.json"); err != nil {
+		t.Error("Colorscheme couldn't convert", err)
+	}
+
+	if colors == newDefault() {
+		t.Errorf("Colorscheme not converted correctly")
 	}
 }
