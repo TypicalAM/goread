@@ -97,8 +97,8 @@ func New(colors colorscheme.Colorscheme, width, height int, title string, reader
 				key.WithHelp("enter", "Open"),
 			),
 			ToggleFocus: key.NewBinding(
-				key.WithKeys("left", "right"),
-				key.WithHelp("left/right", "Toggle focus"),
+				key.WithKeys("left", "right", "alt+h", "alt+l"),
+				key.WithHelp("left(alt+h)/right(alt+l)", "Toggle focus"),
 			),
 			Refresh: key.NewBinding(
 				key.WithKeys("r"),
@@ -174,7 +174,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			// Rerun with data fetching and loading
 			return m, tea.Batch(m.reader(m.title), m.loadingSpinner.Tick)
 
-		case "left", "right":
+		case "left", "right", "alt+l", "alt+h":
 			// If the viewport isn't open, don't do anything
 			if !m.isViewportOpen {
 				return m, nil

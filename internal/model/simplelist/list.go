@@ -54,7 +54,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	// Handle key presses
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch msg.String() {
-		case "up":
+		case "up", "k":
 			// Select the previous item
 			m.selected--
 			if m.selected < 0 {
@@ -67,7 +67,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 				m.page--
 			}
 
-		case "down":
+		case "down", "j":
 			// Select the next item
 			m.selected++
 			if m.selected >= len(m.items) {
@@ -80,12 +80,12 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 				m.page++
 			}
 
-		case "shift+up":
+		case "shift+up", "K":
 			// Select the first item
 			m.selected = 0
 			m.page = 0
 
-		case "shift+down":
+		case "shift+down", "J":
 			// Select the last item
 			m.selected = len(m.items) - 1
 			m.page = len(m.items) / m.itemsPerPage
