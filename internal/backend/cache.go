@@ -20,13 +20,13 @@ var DefaultCacheSize = 100
 // Cache is a basic cache to read and write gofeed.Items based on the URL
 type Cache struct {
 	filePath string
-	Content  map[string]Item
+	Content  map[string]Item `json:"content"`
 }
 
 // Item is an item in the cache
 type Item struct {
-	Expire time.Time
-	Items  []gofeed.Item
+	Expire time.Time     `json:"expire"`
+	Items  []gofeed.Item `json:"items"`
 }
 
 // newStore creates a new cache
