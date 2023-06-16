@@ -78,6 +78,11 @@ func (rss *Rss) RemoveCategory(name string) error {
 			continue
 		}
 
+		// Check if the category cannot be removed
+		if cat.Name == AllFeedsName {
+			return ErrReservedName
+		}
+
 		// Remove the category
 		rss.Categories = append(rss.Categories[:i], rss.Categories[i+1:]...)
 		return nil
