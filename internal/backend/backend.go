@@ -166,6 +166,63 @@ func (b Backend) FetchAllArticles(_ string) tea.Cmd {
 	}
 }
 
+// FetchDownloaded returns a tea.Cmd which gets all the downloaded
+// articles from the backend
+func (b Backend) FetchDownloadedArticles(_ string) tea.Cmd {
+	return func() tea.Msg {
+		// Get all the downloaded articles
+		items := b.Cache.GetDownloaded()
+
+		var result []list.Item
+		for i, item := range items {
+			// Check if the description can be converted to a string
+			var description string
+			text, err := rss.HTMLToText(item.Description)
+			if err != nil {
+				description = item.Description
+			} else {
+				description = text
+			}
+
+			// Create the list item
+			result = append(result, simplelist.NewItem(
+				item.Title,
+				description,
+				rss.YassifyItem(&items[i]),
+			))
+		}
+
+		// Return the message
+		return FetchSuccessMessage{Items: result}
+	}
+}
+
+// DownloadItem returns a tea.Cmd which downloads an item
+func (b Backend) DownloadItem(key string, index int) tea.Cmd {
+	return func() tea.Msg {
+		// Get the url for the item
+		url, err := b.Rss.GetFeedURL(key)
+		if err != nil {
+			return FetchErrorMessage{
+				Description: "Failed to get the article url",
+				Err:         err,
+			}
+		}
+
+		// Get the items from the cache
+		err = b.Cache.AddToDownloaded(url, index)
+		if err != nil {
+			return FetchErrorMessage{
+				Description: "Failed to download the article",
+				Err:         err,
+			}
+		}
+
+		// Return nothing
+		return nil
+	}
+}
+
 // Close closes the backend
 func (b Backend) Close() error {
 	// Try to save the rss

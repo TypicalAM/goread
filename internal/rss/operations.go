@@ -34,7 +34,7 @@ func (rss *Rss) AddCategory(name string, description string) error {
 // AddFeed will add a feed to the Rss structure
 func (rss *Rss) AddFeed(category string, name string, url string) error {
 	// Check if the name is reserved
-	if name == AllFeedsName {
+	if name == AllFeedsName || name == DownloadedFeedsName {
 		return ErrReservedName
 	}
 
@@ -79,7 +79,7 @@ func (rss *Rss) RemoveCategory(name string) error {
 		}
 
 		// Check if the category cannot be removed
-		if cat.Name == AllFeedsName {
+		if cat.Name == AllFeedsName || cat.Name == DownloadedFeedsName {
 			return ErrReservedName
 		}
 
@@ -119,7 +119,7 @@ func (rss *Rss) RemoveFeed(category string, name string) error {
 // UpdateCategory will change the name/description of a category by a string key
 func (rss *Rss) UpdateCategory(key, name, desc string) error {
 	// Check if the name is reserved
-	if name == AllFeedsName {
+	if name == AllFeedsName || name == DownloadedFeedsName {
 		return ErrReservedName
 	}
 
@@ -147,7 +147,7 @@ func (rss *Rss) UpdateCategory(key, name, desc string) error {
 // UpdateFeed will change the name/url of a feed by a string key and a category
 func (rss *Rss) UpdateFeed(category, key, name, url string) error {
 	// Check if the name is reserved
-	if name == AllFeedsName {
+	if name == AllFeedsName || name == DownloadedFeedsName {
 		return ErrReservedName
 	}
 

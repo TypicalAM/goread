@@ -74,3 +74,21 @@ func DeleteItem(itemType ItemType, key string) tea.Cmd {
 		}
 	}
 }
+
+// DownloadItemMessage is a message to tell the main model that a new item
+// needs to be downloaded
+type DownloadItemMessage struct {
+	Key   string
+	Index int
+}
+
+// DownloadItem is a function to tell the main model that a new item
+// needs to be downloaded
+func DownloadItem(key string, index int) tea.Cmd {
+	return func() tea.Msg {
+		return DownloadItemMessage{
+			Key:   key,
+			Index: index,
+		}
+	}
+}

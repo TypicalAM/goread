@@ -15,8 +15,14 @@ import (
 // AllFeedsName is the name of the all feeds category
 var AllFeedsName = "All Feeds"
 
+// DownloadedFeedsName is the name of the downloaded feeds category
+var DownloadedFeedsName = "Downloaded"
+
 // ErrNotFound is returned when a feed or category is not found
 var ErrNotFound = errors.New("not found")
+
+// ErrNotSupported is returned when a feed is not supported
+var ErrNotSupported = errors.New("not supported")
 
 // Rss will be used to structurize the rss feeds and categories
 // it will usually be read from a file
@@ -152,6 +158,11 @@ func (rss Rss) GetFeeds(categoryName string) (names []string, urls []string, err
 
 // GetFeedURL will return the url of a feed denoted by the name
 func (rss Rss) GetFeedURL(feedName string) (string, error) {
+	// Check if the feed is reserved
+	if feedName == AllFeedsName || feedName == DownloadedFeedsName {
+		return "", ErrNotSupported
+	}
+
 	// Iterate over all categories
 	for _, cat := range rss.Categories {
 		// Iterate over all feeds

@@ -183,6 +183,10 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			// Toggle the viewport focus
 			m.viewportFocused = !m.viewportFocused
 			return m, nil
+
+		case "d":
+			// Tell the main model to download the item
+			return m, backend.DownloadItem(m.title, m.list.Index())
 		}
 
 	default:

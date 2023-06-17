@@ -95,6 +95,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Delete the item
 		return m.deleteItem(msg)
 
+	case backend.DownloadItemMessage:
+		// Download the item
+		return m.downloadItem(msg)
+
 	case tea.WindowSizeMsg:
 		// Resize the window
 		m.windowWidth = msg.Width
@@ -266,7 +270,8 @@ func (m *Model) createNewTab(title string, tabType tab.Type) {
 	// Create a new tab based on the type
 	switch tabType {
 	case tab.Category:
-		if title == rss.AllFeedsName {
+		switch title {
+		case rss.AllFeedsName:
 			newTab = feed.New(
 				m.config.Colors,
 				m.windowWidth,
@@ -274,7 +279,17 @@ func (m *Model) createNewTab(title string, tabType tab.Type) {
 				title,
 				m.config.Backend.FetchAllArticles,
 			)
-		} else {
+
+		case rss.DownloadedFeedsName:
+			newTab = feed.New(
+				m.config.Colors,
+				m.windowWidth,
+				m.windowHeight-5,
+				title,
+				m.config.Backend.FetchDownloadedArticles,
+			)
+
+		default:
 			newTab = category.New(
 				m.config.Colors,
 				m.windowWidth,
@@ -283,6 +298,7 @@ func (m *Model) createNewTab(title string, tabType tab.Type) {
 				m.config.Backend.FetchFeeds,
 			)
 		}
+
 	case tab.Feed:
 		newTab = feed.New(
 			m.config.Colors,
@@ -373,6 +389,12 @@ func (m Model) deleteItem(msg backend.DeleteItemMessage) (tea.Model, tea.Cmd) {
 
 	// Fetch the feeds again to update the list
 	return m, m.config.Backend.FetchFeeds(m.tabs[m.activeTab].Title())
+}
+
+// downloadItem downloads an item
+func (m Model) downloadItem(msg backend.DownloadItemMessage) (tea.Model, tea.Cmd) {
+	m.message = fmt.Sprintf("Saving item from feed %s", msg.Key)
+	return m, m.config.Backend.DownloadItem(msg.Key, msg.Index)
 }
 
 // showHelp() shows the help menu at the bottom of the screen

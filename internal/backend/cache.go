@@ -3,9 +3,11 @@ package backend
 import (
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"time"
 
 	"github.com/mmcdole/gofeed"
@@ -25,8 +27,9 @@ type Cache struct {
 
 // Item is an item in the cache
 type Item struct {
-	Expire time.Time     `json:"expire"`
-	Items  []gofeed.Item `json:"items"`
+	Expire       time.Time     `json:"expire"`
+	Items        []gofeed.Item `json:"items"`
+	IsDownloaded bool          `json:"is_downloaded" default:"false"`
 }
 
 // newStore creates a new cache
@@ -63,7 +66,7 @@ func (c *Cache) Load() error {
 
 	// Iterate over the cache and remove any expired items
 	for key, value := range c.Content {
-		if value.Expire.Before(time.Now()) {
+		if !value.IsDownloaded && value.Expire.Before(time.Now()) {
 			delete(c.Content, key)
 		}
 	}
@@ -144,6 +147,87 @@ func (c *Cache) GetArticle(url string) ([]gofeed.Item, error) {
 	// Add the item to the cache
 	c.Content[url] = cacheItem
 	return cacheItem.Items, nil
+}
+
+// GetAllArticles returns an article list from the cache or fetches it from the internet
+// if it is not cached and updates the cache, it also updates expired items and sorts
+// the items by publish date
+func (c *Cache) GetAllArticles(urls []string) ([]gofeed.Item, error) {
+	// Create the result slice
+	var result []gofeed.Item
+
+	// Iterate over the urls
+	for _, url := range urls {
+		// Get the article
+		items, err := c.GetArticle(url)
+		if err != nil {
+			return nil, err
+		}
+
+		// Add the items to the result
+		result = append(result, items...)
+	}
+
+	// Sort the items
+	sort.Sort(itemList(result))
+
+	// Return the result
+	return result, nil
+}
+
+// GetDownloaded returns a list of downloaded items
+func (c *Cache) GetDownloaded() []gofeed.Item {
+	// Create a slice to store the result
+	var result []gofeed.Item
+
+	// Iterate over the cache and add any downloaded items
+	for _, value := range c.Content {
+		if value.IsDownloaded {
+			result = append(result, value.Items...)
+		}
+	}
+
+	// Sort the items
+	sort.Sort(itemList(result))
+
+	// Return the items
+	return result
+}
+
+// AddToDownloaded adds an item to the downloaded list
+func (c *Cache) AddToDownloaded(url string, index int) error {
+	// Get the article
+	articleItems, err := c.GetArticle(url)
+	if err != nil {
+		return err
+	}
+
+	// Check if the index is valid
+	if index < 0 || index >= len(articleItems) {
+		return fmt.Errorf("index out of range")
+	}
+
+	// Get the item
+	item := articleItems[index]
+
+	// Check if the cache contains the downloaded list
+	if value, ok := c.Content["downloaded"]; ok {
+		items := value.Items
+		items = append(items, item)
+		c.Content["downloaded"] = Item{
+			Expire:       time.Now(),
+			Items:        items,
+			IsDownloaded: true,
+		}
+	} else {
+		c.Content["downloaded"] = Item{
+			Expire:       time.Now(),
+			Items:        []gofeed.Item{item},
+			IsDownloaded: true,
+		}
+	}
+
+	return nil
 }
 
 // fetchArticle fetches an article list from the internet and returns a slice of items
