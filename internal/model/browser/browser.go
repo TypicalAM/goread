@@ -11,6 +11,7 @@ import (
 	"github.com/TypicalAM/goread/internal/model/tab/category"
 	"github.com/TypicalAM/goread/internal/model/tab/feed"
 	"github.com/TypicalAM/goread/internal/model/tab/welcome"
+	"github.com/TypicalAM/goread/internal/popup"
 	"github.com/TypicalAM/goread/internal/rss"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -39,6 +40,9 @@ type Model struct {
 	// other
 	message  string
 	quitting bool
+
+	popupShown bool
+	popup      popup.Popup
 }
 
 // New returns a new model with some sensible defaults
@@ -158,6 +162,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.message = fmt.Sprintf("Closed tab - %s", m.tabs[m.activeTab].Title())
 			return m, nil
 
+		case "g":
+			// Open a new popup
+			bg := lipgloss.NewStyle().Width(m.windowWidth).Height((m.windowHeight))
+			m.popup = popup.New(bg.Render(m.View()), m.windowWidth/2, m.windowHeight/2+m.windowHeight/4)
+			m.popupShown = true
+
 		case "ctrl+h":
 			// View the help page
 			return m.showHelp()
@@ -180,6 +190,11 @@ func (m Model) View() string {
 	// If we are not loaded, render the loading message
 	if m.waitingForSize {
 		return "Loading..."
+	}
+
+	// If we are showing a popup, render the popup
+	if m.popupShown {
+		return m.popup.View()
 	}
 
 	// Hold the sections of the screen
