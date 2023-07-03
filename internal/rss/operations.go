@@ -2,7 +2,6 @@ package rss
 
 import "errors"
 
-// ErrAlreadyExists is returned when a category/feed already exists
 var ErrAlreadyExists = errors.New("already exists")
 var ErrTooManyItems = errors.New("too many items")
 var ErrReservedName = errors.New("reserved name")

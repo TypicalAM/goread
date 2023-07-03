@@ -165,11 +165,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "g":
 			// Open a new popup
 			bg := lipgloss.NewStyle().Width(m.windowWidth).Height((m.windowHeight))
-<<<<<<< HEAD
-			m.popup = popup.New(bg.Render(m.View()), m.windowWidth/2, m.windowHeight/2+m.windowHeight/4)
-=======
 			m.popup = popup.New(m.style.colors, bg.Render(m.View()), m.windowWidth/2, m.windowHeight/2+m.windowHeight/4)
->>>>>>> 5ea651a (feat: added a basic popup window)
 			m.popupShown = true
 
 		case "ctrl+h":
