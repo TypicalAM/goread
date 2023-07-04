@@ -179,8 +179,7 @@ func (m Model) SelectedItem() list.Item {
 	return m.items[m.selected]
 }
 
-// GetItem checks if the list has an item by a [0-9] index and also
-// a [a-z] index if the list has more than 10 elements
+// GetItem checks if the list has an item and returns it
 func (m Model) GetItem(text string) (list.Item, bool) {
 	// Check if the string is more than one character (left, right, up, down, etc)
 	if len(text) > 1 {
@@ -200,4 +199,14 @@ func (m Model) GetItem(text string) (list.Item, bool) {
 
 	// We cannot find the item
 	return nil, false
+}
+
+// Index returns the index of the selected item
+func (m Model) Index() int {
+	return m.selected
+}
+
+// SetIndex sets the index of the selected item
+func (m *Model) SetIndex(index int) {
+	m.selected = index
 }

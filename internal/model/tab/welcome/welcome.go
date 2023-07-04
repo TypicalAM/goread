@@ -172,9 +172,19 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			}
 
 		case "d", "ctrl+d":
-			// Delete the selected category
 			if !m.list.IsEmpty() {
-				return m, backend.DeleteItem(backend.Category, m.list.SelectedItem().FilterValue())
+				// Delete the selected category
+				delItemName := m.list.SelectedItem().FilterValue()
+				itemCount := len(m.list.Items())
+
+				// Move the selection to the next item
+				if itemCount == 1 {
+					m.list.SetIndex(0)
+				} else {
+					m.list.SetIndex(m.list.Index() % (itemCount - 1))
+				}
+
+				return m, backend.DeleteItem(backend.Category, delItemName)
 			}
 
 		default:
