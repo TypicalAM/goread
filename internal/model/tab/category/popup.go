@@ -73,7 +73,7 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch msg.String() {
-		case "down", "j":
+		case "down":
 			switch p.focused {
 			case allField:
 				p.focused = downloadedField
@@ -89,7 +89,7 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.descInput.Blur()
 			}
 
-		case "up", "k":
+		case "up":
 			switch p.focused {
 			case allField:
 				p.focused = descField
