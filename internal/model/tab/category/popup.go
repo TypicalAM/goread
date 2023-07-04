@@ -20,7 +20,7 @@ type focusedField int
 const (
 	allField focusedField = iota
 	downloadedField
-	newCategoryField
+	userField
 )
 
 // Popup is the category popup where a user can create a category.
@@ -57,9 +57,9 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case allField:
 				p.focused = downloadedField
 			case downloadedField:
-				p.focused = newCategoryField
+				p.focused = userField
 				cmds = append(cmds, p.textInput.Focus())
-			case newCategoryField:
+			case userField:
 				p.focused = allField
 				p.textInput.Blur()
 			}
@@ -67,11 +67,11 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "up", "k":
 			switch p.focused {
 			case allField:
-				p.focused = newCategoryField
+				p.focused = userField
 				cmds = append(cmds, p.textInput.Focus())
 			case downloadedField:
 				p.focused = allField
-			case newCategoryField:
+			case userField:
 				p.focused = downloadedField
 				p.textInput.Blur()
 			}
@@ -84,7 +84,7 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case downloadedField:
 				return p, confirmCategory(rss.DownloadedFeedsName)
 
-			case newCategoryField:
+			case userField:
 				// TODO: Validate the name
 				return p, confirmCategory(p.textInput.Value())
 			}
@@ -103,29 +103,42 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // View renders the popup window.
 func (p Popup) View() string {
 	question := p.style.heading.Render("Choose a category")
-	choices := []string{"All", "Downloaded", "New Category"}
-	descriptions := []string{
+	renderedChoices := make([]string, 3)
+
+	allCategory := lipgloss.JoinVertical(
+		lipgloss.Top,
+		rss.AllFeedsName,
 		"All the feeds from all the categories",
-		"Downloaded articles",
-		"",
-	}
-	renderedChoices := make([]string, len(choices))
+	)
+
+	downloadedCategory := lipgloss.JoinVertical(
+		lipgloss.Top,
+		rss.DownloadedFeedsName,
+		"Feeds that have been downloaded",
+	)
+
+	userCategory := lipgloss.JoinVertical(
+		lipgloss.Top,
+		"New category",
+		p.textInput.View(),
+	)
+
 	if p.focused == allField {
-		renderedChoices[0] = p.style.selectedChoice.Render(lipgloss.JoinVertical(lipgloss.Top, choices[0], descriptions[0]))
+		renderedChoices[0] = p.style.selectedChoice.Render(allCategory)
 	} else {
-		renderedChoices[0] = p.style.choice.Render(lipgloss.JoinVertical(lipgloss.Top, choices[0], descriptions[0]))
+		renderedChoices[0] = p.style.choice.Render(allCategory)
 	}
 
 	if p.focused == downloadedField {
-		renderedChoices[1] = p.style.selectedChoice.Render(lipgloss.JoinVertical(lipgloss.Top, choices[1], descriptions[1]))
+		renderedChoices[1] = p.style.selectedChoice.Render(downloadedCategory)
 	} else {
-		renderedChoices[1] = p.style.choice.Render(lipgloss.JoinVertical(lipgloss.Top, choices[1], descriptions[1]))
+		renderedChoices[1] = p.style.choice.Render(downloadedCategory)
 	}
 
-	if p.focused == newCategoryField {
-		renderedChoices[2] = p.style.selectedChoice.Render(lipgloss.JoinVertical(lipgloss.Top, choices[2], p.textInput.View()))
+	if p.focused == userField {
+		renderedChoices[2] = p.style.selectedChoice.Render(userCategory)
 	} else {
-		renderedChoices[2] = p.style.choice.Render(lipgloss.JoinVertical(lipgloss.Top, choices[2], p.textInput.View()))
+		renderedChoices[2] = p.style.choice.Render(userCategory)
 	}
 
 	toBox := p.style.choiceSection.Render(lipgloss.JoinVertical(lipgloss.Top, renderedChoices...))
