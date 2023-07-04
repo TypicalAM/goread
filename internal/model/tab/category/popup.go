@@ -42,7 +42,9 @@ func NewPopup(colors colorscheme.Colorscheme, bgRaw string, width, height int, o
 	defultPopup := popup.New(bgRaw, width, height)
 	style := newPopupStyle(colors, width, height)
 	nameInput := textinput.New()
+	nameInput.CharLimit = 30
 	descInput := textinput.New()
+	nameInput.CharLimit = 30
 	focusedField := allField
 
 	if oldName != "" || oldDesc != "" {

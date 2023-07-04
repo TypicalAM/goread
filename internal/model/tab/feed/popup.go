@@ -44,11 +44,13 @@ func NewPopup(colors colorscheme.Colorscheme, bgRaw string, width, height int,
 	style := newPopupStyle(colors, width, height)
 	defaultPopup := popup.New(bgRaw, width, height)
 	nameInput := textinput.New()
-	URLInput := textinput.New()
+	nameInput.CharLimit = 30
+	urlInput := textinput.New()
+	urlInput.CharLimit = 30
 
 	if oldName != "" || oldURL != "" {
 		nameInput.SetValue(oldName)
-		URLInput.SetValue(oldURL)
+		urlInput.SetValue(oldURL)
 	}
 
 	nameInput.Focus()
@@ -57,7 +59,7 @@ func NewPopup(colors colorscheme.Colorscheme, bgRaw string, width, height int,
 		defaultPopup:   defaultPopup,
 		style:          style,
 		nameInput:      nameInput,
-		urlInput:       URLInput,
+		urlInput:       urlInput,
 		oldName:        oldName,
 		oldURL:         oldURL,
 		parentCategory: parentCategory,
