@@ -46,7 +46,8 @@ func NewPopup(colors colorscheme.Colorscheme, bgRaw string, width, height int,
 	nameInput := textinput.New()
 	nameInput.CharLimit = 30
 	urlInput := textinput.New()
-	urlInput.CharLimit = 30
+	urlInput.CharLimit = 100
+	urlInput.Width = 30
 
 	if oldName != "" || oldURL != "" {
 		nameInput.SetValue(oldName)
