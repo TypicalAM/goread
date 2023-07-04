@@ -124,7 +124,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Open a new popup
 		if msg.Type == backend.Category {
-			m.popup = category.NewPopup(m.style.colors, bg, width, height, msg.OldFields[0], msg.OldFields[1])
+			if msg.New {
+				m.popup = category.NewPopup(m.style.colors, bg, width, height, "", "")
+			} else {
+				m.popup = category.NewPopup(m.style.colors, bg, width, height, msg.OldFields[0], msg.OldFields[1])
+			}
 		} else {
 			if msg.New {
 				m.popup = feed.NewPopup(m.style.colors, bg, width, height, "", "", msg.ItemPath[0])
