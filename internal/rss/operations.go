@@ -48,6 +48,11 @@ func (rss *Rss) AddFeed(category string, name string, url string) error {
 		return ErrReservedName
 	}
 
+	// Check if there is a url
+	if url == "" {
+		return errors.New("you must include a URL")
+	}
+
 	// Check if the feed already exists
 	for _, cat := range rss.Categories {
 		if cat.Name == category {
@@ -164,6 +169,11 @@ func (rss *Rss) UpdateFeed(category, key, name, url string) error {
 	// Check if the name is reserved
 	if name == AllFeedsName || name == DownloadedFeedsName {
 		return ErrReservedName
+	}
+
+	// Check if there is a url
+	if url == "" {
+		return errors.New("you must include a URL")
 	}
 
 	// Find the category
