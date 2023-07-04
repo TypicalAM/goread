@@ -167,6 +167,11 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		// Handle the key message
 		switch msg.String() {
 		case "enter":
+			// Set the view as open if it isn't
+			if !m.isViewportOpen && m.list.SelectedItem() != nil {
+				m.isViewportOpen = true
+			}
+
 			// Update the viewport
 			return m.updateViewport()
 
@@ -276,9 +281,9 @@ func (m Model) loadTab(items []list.Item) (tab.Tab, tea.Cmd) {
 // updateViewport is fired when the user presses enter, it updates the
 // viewport with the selected item
 func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
-	// Set the view as open if it isn't
+	// If the viewport isn't open, don't do anything
 	if !m.isViewportOpen {
-		m.isViewportOpen = true
+		return m, nil
 	}
 
 	// Set the width of the styled content for word wrapping
