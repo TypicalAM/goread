@@ -133,13 +133,7 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 func (b Backend) FetchAllArticles(_ string) tea.Cmd {
 	return func() tea.Msg {
 		// Get all the articles and fetch them
-		items, err := b.Cache.GetAllArticles(b.Rss.GetAllURLs())
-		if err != nil {
-			return FetchErrorMessage{
-				Description: "Failed to parse the article",
-				Err:         err,
-			}
-		}
+		items := b.Cache.GetAllArticles(b.Rss.GetAllURLs())
 
 		// Create the list of list items
 		var result []list.Item

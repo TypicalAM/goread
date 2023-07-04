@@ -152,27 +152,23 @@ func (c *Cache) GetArticle(url string) ([]gofeed.Item, error) {
 // GetAllArticles returns an article list from the cache or fetches it from the internet
 // if it is not cached and updates the cache, it also updates expired items and sorts
 // the items by publish date
-func (c *Cache) GetAllArticles(urls []string) ([]gofeed.Item, error) {
+func (c *Cache) GetAllArticles(urls []string) []gofeed.Item {
 	// Create the result slice
 	var result []gofeed.Item
 
 	// Iterate over the urls
 	for _, url := range urls {
 		// Get the article
-		items, err := c.GetArticle(url)
-		if err != nil {
-			return nil, err
+		if items, err := c.GetArticle(url); err == nil {
+			result = append(result, items...)
 		}
-
-		// Add the items to the result
-		result = append(result, items...)
 	}
 
 	// Sort the items
 	sort.Sort(itemList(result))
 
 	// Return the result
-	return result, nil
+	return result
 }
 
 // GetDownloaded returns a list of downloaded items
