@@ -45,19 +45,20 @@ type keymap struct {
 	Open        key.Binding
 	ToggleFocus key.Binding
 	Refresh     key.Binding
+	Save        key.Binding
 }
 
 // ShortHelp returns the short help for the tab
 func (k keymap) ShortHelp() []key.Binding {
 	return []key.Binding{
-		k.CloseTab, k.CycleTabs, k.Open, k.ToggleFocus, k.Refresh,
+		k.CloseTab, k.CycleTabs, k.Open, k.ToggleFocus, k.Refresh, k.Save,
 	}
 }
 
 // FullHelp returns the full help for the tab
 func (k keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.CloseTab, k.CycleTabs, k.Open, k.ToggleFocus, k.Refresh},
+		{k.CloseTab, k.CycleTabs, k.Open, k.ToggleFocus, k.Refresh, k.Save},
 	}
 }
 
@@ -85,8 +86,8 @@ func New(colors colorscheme.Colorscheme, width, height int, title string, reader
 		help:           help,
 		keymap: keymap{
 			CloseTab: key.NewBinding(
-				key.WithKeys("ctrl+w"),
-				key.WithHelp("ctrl+w", "Close tab"),
+				key.WithKeys("c/ctrl+w"),
+				key.WithHelp("c/ctrl+w", "Close tab"),
 			),
 			CycleTabs: key.NewBinding(
 				key.WithKeys("tab"),
@@ -97,12 +98,16 @@ func New(colors colorscheme.Colorscheme, width, height int, title string, reader
 				key.WithHelp("enter", "Open"),
 			),
 			ToggleFocus: key.NewBinding(
-				key.WithKeys("left", "right", "alt+h", "alt+l"),
-				key.WithHelp("left(alt+h)/right(alt+l)", "Toggle focus"),
+				key.WithKeys("left", "right", "h", "l"),
+				key.WithHelp("left right/h l", "Toggle focus"),
 			),
 			Refresh: key.NewBinding(
-				key.WithKeys("r"),
-				key.WithHelp("r", "Refresh"),
+				key.WithKeys("r/ctrl+r"),
+				key.WithHelp("r/ctrl+r", "Refresh"),
+			),
+			Save: key.NewBinding(
+				key.WithKeys("s/ctrl+s"),
+				key.WithHelp("s/ctrl+s", "Save for later"),
 			),
 		},
 	}
@@ -165,7 +170,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			// Update the viewport
 			return m.updateViewport()
 
-		case "r":
+		case "r", "ctrl+r":
 			// Refresh the contents of the tab
 			m.isViewportOpen = false
 			m.loaded = false
@@ -174,7 +179,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			// Rerun with data fetching and loading
 			return m, tea.Batch(m.reader(m.title), m.loadingSpinner.Tick)
 
-		case "left", "right", "alt+l", "alt+h":
+		case "left", "right", "l", "h":
 			// If the viewport isn't open, don't do anything
 			if !m.isViewportOpen {
 				return m, nil
@@ -184,7 +189,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			m.viewportFocused = !m.viewportFocused
 			return m, nil
 
-		case "d":
+		case "s", "ctrl+s":
 			// Tell the main model to download the item
 			return m, backend.DownloadItem(m.title, m.list.Index())
 		}

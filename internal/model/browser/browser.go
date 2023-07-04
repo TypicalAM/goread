@@ -198,7 +198,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.message = ""
 			return m, nil
 
-		case "ctrl+w":
+		case "c", "ctrl+w":
+			if m.popupShown {
+				break
+			}
+
 			// If there is only one tab, quit
 			if len(m.tabs) == 1 {
 				m.quitting = true
@@ -218,9 +222,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.message = fmt.Sprintf("Closed tab - %s", m.tabs[m.activeTab].Title())
 			return m, nil
 
-		case "ctrl+h":
+		case "h", "ctrl+h":
 			// View the help page
-			return m.showHelp()
+			if !m.popupShown {
+				return m.showHelp()
+			}
 		}
 	}
 

@@ -67,8 +67,8 @@ func New(colors colorscheme.Colorscheme, width, height int, title string, reader
 		help:   help,
 		keymap: keymap{
 			CloseTab: key.NewBinding(
-				key.WithKeys("ctrl+w"),
-				key.WithHelp("ctrl+w", "Close tab"),
+				key.WithKeys("c/ctrl+w"),
+				key.WithHelp("c/ctrl+w", "Close tab"),
 			),
 			CycleTabs: key.NewBinding(
 				key.WithKeys("tab"),
@@ -79,16 +79,16 @@ func New(colors colorscheme.Colorscheme, width, height int, title string, reader
 				key.WithHelp("enter", "Open"),
 			),
 			New: key.NewBinding(
-				key.WithKeys("ctrl+n"),
-				key.WithHelp("ctrl+n", "New"),
+				key.WithKeys("n/ctrl+n"),
+				key.WithHelp("n/ctrl+n", "New"),
 			),
 			Edit: key.NewBinding(
-				key.WithKeys("ctrl+e"),
-				key.WithHelp("ctrl+e", "Edit"),
+				key.WithKeys("e/ctrl+e"),
+				key.WithHelp("e/ctrl+e", "Edit"),
 			),
 			Delete: key.NewBinding(
-				key.WithKeys("ctrl+d"),
-				key.WithHelp("ctrl+d", "Delete"),
+				key.WithKeys("d/ctrl+d"),
+				key.WithHelp("d/ctrl+d", "Delete"),
 			),
 		},
 	}
@@ -152,12 +152,12 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			// If the list is empty, return nothing
 			return m, nil
 
-		case "ctrl+n":
+		case "n", "ctrl+n":
 			// Add a new category
 			feedPath := []string{m.title, m.list.SelectedItem().FilterValue()}
 			return m, backend.NewItem(backend.Feed, true, feedPath, nil)
 
-		case "ctrl+e":
+		case "e", "ctrl+e":
 			// If the list is empty, return nothing
 			if m.list.IsEmpty() {
 				return m, nil
@@ -173,7 +173,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 				[]string{item.FilterValue(), item.Description()},
 			)
 
-		case "ctrl+d":
+		case "d", "ctrl+d":
 			// Delete the selected category
 			if !m.list.IsEmpty() {
 				return m, backend.DeleteItem(backend.Feed, m.list.SelectedItem().FilterValue())
