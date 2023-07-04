@@ -28,6 +28,7 @@ type FetchErrorMessage struct {
 
 // NewItemMessage is a message to tell the main model that a new item
 // needs to be added to the list
+// TODO: This should be more elegant
 type NewItemMessage struct {
 	Type      ItemType
 	New       bool

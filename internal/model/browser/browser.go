@@ -75,10 +75,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case category.ChosenCategoryMsg:
 		m.popupShown = false
-		if err := m.config.Backend.Rss.AddCategory(msg.Name, ""); err != nil {
-			m.message = fmt.Sprintf("Error adding category: %s", err.Error())
+
+		if msg.IsEdit {
+			if err := m.config.Backend.Rss.UpdateCategory(msg.OldName, msg.Name, msg.Desc); err != nil {
+				m.message = fmt.Sprintf("Error updating category: %s", err.Error())
+			} else {
+				m.message = fmt.Sprintf("Updated category %s", msg.Name)
+			}
 		} else {
-			m.message = fmt.Sprintf("Added category %s", msg.Name)
+			if err := m.config.Backend.Rss.AddCategory(msg.Name, msg.Desc); err != nil {
+				m.message = fmt.Sprintf("Error adding category: %s", err.Error())
+			} else {
+				m.message = fmt.Sprintf("Added category %s", msg.Name)
+			}
 		}
 
 		return m, m.config.Backend.FetchCategories()
@@ -90,9 +99,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.tabs[m.activeTab].Init()
 
 	case backend.NewItemMessage:
+		bg := lipgloss.NewStyle().Width(m.windowWidth).Height((m.windowHeight)).Render(m.View())
+		width := m.windowWidth / 2
+		height := m.windowHeight/2 + +m.windowHeight/4
+
 		// Open a new popup
-		bg := lipgloss.NewStyle().Width(m.windowWidth).Height((m.windowHeight))
-		m.popup = category.NewPopup(m.style.colors, bg.Render(m.View()), m.windowWidth/2, m.windowHeight/2+m.windowHeight/4)
+		if msg.Type == backend.Category {
+			if msg.New {
+				m.popup = category.NewPopup(m.style.colors, bg, width, height, "", "")
+			} else {
+				m.popup = category.NewPopup(m.style.colors, bg, width, height, msg.OldFields[0], msg.OldFields[1])
+			}
+		}
+
 		m.popupShown = true
 		return m, m.popup.Init()
 
