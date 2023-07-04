@@ -105,43 +105,36 @@ func (p Popup) View() string {
 	question := p.style.heading.Render("Choose a category")
 	renderedChoices := make([]string, 3)
 
-	allCategory := lipgloss.JoinVertical(
-		lipgloss.Top,
-		rss.AllFeedsName,
-		"All the feeds from all the categories",
-	)
+	titles := []string{rss.AllFeedsName, rss.DownloadedFeedsName, "New category"}
+	descs := []string{"All the feeds from all the categories", "Feeds that have been downloaded", p.textInput.View()}
 
-	downloadedCategory := lipgloss.JoinVertical(
-		lipgloss.Top,
-		rss.DownloadedFeedsName,
-		"Feeds that have been downloaded",
-	)
-
-	userCategory := lipgloss.JoinVertical(
-		lipgloss.Top,
-		"New category",
-		p.textInput.View(),
-	)
-
-	if p.focused == allField {
-		renderedChoices[0] = p.style.selectedChoice.Render(allCategory)
-	} else {
-		renderedChoices[0] = p.style.choice.Render(allCategory)
+	var focused int
+	switch p.focused {
+	case allField:
+		focused = 0
+	case downloadedField:
+		focused = 1
+	case userField:
+		focused = 2
 	}
 
-	if p.focused == downloadedField {
-		renderedChoices[1] = p.style.selectedChoice.Render(downloadedCategory)
-	} else {
-		renderedChoices[1] = p.style.choice.Render(downloadedCategory)
+	for i := 0; i < 3; i++ {
+		if i == focused {
+			renderedChoices[i] = p.style.selectedChoice.Render(lipgloss.JoinVertical(
+				lipgloss.Top,
+				p.style.selectedChoiceTitle.Render(titles[i]),
+				p.style.selectedChoiceDesc.Render(descs[i]),
+			))
+		} else {
+			renderedChoices[i] = p.style.choice.Render(lipgloss.JoinVertical(
+				lipgloss.Top,
+				p.style.choiceTitle.Render(titles[i]),
+				p.style.choiceDesc.Render(descs[i]),
+			))
+		}
 	}
 
-	if p.focused == userField {
-		renderedChoices[2] = p.style.selectedChoice.Render(userCategory)
-	} else {
-		renderedChoices[2] = p.style.choice.Render(userCategory)
-	}
-
-	toBox := p.style.choiceSection.Render(lipgloss.JoinVertical(lipgloss.Top, renderedChoices...))
+	toBox := p.style.list.Render(lipgloss.JoinVertical(lipgloss.Top, renderedChoices...))
 	popup := lipgloss.JoinVertical(lipgloss.Top, question, toBox)
 	return p.defaultPopup.Overlay(p.style.general.Render(popup))
 }
