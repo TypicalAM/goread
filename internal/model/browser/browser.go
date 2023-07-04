@@ -73,7 +73,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.tabs[m.activeTab], _ = m.tabs[m.activeTab].Update(msg)
 		return m, nil
 
-	case popup.ChosenCategoryMsg:
+	case category.ChosenCategoryMsg:
 		m.popupShown = false
 		if err := m.config.Backend.Rss.AddCategory(msg.Name, ""); err != nil {
 			m.message = fmt.Sprintf("Error adding category: %s", err.Error())
@@ -92,7 +92,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case backend.NewItemMessage:
 		// Open a new popup
 		bg := lipgloss.NewStyle().Width(m.windowWidth).Height((m.windowHeight))
-		m.popup = popup.New(m.style.colors, bg.Render(m.View()), m.windowWidth/2, m.windowHeight/2+m.windowHeight/4)
+		m.popup = category.NewPopup(m.style.colors, bg.Render(m.View()), m.windowWidth/2, m.windowHeight/2+m.windowHeight/4)
 		m.popupShown = true
 		return m, m.popup.Init()
 
