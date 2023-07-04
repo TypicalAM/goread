@@ -88,11 +88,6 @@ func (rss *Rss) RemoveCategory(name string) error {
 			continue
 		}
 
-		// Check if the category cannot be removed
-		if cat.Name == AllFeedsName || cat.Name == DownloadedFeedsName {
-			return ErrReservedName
-		}
-
 		// Remove the category
 		rss.Categories = append(rss.Categories[:i], rss.Categories[i+1:]...)
 		return nil
@@ -134,7 +129,7 @@ func (rss *Rss) UpdateCategory(key, name, desc string) error {
 	}
 
 	// Check if the name is reserved
-	if name == AllFeedsName || name == DownloadedFeedsName {
+	if key == AllFeedsName || key == DownloadedFeedsName || name == AllFeedsName || name == DownloadedFeedsName {
 		return ErrReservedName
 	}
 
