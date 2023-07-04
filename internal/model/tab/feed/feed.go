@@ -253,7 +253,9 @@ func (m Model) loadTab(items []list.Item) (tab.Tab, tea.Cmd) {
 		Height(2).
 		Italic(true)
 
-	delegateStyles.NormalDesc = delegateStyles.NormalDesc.Copy().Height(2)
+	delegateStyles.NormalDesc = delegateStyles.NormalDesc.Copy().
+		Foreground(m.colors.TextDark).
+		Height(2)
 
 	// Create the list
 	itemDelegate := list.NewDefaultDelegate()
