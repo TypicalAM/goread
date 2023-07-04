@@ -4,11 +4,17 @@ import (
 	"strings"
 
 	"github.com/TypicalAM/goread/internal/colorscheme"
+	"github.com/TypicalAM/goread/internal/rss"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/ansi"
 )
+
+// ChosenCategoryMsg is the message displayed when a category is successfully chosen.
+type ChosenCategoryMsg struct {
+	Name string
+}
 
 // focusedField is the field that is currently focused.
 type focusedField int
@@ -88,19 +94,33 @@ func (p Popup) Update(msg tea.Msg) (Popup, tea.Cmd) {
 				p.focused = downloadedField
 			case downloadedField:
 				p.focused = newCategoryField
+				cmds = append(cmds, p.textInput.Focus())
 			case newCategoryField:
 				p.focused = allField
-				cmds = append(cmds, p.textInput.Focus())
 			}
 
 		case "up", "k":
 			switch p.focused {
 			case allField:
 				p.focused = newCategoryField
+				cmds = append(cmds, p.textInput.Focus())
 			case downloadedField:
 				p.focused = allField
 			case newCategoryField:
 				p.focused = downloadedField
+			}
+
+		case "enter":
+			switch p.focused {
+			case allField:
+				return p, confirmCategory(rss.AllFeedsName)
+
+			case downloadedField:
+				return p, confirmCategory(rss.DownloadedFeedsName)
+
+			case newCategoryField:
+				// TODO: Validate the name
+				return p, confirmCategory(p.textInput.Value())
 			}
 		}
 	}
@@ -158,11 +178,8 @@ func (p Popup) View() string {
 	}
 
 	if p.focused == newCategoryField {
-		renderedChoices[2] = selectedChoiceStyle.Render(lipgloss.JoinVertical(lipgloss.Top, choices[2], descriptions[2]))
+		renderedChoices[2] = selectedChoiceStyle.Render(lipgloss.JoinVertical(lipgloss.Top, choices[2], p.textInput.View()))
 	} else {
-		if p.textInput.Focused() {
-			renderedChoices[2] = choiceStyle.Render(lipgloss.JoinVertical(lipgloss.Top, choices[2], "focused", p.textInput.View()))
-		}
 		renderedChoices[2] = choiceStyle.Render(lipgloss.JoinVertical(lipgloss.Top, choices[2], p.textInput.View()))
 	}
 
@@ -193,4 +210,11 @@ func findPrintableIndex(str string, index int) int {
 		}
 	}
 	return -1
+}
+
+// confirmCategory returns a tea.Cmd which relays the message to the browser.
+func confirmCategory(name string) tea.Cmd {
+	return func() tea.Msg {
+		return ChosenCategoryMsg{Name: name}
+	}
 }

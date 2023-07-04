@@ -6,7 +6,6 @@ import (
 
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/config"
-	"github.com/TypicalAM/goread/internal/model/input"
 	"github.com/TypicalAM/goread/internal/model/tab"
 	"github.com/TypicalAM/goread/internal/model/tab/category"
 	"github.com/TypicalAM/goread/internal/model/tab/feed"
@@ -32,10 +31,6 @@ type Model struct {
 	waitingForSize bool
 	windowWidth    int
 	windowHeight   int
-
-	// creating items
-	newItem bool
-	input   input.Model
 
 	// other
 	message  string
@@ -68,11 +63,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.waitForSize(msg)
 	}
 
-	// If we are creating new items, we need to update the inputs
-	if m.newItem {
-		return m.updateItemCreation(msg)
-	}
-
 	switch msg := msg.(type) {
 	case backend.FetchErrorMessage:
 		// If there is an error, display it on the status bar
@@ -83,6 +73,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.tabs[m.activeTab], _ = m.tabs[m.activeTab].Update(msg)
 		return m, nil
 
+	case popup.ChosenCategoryMsg:
+		m.message = fmt.Sprintf("Chosen category: %s", msg.Name)
+		m.popupShown = false
+		return m, nil
+
 	case tab.NewTabMessage:
 		// Create the new tab
 		m.createNewTab(msg.Title, msg.Type)
@@ -90,10 +85,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.tabs[m.activeTab].Init()
 
 	case backend.NewItemMessage:
-		// Initialize the new Item model
-		m.input = input.New(msg.Type, msg.New, msg.Fields, msg.ItemPath, msg.OldFields)
-		m.newItem = true
-		return m, m.input.Init()
+		// Open a new popup
+		bg := lipgloss.NewStyle().Width(m.windowWidth).Height((m.windowHeight))
+		m.popup = popup.New(m.style.colors, bg.Render(m.View()), m.windowWidth/2, m.windowHeight/2+m.windowHeight/4)
+		m.popupShown = true
+		return m, m.popup.Init()
 
 	case backend.DeleteItemMessage:
 		// Delete the item
@@ -162,12 +158,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.message = fmt.Sprintf("Closed tab - %s", m.tabs[m.activeTab].Title())
 			return m, nil
 
-		case "g":
-			// Open a new popup
-			bg := lipgloss.NewStyle().Width(m.windowWidth).Height((m.windowHeight))
-			m.popup = popup.New(m.style.colors, bg.Render(m.View()), m.windowWidth/2, m.windowHeight/2+m.windowHeight/4)
-			m.popupShown = true
-
 		case "ctrl+h":
 			// View the help page
 			return m.showHelp()
@@ -217,16 +207,8 @@ func (m Model) View() string {
 	// Render the status bar
 	sections = append(sections, m.renderStatusBar())
 
-	// If we are typing, shift the focus onto the text-field
-	var messageBar string
-	if m.newItem {
-		messageBar = m.input.View()
-	} else {
-		messageBar = m.message
-	}
-
 	// Render the message bar
-	sections = append(sections, messageBar)
+	sections = append(sections, m.message)
 
 	// Join all the sections
 	return lipgloss.JoinVertical(lipgloss.Top, sections...)
@@ -257,31 +239,6 @@ func (m Model) waitForSize(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Return nothing if we didn't get size yet
 	return m, nil
-}
-
-// updateItemCreation updates the child model for creating items
-func (m Model) updateItemCreation(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
-	m.input, cmd = m.input.Update(msg)
-
-	// If the child model is done, add the item
-	switch m.input.State {
-	case input.NotEnoughText:
-		m.message = "Fields cannot be blank!"
-		m.newItem = false
-		return m, cmd
-
-	case input.Cancel:
-		m.message = "Cancelled adding or editing item"
-		m.newItem = false
-		return m, cmd
-
-	case input.Finished:
-		return m.addItem()
-
-	default:
-		return m, cmd
-	}
 }
 
 // createNewTab bootstraps the new tab and adds it to the model
@@ -336,56 +293,6 @@ func (m *Model) createNewTab(title string, tabType tab.Type) {
 
 	// Increase the active tab count
 	m.activeTab++
-}
-
-// addItem gets the data from the child model and adds it to the rss
-func (m Model) addItem() (tea.Model, tea.Cmd) {
-	// End creating new items
-	m.newItem = false
-	values := m.input.GetValues()
-
-	// Check if we are creating or editing the item
-	if m.input.Creating {
-		m.message = "Adding an item - " + strings.Join(values, " ")
-	} else {
-		m.message = "Editing an item - " + strings.Join(values, " ")
-	}
-
-	// Check if the values are valid
-	if m.input.Type == backend.Category {
-		var err error
-		if m.input.Creating {
-			err = m.config.Backend.Rss.AddCategory(values[0], values[1])
-		} else {
-			err = m.config.Backend.Rss.UpdateCategory(m.input.Path[0], values[0], values[1])
-		}
-
-		// Check if there was an error
-		if err != nil {
-			m.message = "Error adding or updating category: " + err.Error()
-			return m, nil
-		}
-
-		// Refresh the categories
-		return m, m.config.Backend.FetchCategories()
-	}
-
-	// Check if the feed already exists
-	var err error
-	if m.input.Creating {
-		err = m.config.Backend.Rss.AddFeed(m.tabs[m.activeTab].Title(), values[0], values[1])
-	} else {
-		err = m.config.Backend.Rss.UpdateFeed(m.input.Path[0], m.input.Path[1], values[0], values[1])
-	}
-
-	// Check if there was an error
-	if err != nil {
-		m.message = "Error adding or updating feed: " + err.Error()
-		return m, nil
-	}
-
-	// Refresh the feeds
-	return m, m.config.Backend.FetchFeeds(m.tabs[m.activeTab].Title())
 }
 
 // deleteItem deletes the focused item from the backend
