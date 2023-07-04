@@ -2,7 +2,6 @@ package simplelist
 
 import (
 	"strconv"
-	"unicode"
 
 	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/charmbracelet/bubbles/list"
@@ -196,20 +195,6 @@ func (m Model) GetItem(text string) (list.Item, bool) {
 		return m.items[index], true
 	}
 
-	// If the text is not an integer, check if
-	// it is a lowercase letter
-	if !unicode.IsLower(rune(text[0])) {
-		return nil, false
-	}
-
-	// Convert the letter to an index since 97
-	// is the ASCII code for 'a' and we have 10 digits
-	index := int(text[0]) - 97 + 10
-	inList := index < len(m.items)
-	if !inList {
-		return nil, false
-	}
-
-	// Return the item
-	return m.items[index], true
+	// We cannot find the item
+	return nil, false
 }
