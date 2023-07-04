@@ -92,6 +92,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		return m, m.config.Backend.FetchCategories()
 
+	case feed.ChosenFeedMsg:
+		m.popupShown = false
+
+		if msg.IsEdit {
+			if err := m.config.Backend.Rss.UpdateFeed(msg.ParentCategory, msg.OldName, msg.Name, msg.URL); err != nil {
+				m.message = fmt.Sprintf("Error updating feed: %s", err.Error())
+			} else {
+				m.message = fmt.Sprintf("Updated feed %s", msg.Name)
+			}
+		} else {
+			if err := m.config.Backend.Rss.AddFeed(msg.ParentCategory, msg.Name, msg.URL); err != nil {
+				m.message = fmt.Sprintf("Error adding feed: %s", err.Error())
+			} else {
+				m.message = fmt.Sprintf("Added feed %s", msg.Name)
+			}
+		}
+
+		return m, m.config.Backend.FetchFeeds(msg.ParentCategory)
+
 	case tab.NewTabMessage:
 		// Create the new tab
 		m.createNewTab(msg.Title, msg.Type)
@@ -105,10 +124,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Open a new popup
 		if msg.Type == backend.Category {
+			m.popup = category.NewPopup(m.style.colors, bg, width, height, msg.OldFields[0], msg.OldFields[1])
+		} else {
 			if msg.New {
-				m.popup = category.NewPopup(m.style.colors, bg, width, height, "", "")
+				m.popup = feed.NewPopup(m.style.colors, bg, width, height, "", "", msg.ItemPath[0])
 			} else {
-				m.popup = category.NewPopup(m.style.colors, bg, width, height, msg.OldFields[0], msg.OldFields[1])
+				m.popup = feed.NewPopup(m.style.colors, bg, width, height, msg.OldFields[0], msg.OldFields[1], msg.ItemPath[0])
 			}
 		}
 

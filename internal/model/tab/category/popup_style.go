@@ -20,6 +20,13 @@ type popupStyle struct {
 
 // newPopupStyle creates a new popup style.
 func newPopupStyle(colors colorscheme.Colorscheme, width, height int) popupStyle {
+	general := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FFFFFF")).
+		Width(width - 2).
+		Height(height - 2).
+		Border(lipgloss.NormalBorder()).
+		BorderForeground(colors.Color1)
+
 	heading := lipgloss.NewStyle().
 		Margin(2, 2).
 		Width(width - 2).
@@ -52,14 +59,8 @@ func newPopupStyle(colors colorscheme.Colorscheme, width, height int) popupStyle
 	selectedChoiceDesc := lipgloss.NewStyle().
 		Foreground(colors.Color2)
 
-	general := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Width(width - 2).
-		Height(height - 2).
-		Border(lipgloss.NormalBorder()).
-		BorderForeground(colors.Color1)
-
 	return popupStyle{
+		general:             general,
 		heading:             heading,
 		list:                list,
 		choice:              choice,
@@ -68,6 +69,5 @@ func newPopupStyle(colors colorscheme.Colorscheme, width, height int) popupStyle
 		selectedChoice:      selectedChoice,
 		selectedChoiceTitle: selectedChoiceTitle,
 		selectedChoiceDesc:  selectedChoiceDesc,
-		general:             general,
 	}
 }
