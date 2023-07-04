@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/reflow/ansi"
 )
 
 // Model contains state of the list
@@ -126,9 +127,11 @@ func (m Model) View() string {
 
 		// If the description is shown add the description
 		if m.showDesc {
-			sections = append(sections,
-				m.style.styleDescription(m.items[i].(Item).Description()),
-			)
+			if ansi.PrintableRuneWidth(m.items[i].(Item).Description()) != 0 {
+				sections = append(sections, m.style.styleDescription(m.items[i].(Item).Description()))
+			} else {
+				sections = append(sections, "")
+			}
 		}
 	}
 
