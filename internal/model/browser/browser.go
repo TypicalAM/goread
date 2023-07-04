@@ -116,7 +116,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "esc":
+		case "ctrl+c":
+			// Quit the program
+			m.quitting = true
+			return m, tea.Quit
+
+		case "esc":
+			// If we are showing a popup, close it
+			if m.popupShown {
+				m.popupShown = false
+				return m, nil
+			}
+
 			// Quit the program
 			m.quitting = true
 			return m, tea.Quit
