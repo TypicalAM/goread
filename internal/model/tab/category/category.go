@@ -154,7 +154,8 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 		case "ctrl+n":
 			// Add a new category
-			return m, backend.NewItem(backend.Feed, true, nil, nil)
+			feedPath := []string{m.title, m.list.SelectedItem().FilterValue()}
+			return m, backend.NewItem(backend.Feed, true, feedPath, nil)
 
 		case "ctrl+e":
 			// If the list is empty, return nothing
