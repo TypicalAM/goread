@@ -86,9 +86,10 @@ pywal `colors.json` file which is usually located at `~/.cache/wal/colors.json`.
 
 Here are the things that I've not yet implemented, contributions and suggestions are very welcome!
 
-- [X] A main category where all the feeds are aggregated
-- [X] Moving the help to the bubbletea `help` bubble
+- [ ] AI-Generated feed suggestions
 - [ ] Adding customizable keybinds
+- [ ] Removing the leaky abstractions (NewItem)
+- [ ] Automatically theming the glamour viewer
 
 ## 💁 Credit where credit is due
 
