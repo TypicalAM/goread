@@ -74,9 +74,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case popup.ChosenCategoryMsg:
-		m.message = fmt.Sprintf("Chosen category: %s", msg.Name)
 		m.popupShown = false
-		return m, nil
+		if err := m.config.Backend.Rss.AddCategory(msg.Name, ""); err != nil {
+			m.message = fmt.Sprintf("Error adding category: %s", err.Error())
+		} else {
+			m.message = fmt.Sprintf("Added category %s", msg.Name)
+		}
+
+		return m, m.config.Backend.FetchCategories()
 
 	case tab.NewTabMessage:
 		// Create the new tab

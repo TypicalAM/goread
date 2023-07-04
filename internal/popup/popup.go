@@ -97,6 +97,7 @@ func (p Popup) Update(msg tea.Msg) (Popup, tea.Cmd) {
 				cmds = append(cmds, p.textInput.Focus())
 			case newCategoryField:
 				p.focused = allField
+				p.textInput.Blur()
 			}
 
 		case "up", "k":
@@ -108,6 +109,7 @@ func (p Popup) Update(msg tea.Msg) (Popup, tea.Cmd) {
 				p.focused = allField
 			case newCategoryField:
 				p.focused = downloadedField
+				p.textInput.Blur()
 			}
 
 		case "enter":
