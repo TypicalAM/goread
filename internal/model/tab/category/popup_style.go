@@ -28,13 +28,13 @@ func newPopupStyle(colors colorscheme.Colorscheme, width, height int) popupStyle
 		BorderForeground(colors.Color1)
 
 	heading := lipgloss.NewStyle().
-		Margin(2, 2).
+		Margin(1, 0, 1, 0).
 		Width(width - 2).
 		Align(lipgloss.Center).
 		Italic(true)
 
 	list := lipgloss.NewStyle().
-		Padding(2).
+		Margin(0, 4).
 		Width(width - 2).
 		Height(10)
 

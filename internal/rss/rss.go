@@ -16,7 +16,7 @@ import (
 var AllFeedsName = "All Feeds"
 
 // DownloadedFeedsName is the name of the downloaded feeds category
-var DownloadedFeedsName = "Downloaded"
+var DownloadedFeedsName = "Saved"
 
 // ErrNotFound is returned when a feed or category is not found
 var ErrNotFound = errors.New("not found")

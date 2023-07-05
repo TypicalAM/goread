@@ -45,9 +45,11 @@ func NewPopup(colors colorscheme.Colorscheme, bgRaw string, width, height int,
 	defaultPopup := popup.New(bgRaw, width, height)
 	nameInput := textinput.New()
 	nameInput.CharLimit = 30
+	nameInput.Prompt = "Name: "
 	urlInput := textinput.New()
 	urlInput.CharLimit = 100
 	urlInput.Width = 30
+	urlInput.Prompt = "URL: "
 
 	if oldName != "" || oldURL != "" {
 		nameInput.SetValue(oldName)
@@ -119,8 +121,8 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders the popup.
 func (p Popup) View() string {
-	question := p.style.heading.Render("Add/Edit a feed")
-	title := p.style.itemTitle.Render("Write a name and an URL for the feed")
+	question := p.style.heading.Render("Choose a feed")
+	title := p.style.itemTitle.Render("New Feed")
 	name := p.style.itemField.Render(p.nameInput.View())
 	url := p.style.itemField.Render(p.urlInput.View())
 	item := p.style.item.Render(lipgloss.JoinVertical(lipgloss.Top, title, name, url))

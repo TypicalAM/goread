@@ -43,8 +43,10 @@ func NewPopup(colors colorscheme.Colorscheme, bgRaw string, width, height int, o
 	style := newPopupStyle(colors, width, height)
 	nameInput := textinput.New()
 	nameInput.CharLimit = 30
+	nameInput.Prompt = "Name: "
 	descInput := textinput.New()
-	nameInput.CharLimit = 30
+	descInput.CharLimit = 30
+	descInput.Prompt = "Description: "
 	focusedField := allField
 
 	if oldName != "" || oldDesc != "" {
@@ -142,7 +144,7 @@ func (p Popup) View() string {
 	renderedChoices := make([]string, 3)
 
 	titles := []string{rss.AllFeedsName, rss.DownloadedFeedsName, "New category"}
-	descs := []string{"All the feeds from all the categories", "Feeds that have been downloaded", p.nameInput.View() + "\n" + p.descInput.View()}
+	descs := []string{"All the feeds", "Saved Feeds", p.nameInput.View() + "\n" + p.descInput.View()}
 
 	var focused int
 	switch p.focused {
