@@ -11,6 +11,58 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// Keymap contains the key bindings for this tab
+type Keymap struct {
+	CloseTab   key.Binding
+	CycleTabs  key.Binding
+	SelectFeed key.Binding
+	NewFeed    key.Binding
+	EditFeed   key.Binding
+	DeleteFeed key.Binding
+}
+
+// DefaultKeymap contains the default key bindings for this tab
+var DefaultKeymap = Keymap{
+	CloseTab: key.NewBinding(
+		key.WithKeys("c", "ctrl+w"),
+		key.WithHelp("c/ctrl+w", "Close tab"),
+	),
+	CycleTabs: key.NewBinding(
+		key.WithKeys("tab"),
+		key.WithHelp("tab", "Cycle tabs"),
+	),
+	SelectFeed: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("enter", "Open"),
+	),
+	NewFeed: key.NewBinding(
+		key.WithKeys("n", "ctrl+n"),
+		key.WithHelp("n/ctrl+n", "New"),
+	),
+	EditFeed: key.NewBinding(
+		key.WithKeys("e", "ctrl+e"),
+		key.WithHelp("e/ctrl+e", "Edit"),
+	),
+	DeleteFeed: key.NewBinding(
+		key.WithKeys("d", "ctrl+d"),
+		key.WithHelp("d/ctrl+d", "Delete"),
+	),
+}
+
+// ShortHelp returns the short help for this tab
+func (k Keymap) ShortHelp() []key.Binding {
+	return []key.Binding{
+		k.CloseTab, k.CycleTabs, k.SelectFeed, k.NewFeed, k.EditFeed, k.DeleteFeed,
+	}
+}
+
+// FullHelp returns the full help for this tab
+func (k Keymap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.CloseTab, k.CycleTabs, k.SelectFeed, k.NewFeed, k.EditFeed, k.DeleteFeed},
+	}
+}
+
 // Model contains the state of this tab
 type Model struct {
 	colors colorscheme.Colorscheme
@@ -19,36 +71,12 @@ type Model struct {
 	title  string
 	loaded bool
 	list   simplelist.Model
-	keymap keymap
+	keymap Keymap
 	help   help.Model
 
 	// reader is a function which returns a tea.Cmd which will be executed
 	// when the tab is initialized
 	reader func(string) tea.Cmd
-}
-
-// keymap contains the key bindings for this tab
-type keymap struct {
-	CloseTab  key.Binding
-	CycleTabs key.Binding
-	Enter     key.Binding
-	New       key.Binding
-	Edit      key.Binding
-	Delete    key.Binding
-}
-
-// ShortHelp returns the short help for this tab
-func (k keymap) ShortHelp() []key.Binding {
-	return []key.Binding{
-		k.CloseTab, k.CycleTabs, k.Enter, k.New, k.Edit, k.Delete,
-	}
-}
-
-// FullHelp returns the full help for this tab
-func (k keymap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.CloseTab, k.CycleTabs, k.Enter, k.New, k.Edit, k.Delete},
-	}
 }
 
 // New creates a new category tab with sensible defaults
@@ -65,32 +93,7 @@ func New(colors colorscheme.Colorscheme, width, height int, title string, reader
 		title:  title,
 		reader: reader,
 		help:   help,
-		keymap: keymap{
-			CloseTab: key.NewBinding(
-				key.WithKeys("c/ctrl+w"),
-				key.WithHelp("c/ctrl+w", "Close tab"),
-			),
-			CycleTabs: key.NewBinding(
-				key.WithKeys("tab"),
-				key.WithHelp("tab", "Cycle tabs"),
-			),
-			Enter: key.NewBinding(
-				key.WithKeys("enter"),
-				key.WithHelp("enter", "Open"),
-			),
-			New: key.NewBinding(
-				key.WithKeys("n/ctrl+n"),
-				key.WithHelp("n/ctrl+n", "New"),
-			),
-			Edit: key.NewBinding(
-				key.WithKeys("e/ctrl+e"),
-				key.WithHelp("e/ctrl+e", "Edit"),
-			),
-			Delete: key.NewBinding(
-				key.WithKeys("d/ctrl+d"),
-				key.WithHelp("d/ctrl+d", "Delete"),
-			),
-		},
+		keymap: DefaultKeymap,
 	}
 }
 
@@ -143,8 +146,8 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		}
 
 		// Handle the key message
-		switch msg.String() {
-		case "enter":
+		switch {
+		case key.Matches(msg, m.keymap.SelectFeed):
 			if !m.list.IsEmpty() {
 				return m, tab.NewTab(m.list.SelectedItem().FilterValue(), tab.Feed)
 			}
@@ -152,12 +155,12 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			// If the list is empty, return nothing
 			return m, nil
 
-		case "n", "ctrl+n":
+		case key.Matches(msg, m.keymap.NewFeed):
 			// Add a new feed
 			feedPath := []string{m.title}
 			return m, backend.NewItem(backend.Feed, true, feedPath, nil)
 
-		case "e", "ctrl+e":
+		case key.Matches(msg, m.keymap.EditFeed):
 			// If the list is empty, return nothing
 			if m.list.IsEmpty() {
 				return m, nil
@@ -173,7 +176,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 				[]string{item.FilterValue(), item.Description()},
 			)
 
-		case "d", "ctrl+d":
+		case key.Matches(msg, m.keymap.DeleteFeed):
 			if !m.list.IsEmpty() {
 				// Delete the selected feed
 				delItemName := m.list.SelectedItem().FilterValue()

@@ -16,6 +16,58 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// Keymap contains the key bindings for this tab
+type Keymap struct {
+	CloseTab        key.Binding
+	CycleTabs       key.Binding
+	OpenArticle     key.Binding
+	ToggleFocus     key.Binding
+	RefreshArticles key.Binding
+	SaveArticle     key.Binding
+}
+
+// DefaultKeymap contains the default key bindings for this tab
+var DefaultKeymap = Keymap{
+	CloseTab: key.NewBinding(
+		key.WithKeys("c", "ctrl+w"),
+		key.WithHelp("c/ctrl+w", "Close tab"),
+	),
+	CycleTabs: key.NewBinding(
+		key.WithKeys("tab"),
+		key.WithHelp("tab", "Cycle tabs"),
+	),
+	OpenArticle: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("enter", "Open"),
+	),
+	ToggleFocus: key.NewBinding(
+		key.WithKeys("left", "right", "h", "l"),
+		key.WithHelp("left right/h l", "Toggle focus"),
+	),
+	RefreshArticles: key.NewBinding(
+		key.WithKeys("r", "ctrl+r"),
+		key.WithHelp("r/ctrl+r", "Refresh"),
+	),
+	SaveArticle: key.NewBinding(
+		key.WithKeys("s", "ctrl+s"),
+		key.WithHelp("s/ctrl+s", "Save for later"),
+	),
+}
+
+// ShortHelp returns the short help for the tab
+func (k Keymap) ShortHelp() []key.Binding {
+	return []key.Binding{
+		k.CloseTab, k.CycleTabs, k.OpenArticle, k.ToggleFocus, k.RefreshArticles, k.SaveArticle,
+	}
+}
+
+// FullHelp returns the full help for the tab
+func (k Keymap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.CloseTab, k.CycleTabs, k.OpenArticle, k.ToggleFocus, k.RefreshArticles, k.SaveArticle},
+	}
+}
+
 // Model contains the state of this tab
 type Model struct {
 	colors          colorscheme.Colorscheme
@@ -30,36 +82,12 @@ type Model struct {
 	isViewportOpen  bool
 	viewport        viewport.Model
 	viewportFocused bool
-	keymap          keymap
+	keymap          Keymap
 	help            help.Model
 
 	// reader is a function which returns a tea.Cmd which will be executed
 	// when the tab is initialized
 	reader func(string) tea.Cmd
-}
-
-// keymap contains the key bindings for this tab
-type keymap struct {
-	CloseTab    key.Binding
-	CycleTabs   key.Binding
-	Open        key.Binding
-	ToggleFocus key.Binding
-	Refresh     key.Binding
-	Save        key.Binding
-}
-
-// ShortHelp returns the short help for the tab
-func (k keymap) ShortHelp() []key.Binding {
-	return []key.Binding{
-		k.CloseTab, k.CycleTabs, k.Open, k.ToggleFocus, k.Refresh, k.Save,
-	}
-}
-
-// FullHelp returns the full help for the tab
-func (k keymap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.CloseTab, k.CycleTabs, k.Open, k.ToggleFocus, k.Refresh, k.Save},
-	}
 }
 
 // New creates a new feed tab with sensible defaults
@@ -84,32 +112,7 @@ func New(colors colorscheme.Colorscheme, width, height int, title string, reader
 		title:          title,
 		reader:         reader,
 		help:           help,
-		keymap: keymap{
-			CloseTab: key.NewBinding(
-				key.WithKeys("c/ctrl+w"),
-				key.WithHelp("c/ctrl+w", "Close tab"),
-			),
-			CycleTabs: key.NewBinding(
-				key.WithKeys("tab"),
-				key.WithHelp("tab", "Cycle tabs"),
-			),
-			Open: key.NewBinding(
-				key.WithKeys("enter"),
-				key.WithHelp("enter", "Open"),
-			),
-			ToggleFocus: key.NewBinding(
-				key.WithKeys("left", "right", "h", "l"),
-				key.WithHelp("left right/h l", "Toggle focus"),
-			),
-			Refresh: key.NewBinding(
-				key.WithKeys("r/ctrl+r"),
-				key.WithHelp("r/ctrl+r", "Refresh"),
-			),
-			Save: key.NewBinding(
-				key.WithKeys("s/ctrl+s"),
-				key.WithHelp("s/ctrl+s", "Save for later"),
-			),
-		},
+		keymap:         DefaultKeymap,
 	}
 }
 
@@ -164,8 +167,8 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		}
 
 		// Handle the key message
-		switch msg.String() {
-		case "enter":
+		switch {
+		case key.Matches(msg, m.keymap.OpenArticle):
 			// If there are no items, don't do anything
 			if m.list.SelectedItem() == nil {
 				return m, nil
@@ -179,16 +182,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			// Update the viewport
 			return m.updateViewport()
 
-		case "r", "ctrl+r":
-			// Refresh the contents of the tab
-			m.isViewportOpen = false
-			m.loaded = false
-			m.viewportFocused = false
-
-			// Rerun with data fetching and loading
-			return m, tea.Batch(m.reader(m.title), m.loadingSpinner.Tick)
-
-		case "left", "right", "l", "h":
+		case key.Matches(msg, m.keymap.ToggleFocus):
 			// If the viewport isn't open, don't do anything
 			if !m.isViewportOpen {
 				return m, nil
@@ -198,7 +192,16 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			m.viewportFocused = !m.viewportFocused
 			return m, nil
 
-		case "s", "ctrl+s":
+		case key.Matches(msg, m.keymap.RefreshArticles):
+			// Refresh the contents of the tab
+			m.isViewportOpen = false
+			m.loaded = false
+			m.viewportFocused = false
+
+			// Rerun with data fetching and loading
+			return m, tea.Batch(m.reader(m.title), m.loadingSpinner.Tick)
+
+		case key.Matches(msg, m.keymap.SaveArticle):
 			// Tell the main model to download the item
 			return m, backend.DownloadItem(m.title, m.list.Index())
 		}
