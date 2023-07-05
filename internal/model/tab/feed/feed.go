@@ -166,8 +166,13 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		// Handle the key message
 		switch msg.String() {
 		case "enter":
+			// If there are no items, don't do anything
+			if m.list.SelectedItem() == nil {
+				return m, nil
+			}
+
 			// Set the view as open if it isn't
-			if !m.isViewportOpen && m.list.SelectedItem() != nil {
+			if !m.isViewportOpen {
 				m.isViewportOpen = true
 			}
 
@@ -280,6 +285,11 @@ func (m Model) loadTab(items []list.Item) (tab.Tab, tea.Cmd) {
 func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
 	// If the viewport isn't open, don't do anything
 	if !m.isViewportOpen {
+		return m, nil
+	}
+
+	// If therer are no items selected, don't do anything
+	if m.list.SelectedItem() == nil {
 		return m, nil
 	}
 
