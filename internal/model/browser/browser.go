@@ -80,7 +80,7 @@ type Model struct {
 	help   help.Model
 
 	// other
-	message  string
+	msg      string
 	quitting bool
 }
 
@@ -98,7 +98,7 @@ func New(cfg config.Config) Model {
 		waitingForSize: true,
 		keymap:         DefaultKeymap,
 		help:           help,
-		message:        "Pro-tip - press [ctrl-h] to view the help page",
+		msg:            "Pro-tip - press [ctrl-h] to view the help page",
 	}
 }
 
@@ -119,7 +119,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case backend.FetchErrorMessage:
 		// If there is an error, display it on the status bar
 		// the error message will be cleared when the user closes the tab
-		m.message = fmt.Sprintf("%s - %s", msg.Description, msg.Err.Error())
+		m.msg = fmt.Sprintf("%s: %s", msg.Description, msg.Err.Error())
 
 		// Update the underlying tab in case it also handles error input
 		m.tabs[m.activeTab], _ = m.tabs[m.activeTab].Update(msg)
@@ -130,15 +130,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if msg.IsEdit {
 			if err := m.config.Backend.Rss.UpdateCategory(msg.OldName, msg.Name, msg.Desc); err != nil {
-				m.message = fmt.Sprintf("Error updating category: %s", err.Error())
+				m.msg = fmt.Sprintf("Error updating category: %s", err.Error())
 			} else {
-				m.message = fmt.Sprintf("Updated category %s", msg.Name)
+				m.msg = fmt.Sprintf("Updated category %s", msg.Name)
 			}
 		} else {
 			if err := m.config.Backend.Rss.AddCategory(msg.Name, msg.Desc); err != nil {
-				m.message = fmt.Sprintf("Error adding category: %s", err.Error())
+				m.msg = fmt.Sprintf("Error adding category: %s", err.Error())
 			} else {
-				m.message = fmt.Sprintf("Added category %s", msg.Name)
+				m.msg = fmt.Sprintf("Added category %s", msg.Name)
 			}
 		}
 
@@ -149,15 +149,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if msg.IsEdit {
 			if err := m.config.Backend.Rss.UpdateFeed(msg.ParentCategory, msg.OldName, msg.Name, msg.URL); err != nil {
-				m.message = fmt.Sprintf("Error updating feed: %s", err.Error())
+				m.msg = fmt.Sprintf("Error updating feed: %s", err.Error())
 			} else {
-				m.message = fmt.Sprintf("Updated feed %s", msg.Name)
+				m.msg = fmt.Sprintf("Updated feed %s", msg.Name)
 			}
 		} else {
 			if err := m.config.Backend.Rss.AddFeed(msg.ParentCategory, msg.Name, msg.URL); err != nil {
-				m.message = fmt.Sprintf("Error adding feed: %s", err.Error())
+				m.msg = fmt.Sprintf("Error adding feed: %s", err.Error())
 			} else {
-				m.message = fmt.Sprintf("Added feed %s", msg.Name)
+				m.msg = fmt.Sprintf("Added feed %s", msg.Name)
 			}
 		}
 
@@ -166,7 +166,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tab.NewTabMessage:
 		// Create the new tab
 		m.createNewTab(msg.Title, msg.Type)
-		m.message = ""
+		m.msg = ""
 		return m, m.tabs[m.activeTab].Init()
 
 	case backend.NewItemMessage:
@@ -249,7 +249,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			// Set the message
-			m.message = fmt.Sprintf("Closed tab - %s", m.tabs[m.activeTab].Title())
+			m.msg = fmt.Sprintf("Closed tab - %s", m.tabs[m.activeTab].Title())
 			return m, nil
 
 		case key.Matches(msg, m.keymap.CycleTabs):
@@ -260,7 +260,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			// Clear the message
-			m.message = ""
+			m.msg = ""
 			return m, nil
 
 		case key.Matches(msg, m.keymap.ShowHelp):
@@ -315,7 +315,14 @@ func (m Model) View() string {
 	sections = append(sections, m.renderStatusBar())
 
 	// Render the message bar
-	sections = append(sections, m.message)
+	if strings.Contains(m.msg, "Error") {
+		errStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#f08ca8")).
+			Italic(true)
+		sections = append(sections, errStyle.Render(m.msg))
+	} else {
+		sections = append(sections, m.msg)
+	}
 
 	// Join all the sections
 	return lipgloss.JoinVertical(lipgloss.Top, sections...)
@@ -404,13 +411,13 @@ func (m *Model) createNewTab(title string, tabType tab.Type) {
 
 // deleteItem deletes the focused item from the backend
 func (m Model) deleteItem(msg backend.DeleteItemMessage) (tea.Model, tea.Cmd) {
-	m.message = fmt.Sprintf("Deleting item %s", msg.Key)
+	m.msg = fmt.Sprintf("Deleting item %s", msg.Key)
 
 	// Check the type of the item
 	if msg.Type == backend.Category {
 		err := m.config.Backend.Rss.RemoveCategory(msg.Key)
 		if err != nil {
-			m.message = fmt.Sprintf("Error deleting category %s - %s", msg.Key, err.Error())
+			m.msg = fmt.Sprintf("Error deleting category %s: %s", msg.Key, err.Error())
 		}
 
 		// Refresh the categories
@@ -420,7 +427,7 @@ func (m Model) deleteItem(msg backend.DeleteItemMessage) (tea.Model, tea.Cmd) {
 	// Delete the feed
 	err := m.config.Backend.Rss.RemoveFeed(m.tabs[m.activeTab].Title(), msg.Key)
 	if err != nil {
-		m.message = fmt.Sprintf("Error deleting feed %s - %s", msg.Key, err.Error())
+		m.msg = fmt.Sprintf("Error deleting feed %s: %s", msg.Key, err.Error())
 	}
 
 	// Fetch the feeds again to update the list
@@ -429,7 +436,7 @@ func (m Model) deleteItem(msg backend.DeleteItemMessage) (tea.Model, tea.Cmd) {
 
 // downloadItem downloads an item
 func (m Model) downloadItem(msg backend.DownloadItemMessage) (tea.Model, tea.Cmd) {
-	m.message = fmt.Sprintf("Saving item from feed %s", msg.Key)
+	m.msg = fmt.Sprintf("Saving item from feed %s", msg.Key)
 	return m, m.config.Backend.DownloadItem(msg.Key, msg.Index)
 }
 
@@ -437,7 +444,7 @@ func (m Model) downloadItem(msg backend.DownloadItemMessage) (tea.Model, tea.Cmd
 func (m Model) showHelp() (tea.Model, tea.Cmd) {
 	// Extend the bindings with the tab specific bindings
 	bindings := append(m.keymap.ShortHelp(), m.tabs[m.activeTab].GetKeyBinds()...)
-	m.message = m.help.ShortHelpView(bindings)
+	m.msg = m.help.ShortHelpView(bindings)
 	return m, nil
 }
 
