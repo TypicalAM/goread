@@ -30,15 +30,15 @@ type Keymap struct {
 var DefaultKeymap = Keymap{
 	CloseTab: key.NewBinding(
 		key.WithKeys("c", "ctrl+w"),
-		key.WithHelp("c/ctrl+w", "Close tab"),
+		key.WithHelp("c/C-w", "Close tab"),
 	),
 	CycleTabs: key.NewBinding(
 		key.WithKeys("tab"),
-		key.WithHelp("tab", "Cycle tabs"),
+		key.WithHelp("Tab", "Cycle tabs"),
 	),
 	ShowHelp: key.NewBinding(
 		key.WithKeys("h", "ctrl+h"),
-		key.WithHelp("h/ctrl+h", "Show help"),
+		key.WithHelp("h/C-h", "Help"),
 	),
 }
 
@@ -363,7 +363,7 @@ func (m *Model) createNewTab(title string, tabType tab.Type) {
 				m.windowHeight-5,
 				title,
 				m.config.Backend.FetchAllArticles,
-			)
+			).DisableSaving()
 
 		case rss.DownloadedFeedsName:
 			newTab = feed.New(

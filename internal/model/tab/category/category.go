@@ -21,19 +21,19 @@ type Keymap struct {
 var DefaultKeymap = Keymap{
 	SelectFeed: key.NewBinding(
 		key.WithKeys("enter"),
-		key.WithHelp("enter", "Open"),
+		key.WithHelp("Enter", "Open"),
 	),
 	NewFeed: key.NewBinding(
 		key.WithKeys("n", "ctrl+n"),
-		key.WithHelp("n/ctrl+n", "New"),
+		key.WithHelp("n/C-n", "New"),
 	),
 	EditFeed: key.NewBinding(
 		key.WithKeys("e", "ctrl+e"),
-		key.WithHelp("e/ctrl+e", "Edit"),
+		key.WithHelp("e/C-e", "Edit"),
 	),
 	DeleteFeed: key.NewBinding(
 		key.WithKeys("d", "ctrl+d"),
-		key.WithHelp("d/ctrl+d", "Delete"),
+		key.WithHelp("d/C-d", "Delete"),
 	),
 }
 

@@ -27,19 +27,19 @@ type Keymap struct {
 var DefaultKeymap = Keymap{
 	OpenArticle: key.NewBinding(
 		key.WithKeys("enter"),
-		key.WithHelp("enter", "Open"),
+		key.WithHelp("Enter", "Open"),
 	),
 	ToggleFocus: key.NewBinding(
 		key.WithKeys("left", "right", "h", "l"),
-		key.WithHelp("left right/h l", "Toggle focus"),
+		key.WithHelp("←/→", "Move left/right"),
 	),
 	RefreshArticles: key.NewBinding(
 		key.WithKeys("r", "ctrl+r"),
-		key.WithHelp("r/ctrl+r", "Refresh"),
+		key.WithHelp("r/C-r", "Refresh"),
 	),
 	SaveArticle: key.NewBinding(
 		key.WithKeys("s", "ctrl+s"),
-		key.WithHelp("s/ctrl+s", "Save for later"),
+		key.WithHelp("s/C-s", "Save"),
 	),
 }
 
@@ -323,6 +323,12 @@ func (m Model) View() string {
 		m.style.focusedList.Render(m.list.View()),
 		m.style.idleViewport.Render(m.viewport.View()),
 	)
+}
+
+// DisableSaving disables the saving of the article
+func (m Model) DisableSaving() Model {
+	m.keymap.SaveArticle.SetEnabled(false)
+	return m
 }
 
 // showLoading shows the loading message or the error message
