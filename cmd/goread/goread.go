@@ -8,6 +8,7 @@ import (
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/TypicalAM/goread/internal/config"
+	"github.com/TypicalAM/goread/internal/keybind"
 	"github.com/TypicalAM/goread/internal/model/browser"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -18,6 +19,7 @@ import (
 type options struct {
 	cachePath       string
 	colorschemePath string
+	keymapPath      string
 	urlsPath        string
 	getColors       string
 	testColors      bool
@@ -44,6 +46,7 @@ var (
 func init() {
 	rootCmd.Flags().StringVarP(&opts.cachePath, "cache_path", "c", "", "The path to the cache file")
 	rootCmd.Flags().StringVarP(&opts.colorschemePath, "colorscheme_path", "s", "", "The path to the colorscheme file")
+	rootCmd.Flags().StringVarP(&opts.keymapPath, "keymap_path", "k", "", "The path to the keymap file")
 	rootCmd.Flags().StringVarP(&opts.urlsPath, "urls_path", "u", "", "The path to the urls file")
 	rootCmd.Flags().BoolVarP(&opts.testColors, "test_colors", "t", false, "Test the colorscheme")
 	rootCmd.Flags().StringVarP(&opts.getColors, "get_colors", "g", "", "Get the colors from pywal and save them to the colorscheme file")
@@ -107,6 +110,11 @@ func Run() error {
 	cfg, err := config.New(colors, opts.urlsPath, opts.cachePath, opts.resetCache)
 	if err != nil {
 		return err
+	}
+
+	// Populate the keybinds
+	if err = keybind.Populate(opts.keymapPath); err != nil {
+		fmt.Println("Could not populate the keybinds, using the default ones")
 	}
 
 	// Create the browser
