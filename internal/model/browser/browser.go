@@ -204,6 +204,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Resize the window
 		m.windowWidth = msg.Width
 		m.windowHeight = msg.Height
+		m.msg = ""
 
 		// Resize every tab
 		for i := range m.tabs {
