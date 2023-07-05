@@ -171,7 +171,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case backend.NewItemMessage:
 		bg := lipgloss.NewStyle().Width(m.windowWidth).Height((m.windowHeight)).Render(m.View())
-		width := m.windowWidth * 1 / 3
+		width := m.windowWidth / 2
 		height := 17
 
 		// Open a new popup

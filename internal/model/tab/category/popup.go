@@ -43,9 +43,11 @@ func NewPopup(colors colorscheme.Colorscheme, bgRaw string, width, height int, o
 	style := newPopupStyle(colors, width, height)
 	nameInput := textinput.New()
 	nameInput.CharLimit = 30
+	nameInput.Width = width - 15
 	nameInput.Prompt = "Name: "
 	descInput := textinput.New()
 	descInput.CharLimit = 30
+	descInput.Width = width - 22
 	descInput.Prompt = "Description: "
 	focusedField := allField
 
