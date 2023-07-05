@@ -23,6 +23,7 @@ import (
 type Keymap struct {
 	CloseTab  key.Binding
 	CycleTabs key.Binding
+	ShowHelp  key.Binding
 }
 
 // DefaultKeymap contains the default key bindings for the browser
@@ -34,6 +35,10 @@ var DefaultKeymap = Keymap{
 	CycleTabs: key.NewBinding(
 		key.WithKeys("tab"),
 		key.WithHelp("tab", "Cycle tabs"),
+	),
+	ShowHelp: key.NewBinding(
+		key.WithKeys("h", "ctrl+h"),
+		key.WithHelp("h/ctrl+h", "Show help"),
 	),
 }
 
@@ -205,13 +210,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c":
+		switch {
+		case msg.String() == "ctrl+c":
 			// Quit the program
 			m.quitting = true
 			return m, tea.Quit
 
-		case "esc":
+		case msg.String() == "esc":
 			// If we are showing a popup, close it
 			if m.popupShown {
 				m.popupShown = false
@@ -222,29 +227,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quitting = true
 			return m, tea.Quit
 
-		case "tab":
-			// Cycle through the tabs
-			m.activeTab++
-			if m.activeTab > len(m.tabs)-1 {
-				m.activeTab = 0
-			}
-
-			// Clear the message
-			m.message = ""
-			return m, nil
-
-		case "shift+tab":
-			// Cycle through the tabs
-			m.activeTab--
-			if m.activeTab < 0 {
-				m.activeTab = len(m.tabs) - 1
-			}
-
-			// Clear the current message
-			m.message = ""
-			return m, nil
-
-		case "c", "ctrl+w":
+		case key.Matches(msg, m.keymap.CloseTab):
 			if m.popupShown {
 				break
 			}
@@ -268,7 +251,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.message = fmt.Sprintf("Closed tab - %s", m.tabs[m.activeTab].Title())
 			return m, nil
 
-		case "h", "ctrl+h":
+		case key.Matches(msg, m.keymap.CycleTabs):
+			// Cycle through the tabs
+			m.activeTab++
+			if m.activeTab > len(m.tabs)-1 {
+				m.activeTab = 0
+			}
+
+			// Clear the message
+			m.message = ""
+			return m, nil
+
+		case key.Matches(msg, m.keymap.ShowHelp):
 			// View the help page
 			if !m.popupShown {
 				return m.showHelp()
