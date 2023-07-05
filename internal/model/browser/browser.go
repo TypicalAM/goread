@@ -89,7 +89,8 @@ func New(cfg config.Config) Model {
 	help := help.New()
 	help.Styles.ShortDesc = lipgloss.NewStyle().Foreground(cfg.Colors.Text)
 	help.Styles.ShortKey = lipgloss.NewStyle().Foreground(cfg.Colors.Text)
-	help.Styles.Ellipsis = lipgloss.NewStyle().Foreground(cfg.Colors.BgDark)
+	help.Styles.ShortSeparator = lipgloss.NewStyle().Foreground(cfg.Colors.TextDark)
+	help.ShortSeparator = " - "
 
 	return Model{
 		config:         cfg,
