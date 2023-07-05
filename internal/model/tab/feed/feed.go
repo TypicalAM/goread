@@ -77,7 +77,7 @@ func New(colors colorscheme.Colorscheme, width, height int, title string, reader
 	// Create the model
 	return Model{
 		colors:         colors,
-		style:          newStyle(colors),
+		style:          newStyle(colors, width, height),
 		width:          width,
 		height:         height,
 		loadingSpinner: spin,
@@ -125,10 +125,9 @@ func (m Model) Type() tab.Type {
 
 // SetSize sets the dimensions of the tab
 func (m Model) SetSize(width, height int) tab.Tab {
-	listWidth := width / 4
-	viewportWidth := width - listWidth - 2
-	m.list.SetSize(listWidth, height)
-	m.viewport.Width = viewportWidth
+	m.style = m.style.setSize(width, height)
+	m.list.SetSize(m.style.listWidth, height)
+	m.viewport.Width = m.style.viewportWidth
 	m.viewport.Height = height
 	m.width = width
 	m.height = height
@@ -228,10 +227,6 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 // loadTab is fired when the items are retrieved from the backend, it
 // initializes the list and the viewport
 func (m Model) loadTab(items []list.Item) (tab.Tab, tea.Cmd) {
-	// Set the width and the height of the components
-	listWidth := m.width / 4
-	viewportWidth := m.width - listWidth - 2
-
 	// Check if the items are simplelist.Item compliant
 	wrappedItems := make([]list.Item, len(items))
 	for i, item := range items {
@@ -264,7 +259,7 @@ func (m Model) loadTab(items []list.Item) (tab.Tab, tea.Cmd) {
 	itemDelegate.SetHeight(3)
 
 	// Initialize the list
-	m.list = list.New(wrappedItems, itemDelegate, listWidth, m.height)
+	m.list = list.New(wrappedItems, itemDelegate, m.style.listWidth, m.height)
 
 	// Set some attributes for the list
 	m.list.SetShowHelp(false)
@@ -273,7 +268,7 @@ func (m Model) loadTab(items []list.Item) (tab.Tab, tea.Cmd) {
 	m.list.DisableQuitKeybindings()
 
 	// Initialize the viewport
-	m.viewport = viewport.New(viewportWidth, m.height)
+	m.viewport = viewport.New(m.style.viewportWidth, m.height)
 
 	// We are locked and loaded
 	m.loaded = true
@@ -315,23 +310,23 @@ func (m Model) View() string {
 
 	// If the view is not open show just the rss list
 	if !m.isViewportOpen {
-		return m.style.focusedStyle.Render(m.list.View())
+		return m.style.focusedList.Render(m.list.View())
 	}
 
 	// If the viewport is focused, render it with the focused style
 	if m.viewportFocused {
 		return lipgloss.JoinHorizontal(
 			lipgloss.Left,
-			m.style.columnStyle.Render(m.list.View()),
-			m.style.focusedStyle.Render(m.viewport.View()),
+			m.style.idleList.Render(m.list.View()),
+			m.style.focusedViewport.Render(m.viewport.View()),
 		)
 	}
 
 	// Otherwise render it with the default style
 	return lipgloss.JoinHorizontal(
 		lipgloss.Left,
-		m.style.focusedStyle.Render(m.list.View()),
-		m.style.columnStyle.Render(m.viewport.View()),
+		m.style.focusedList.Render(m.list.View()),
+		m.style.idleViewport.Render(m.viewport.View()),
 	)
 }
 

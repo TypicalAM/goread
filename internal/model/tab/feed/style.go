@@ -7,18 +7,61 @@ import (
 
 // style is the style of the feed tab.
 type style struct {
-	columnStyle  lipgloss.Style
-	focusedStyle lipgloss.Style
+	width         int
+	height        int
+	listWidth     int
+	viewportWidth int
+
+	idleList        lipgloss.Style
+	focusedList     lipgloss.Style
+	idleViewport    lipgloss.Style
+	focusedViewport lipgloss.Style
 }
 
 // newStyle creates a new style for the feed tab.
-func newStyle(colors colorscheme.Colorscheme) style {
+func newStyle(colors colorscheme.Colorscheme, width, height int) style {
+	listWidth := width/4 - 2
+	viewportWidth := width - listWidth - 4
+
+	idleList := lipgloss.NewStyle().
+		Width(listWidth).
+		Height(height).
+		Border(lipgloss.NormalBorder()).
+		BorderForeground(colors.TextDark)
+
+	focusedList := idleList.Copy().
+		BorderForeground(colors.Color1)
+
+	idleViewport := lipgloss.NewStyle().
+		Width(viewportWidth).
+		Height(height).
+		Border(lipgloss.NormalBorder()).
+		BorderForeground(colors.TextDark)
+
+	focusedViewport := idleViewport.Copy().
+		BorderForeground(colors.Color1)
+
 	return style{
-		columnStyle: lipgloss.NewStyle().
-			Border(lipgloss.NormalBorder()).
-			BorderForeground(colors.TextDark),
-		focusedStyle: lipgloss.NewStyle().
-			Border(lipgloss.NormalBorder()).
-			BorderForeground(colors.Color1),
+		width:           width,
+		height:          height,
+		listWidth:       listWidth,
+		viewportWidth:   viewportWidth,
+		idleList:        idleList,
+		focusedList:     focusedList,
+		idleViewport:    idleViewport,
+		focusedViewport: focusedViewport,
 	}
+}
+
+// setSize sets the size of the style.
+func (s style) setSize(width, height int) style {
+	s.width = width
+	s.height = height
+	s.listWidth = width/4 - 2
+	s.viewportWidth = width - s.listWidth - 4
+	s.idleList = s.idleList.Width(s.listWidth).Height(height)
+	s.focusedList = s.focusedList.Width(s.listWidth).Height(height)
+	s.idleViewport = s.idleViewport.Width(s.viewportWidth).Height(height)
+	s.focusedViewport = s.focusedViewport.Width(s.viewportWidth).Height(height)
+	return s
 }
