@@ -8,7 +8,6 @@ import (
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/TypicalAM/goread/internal/config"
-	"github.com/TypicalAM/goread/internal/keybind"
 	"github.com/TypicalAM/goread/internal/model/browser"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -110,11 +109,6 @@ func Run() error {
 	cfg, err := config.New(colors, opts.urlsPath, opts.cachePath, opts.resetCache)
 	if err != nil {
 		return err
-	}
-
-	// Populate the keybinds
-	if err = keybind.Populate(opts.keymapPath); err != nil {
-		fmt.Println("Could not populate the keybinds, using the default ones")
 	}
 
 	// Create the browser
