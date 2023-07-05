@@ -1,6 +1,7 @@
 package tab
 
 import (
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -18,7 +19,7 @@ type Tab interface {
 	Title() string
 	Type() Type
 	SetSize(width, height int) Tab
-	ShowHelp() string
+	GetKeyBinds() []key.Binding
 
 	// bubbletea methods
 	Init() tea.Cmd

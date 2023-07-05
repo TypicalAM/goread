@@ -5,16 +5,12 @@ import (
 	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/TypicalAM/goread/internal/model/simplelist"
 	"github.com/TypicalAM/goread/internal/model/tab"
-	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 // Keymap contains the key bindings for this tab
 type Keymap struct {
-	CloseTab   key.Binding
-	CycleTabs  key.Binding
 	SelectFeed key.Binding
 	NewFeed    key.Binding
 	EditFeed   key.Binding
@@ -23,14 +19,6 @@ type Keymap struct {
 
 // DefaultKeymap contains the default key bindings for this tab
 var DefaultKeymap = Keymap{
-	CloseTab: key.NewBinding(
-		key.WithKeys("c", "ctrl+w"),
-		key.WithHelp("c/ctrl+w", "Close tab"),
-	),
-	CycleTabs: key.NewBinding(
-		key.WithKeys("tab"),
-		key.WithHelp("tab", "Cycle tabs"),
-	),
 	SelectFeed: key.NewBinding(
 		key.WithKeys("enter"),
 		key.WithHelp("enter", "Open"),
@@ -52,14 +40,14 @@ var DefaultKeymap = Keymap{
 // ShortHelp returns the short help for this tab
 func (k Keymap) ShortHelp() []key.Binding {
 	return []key.Binding{
-		k.CloseTab, k.CycleTabs, k.SelectFeed, k.NewFeed, k.EditFeed, k.DeleteFeed,
+		k.SelectFeed, k.NewFeed, k.EditFeed, k.DeleteFeed,
 	}
 }
 
 // FullHelp returns the full help for this tab
 func (k Keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.CloseTab, k.CycleTabs, k.SelectFeed, k.NewFeed, k.EditFeed, k.DeleteFeed},
+		{k.SelectFeed, k.NewFeed, k.EditFeed, k.DeleteFeed},
 	}
 }
 
@@ -72,7 +60,6 @@ type Model struct {
 	loaded bool
 	list   simplelist.Model
 	keymap Keymap
-	help   help.Model
 
 	// reader is a function which returns a tea.Cmd which will be executed
 	// when the tab is initialized
@@ -81,18 +68,12 @@ type Model struct {
 
 // New creates a new category tab with sensible defaults
 func New(colors colorscheme.Colorscheme, width, height int, title string, reader func(string) tea.Cmd) Model {
-	help := help.New()
-	help.Styles.ShortDesc = lipgloss.NewStyle().Foreground(colors.Text)
-	help.Styles.ShortKey = lipgloss.NewStyle().Foreground(colors.Text)
-	help.Styles.Ellipsis = lipgloss.NewStyle().Foreground(colors.BgDark)
-
 	return Model{
 		colors: colors,
 		width:  width,
 		height: height,
 		title:  title,
 		reader: reader,
-		help:   help,
 		keymap: DefaultKeymap,
 	}
 }
@@ -115,9 +96,9 @@ func (m Model) SetSize(width, height int) tab.Tab {
 	return m
 }
 
-// ShowHelp shows the help for this tab
-func (m Model) ShowHelp() string {
-	return m.help.View(m.keymap)
+// GetKeyBinds returns the key bindings of the tab
+func (m Model) GetKeyBinds() []key.Binding {
+	return m.keymap.ShortHelp()
 }
 
 // Init initializes the tab
