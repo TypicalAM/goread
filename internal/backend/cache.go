@@ -29,7 +29,7 @@ type Cache struct {
 type Item struct {
 	Expire       time.Time     `json:"expire"`
 	Items        []gofeed.Item `json:"items"`
-	IsDownloaded bool          `json:"is_downloaded" default:"false"`
+	IsDownloaded bool          `json:"is_downloaded" default:"false" omitempty:"true"`
 }
 
 // newStore creates a new cache
@@ -262,7 +262,7 @@ func parseURL(feedURL string) (*gofeed.Feed, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "goread:v1.0.4 (by /u/TypicalAM)")
+	req.Header.Set("User-Agent", "goread:v1.1.0 (by /u/TypicalAM)")
 
 	// Send the request
 	resp, err := client.Do(req)
