@@ -18,6 +18,7 @@ import (
 type options struct {
 	cachePath       string
 	colorschemePath string
+	keymapPath      string
 	urlsPath        string
 	getColors       string
 	testColors      bool
@@ -44,6 +45,7 @@ var (
 func init() {
 	rootCmd.Flags().StringVarP(&opts.cachePath, "cache_path", "c", "", "The path to the cache file")
 	rootCmd.Flags().StringVarP(&opts.colorschemePath, "colorscheme_path", "s", "", "The path to the colorscheme file")
+	rootCmd.Flags().StringVarP(&opts.keymapPath, "keymap_path", "k", "", "The path to the keymap file")
 	rootCmd.Flags().StringVarP(&opts.urlsPath, "urls_path", "u", "", "The path to the urls file")
 	rootCmd.Flags().BoolVarP(&opts.testColors, "test_colors", "t", false, "Test the colorscheme")
 	rootCmd.Flags().StringVarP(&opts.getColors, "get_colors", "g", "", "Get the colors from pywal and save them to the colorscheme file")

@@ -7,7 +7,6 @@ import (
 	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/TypicalAM/goread/internal/model/simplelist"
 	"github.com/TypicalAM/goread/internal/model/tab"
-	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -18,8 +17,6 @@ import (
 
 // Keymap contains the key bindings for this tab
 type Keymap struct {
-	CloseTab        key.Binding
-	CycleTabs       key.Binding
 	OpenArticle     key.Binding
 	ToggleFocus     key.Binding
 	RefreshArticles key.Binding
@@ -28,43 +25,35 @@ type Keymap struct {
 
 // DefaultKeymap contains the default key bindings for this tab
 var DefaultKeymap = Keymap{
-	CloseTab: key.NewBinding(
-		key.WithKeys("c", "ctrl+w"),
-		key.WithHelp("c/ctrl+w", "Close tab"),
-	),
-	CycleTabs: key.NewBinding(
-		key.WithKeys("tab"),
-		key.WithHelp("tab", "Cycle tabs"),
-	),
 	OpenArticle: key.NewBinding(
 		key.WithKeys("enter"),
-		key.WithHelp("enter", "Open"),
+		key.WithHelp("Enter", "Open"),
 	),
 	ToggleFocus: key.NewBinding(
 		key.WithKeys("left", "right", "h", "l"),
-		key.WithHelp("left right/h l", "Toggle focus"),
+		key.WithHelp("←/→", "Move left/right"),
 	),
 	RefreshArticles: key.NewBinding(
 		key.WithKeys("r", "ctrl+r"),
-		key.WithHelp("r/ctrl+r", "Refresh"),
+		key.WithHelp("r/C-r", "Refresh"),
 	),
 	SaveArticle: key.NewBinding(
 		key.WithKeys("s", "ctrl+s"),
-		key.WithHelp("s/ctrl+s", "Save for later"),
+		key.WithHelp("s/C-s", "Save"),
 	),
 }
 
 // ShortHelp returns the short help for the tab
 func (k Keymap) ShortHelp() []key.Binding {
 	return []key.Binding{
-		k.CloseTab, k.CycleTabs, k.OpenArticle, k.ToggleFocus, k.RefreshArticles, k.SaveArticle,
+		k.OpenArticle, k.ToggleFocus, k.RefreshArticles, k.SaveArticle,
 	}
 }
 
 // FullHelp returns the full help for the tab
 func (k Keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.CloseTab, k.CycleTabs, k.OpenArticle, k.ToggleFocus, k.RefreshArticles, k.SaveArticle},
+		{k.OpenArticle, k.ToggleFocus, k.RefreshArticles, k.SaveArticle},
 	}
 }
 
@@ -83,7 +72,6 @@ type Model struct {
 	viewport        viewport.Model
 	viewportFocused bool
 	keymap          Keymap
-	help            help.Model
 
 	// reader is a function which returns a tea.Cmd which will be executed
 	// when the tab is initialized
@@ -97,11 +85,6 @@ func New(colors colorscheme.Colorscheme, width, height int, title string, reader
 	spin.Spinner = spinner.Points
 	spin.Style = lipgloss.NewStyle().Foreground(colors.Color1)
 
-	help := help.New()
-	help.Styles.ShortDesc = lipgloss.NewStyle().Foreground(colors.Text)
-	help.Styles.ShortKey = lipgloss.NewStyle().Foreground(colors.Text)
-	help.Styles.Ellipsis = lipgloss.NewStyle().Foreground(colors.BgDark)
-
 	// Create the model
 	return Model{
 		colors:         colors,
@@ -111,7 +94,6 @@ func New(colors colorscheme.Colorscheme, width, height int, title string, reader
 		loadingSpinner: spin,
 		title:          title,
 		reader:         reader,
-		help:           help,
 		keymap:         DefaultKeymap,
 	}
 }
@@ -138,9 +120,9 @@ func (m Model) SetSize(width, height int) tab.Tab {
 	return newTab
 }
 
-// ShowHelp shows the help screen
-func (m Model) ShowHelp() string {
-	return m.help.View(m.keymap)
+// GetKeyBinds returns the key bindings of the tab
+func (m Model) GetKeyBinds() []key.Binding {
+	return m.keymap.ShortHelp()
 }
 
 // Init initializes the tab
@@ -341,6 +323,12 @@ func (m Model) View() string {
 		m.style.focusedList.Render(m.list.View()),
 		m.style.idleViewport.Render(m.viewport.View()),
 	)
+}
+
+// DisableSaving disables the saving of the article
+func (m Model) DisableSaving() Model {
+	m.keymap.SaveArticle.SetEnabled(false)
+	return m
 }
 
 // showLoading shows the loading message or the error message

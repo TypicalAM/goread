@@ -13,9 +13,48 @@ import (
 	"github.com/TypicalAM/goread/internal/popup"
 	"github.com/TypicalAM/goread/internal/rss"
 
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
+
+// Keymap contains the key bindings for the browser
+type Keymap struct {
+	CloseTab  key.Binding
+	CycleTabs key.Binding
+	ShowHelp  key.Binding
+}
+
+// DefaultKeymap contains the default key bindings for the browser
+var DefaultKeymap = Keymap{
+	CloseTab: key.NewBinding(
+		key.WithKeys("c", "ctrl+w"),
+		key.WithHelp("c/C-w", "Close tab"),
+	),
+	CycleTabs: key.NewBinding(
+		key.WithKeys("tab"),
+		key.WithHelp("Tab", "Cycle tabs"),
+	),
+	ShowHelp: key.NewBinding(
+		key.WithKeys("h", "ctrl+h"),
+		key.WithHelp("h/C-h", "Help"),
+	),
+}
+
+// ShortHelp returns the short help for this tab
+func (k Keymap) ShortHelp() []key.Binding {
+	return []key.Binding{
+		k.CloseTab, k.CycleTabs,
+	}
+}
+
+// FullHelp returns the full help for this tab
+func (k Keymap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.CloseTab, k.CycleTabs},
+	}
+}
 
 // Model is used to store the state of the application
 type Model struct {
@@ -32,20 +71,33 @@ type Model struct {
 	windowWidth    int
 	windowHeight   int
 
+	// popups
+	popupShown bool
+	popup      popup.Popup
+
+	// keys
+	keymap Keymap
+	help   help.Model
+
 	// other
 	message  string
 	quitting bool
-
-	popupShown bool
-	popup      popup.Popup
 }
 
 // New returns a new model with some sensible defaults
 func New(cfg config.Config) Model {
+	help := help.New()
+	help.Styles.ShortDesc = lipgloss.NewStyle().Foreground(cfg.Colors.Text)
+	help.Styles.ShortKey = lipgloss.NewStyle().Foreground(cfg.Colors.Text)
+	help.Styles.ShortSeparator = lipgloss.NewStyle().Foreground(cfg.Colors.TextDark)
+	help.ShortSeparator = " - "
+
 	return Model{
 		config:         cfg,
 		style:          newStyle(cfg.Colors),
 		waitingForSize: true,
+		keymap:         DefaultKeymap,
+		help:           help,
 		message:        "Pro-tip - press [ctrl-h] to view the help page",
 	}
 }
@@ -159,13 +211,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c":
+		switch {
+		case msg.String() == "ctrl+c":
 			// Quit the program
 			m.quitting = true
 			return m, tea.Quit
 
-		case "esc":
+		case msg.String() == "esc":
 			// If we are showing a popup, close it
 			if m.popupShown {
 				m.popupShown = false
@@ -176,29 +228,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quitting = true
 			return m, tea.Quit
 
-		case "tab":
-			// Cycle through the tabs
-			m.activeTab++
-			if m.activeTab > len(m.tabs)-1 {
-				m.activeTab = 0
-			}
-
-			// Clear the message
-			m.message = ""
-			return m, nil
-
-		case "shift+tab":
-			// Cycle through the tabs
-			m.activeTab--
-			if m.activeTab < 0 {
-				m.activeTab = len(m.tabs) - 1
-			}
-
-			// Clear the current message
-			m.message = ""
-			return m, nil
-
-		case "c", "ctrl+w":
+		case key.Matches(msg, m.keymap.CloseTab):
 			if m.popupShown {
 				break
 			}
@@ -222,7 +252,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.message = fmt.Sprintf("Closed tab - %s", m.tabs[m.activeTab].Title())
 			return m, nil
 
-		case "h", "ctrl+h":
+		case key.Matches(msg, m.keymap.CycleTabs):
+			// Cycle through the tabs
+			m.activeTab++
+			if m.activeTab > len(m.tabs)-1 {
+				m.activeTab = 0
+			}
+
+			// Clear the message
+			m.message = ""
+			return m, nil
+
+		case key.Matches(msg, m.keymap.ShowHelp):
 			// View the help page
 			if !m.popupShown {
 				return m.showHelp()
@@ -323,7 +364,7 @@ func (m *Model) createNewTab(title string, tabType tab.Type) {
 				m.windowHeight-5,
 				title,
 				m.config.Backend.FetchAllArticles,
-			)
+			).DisableSaving()
 
 		case rss.DownloadedFeedsName:
 			newTab = feed.New(
@@ -392,9 +433,11 @@ func (m Model) downloadItem(msg backend.DownloadItemMessage) (tea.Model, tea.Cmd
 	return m, m.config.Backend.DownloadItem(msg.Key, msg.Index)
 }
 
-// showHelp() shows the help menu at the bottom of the screen
+// showHelp shows the help menu at the bottom of the screen
 func (m Model) showHelp() (tea.Model, tea.Cmd) {
-	m.message = m.tabs[m.activeTab].ShowHelp()
+	// Extend the bindings with the tab specific bindings
+	bindings := append(m.keymap.ShortHelp(), m.tabs[m.activeTab].GetKeyBinds()...)
+	m.message = m.help.ShortHelpView(bindings)
 	return m, nil
 }
 
