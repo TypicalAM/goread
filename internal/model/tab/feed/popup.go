@@ -46,9 +46,10 @@ func NewPopup(colors colorscheme.Colorscheme, bgRaw string, width, height int,
 	nameInput := textinput.New()
 	nameInput.CharLimit = 30
 	nameInput.Prompt = "Name: "
+	nameInput.Width = width - 20
 	urlInput := textinput.New()
 	urlInput.CharLimit = 100
-	urlInput.Width = 30
+	urlInput.Width = width - 20
 	urlInput.Prompt = "URL: "
 
 	if oldName != "" || oldURL != "" {
@@ -125,8 +126,8 @@ func (p Popup) View() string {
 	title := p.style.itemTitle.Render("New Feed")
 	name := p.style.itemField.Render(p.nameInput.View())
 	url := p.style.itemField.Render(p.urlInput.View())
-	item := p.style.item.Render(lipgloss.JoinVertical(lipgloss.Top, title, name, url))
-	popup := lipgloss.JoinVertical(lipgloss.Top, question, item)
+	item := p.style.item.Render(lipgloss.JoinVertical(lipgloss.Left, title, name, url))
+	popup := lipgloss.JoinVertical(lipgloss.Left, question, item)
 	return p.defaultPopup.Overlay(p.style.general.Render(popup))
 }
 
