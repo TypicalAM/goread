@@ -19,7 +19,7 @@ func getCache() (*Cache, error) {
 		return nil, err
 	}
 
-	return &cache, nil
+	return cache, nil
 }
 
 // TestCacheLoadNoFile if we get an error then there's no cache file
@@ -54,8 +54,8 @@ func TestCacheLoadCorrectly(t *testing.T) {
 	}
 }
 
-// TestCacheGetArticle if we get an error when there's a cache miss but the cache doesn't change
-func TestCacheGetArticle(t *testing.T) {
+// TestCacheGetArticles if we get an error when there's a cache miss but the cache doesn't change
+func TestCacheGetArticles(t *testing.T) {
 	// Create the cache object with a valid file
 	cache, err := getCache()
 	if err != nil {
@@ -63,7 +63,7 @@ func TestCacheGetArticle(t *testing.T) {
 	}
 
 	// Check if the cache hit works
-	_, err = cache.GetArticle("https://primordialsoup.info/feed")
+	_, err = cache.GetArticles("https://primordialsoup.info/feed")
 	if err != nil {
 		t.Fatalf("couldn't get article: %v", err)
 	}
@@ -73,7 +73,7 @@ func TestCacheGetArticle(t *testing.T) {
 	}
 
 	// Check if the cache miss retrieves the item and puts it inside the cache
-	_, err = cache.GetArticle("https://christitus.com/categories/virtualization/index.xml")
+	_, err = cache.GetArticles("https://christitus.com/categories/virtualization/index.xml")
 	if err != nil {
 		t.Fatalf("couldn't get article: %v", err)
 	}
@@ -105,7 +105,7 @@ func TestCacheGetArticleExpired(t *testing.T) {
 	oldItem.Expire = time.Now().Add(-2 * DefaultCacheDuration)
 	cache.Content["https://primordialsoup.info/feed"] = oldItem
 
-	_, err = cache.GetArticle("https://primordialsoup.info/feed")
+	_, err = cache.GetArticles("https://primordialsoup.info/feed")
 	if err != nil {
 		t.Fatalf("couldn't get article: %v", err)
 	}

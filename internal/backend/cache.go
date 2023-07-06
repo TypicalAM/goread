@@ -19,118 +19,98 @@ var DefaultCacheDuration = 24 * time.Hour
 // DefaultCacheSize is the default size of the cache
 var DefaultCacheSize = 100
 
-// Cache is a basic cache to read and write gofeed.Items based on the URL
+// Cache handles the caching of feeds and storing downloaded articles
 type Cache struct {
-	filePath string
-	Content  map[string]Item `json:"content"`
+	filePath   string
+	Content    map[string]Entry `json:"content"`
+	Downloaded SortableArticles `json:"downloaded"`
 }
 
-// Item is an item in the cache
-type Item struct {
-	Expire       time.Time     `json:"expire"`
-	Items        []gofeed.Item `json:"items"`
-	IsDownloaded bool          `json:"is_downloaded" default:"false" omitempty:"true"`
+// Entry is a cache entry
+type Entry struct {
+	Expire   time.Time        `json:"expire"`
+	Articles SortableArticles `json:"articles"`
 }
 
 // newStore creates a new cache
-func newStore(path string) (Cache, error) {
-	// Get the path to the cache file
+func newStore(path string) (*Cache, error) {
 	if path == "" {
 		defaultPath, err := getDefaultPath()
 		if err != nil {
-			return Cache{}, err
+			return nil, err
 		}
 
 		path = defaultPath
 	}
 
-	// Create the cache
-	return Cache{
-		filePath: path,
-		Content:  make(map[string]Item),
+	return &Cache{
+		filePath:   path,
+		Content:    make(map[string]Entry),
+		Downloaded: make(SortableArticles, 0),
 	}, nil
 }
 
 // Load reads the cache from disk
 func (c *Cache) Load() error {
-	// Load the cache from the file
 	file, err := os.ReadFile(c.filePath)
 	if err != nil {
 		return err
 	}
 
-	err = json.Unmarshal(file, &c.Content)
-	if err != nil {
+	if err = json.Unmarshal(file, &c); err != nil {
 		return err
 	}
 
 	// Iterate over the cache and remove any expired items
 	for key, value := range c.Content {
-		if !value.IsDownloaded && value.Expire.Before(time.Now()) {
+		if value.Expire.Before(time.Now()) {
 			delete(c.Content, key)
 		}
 	}
 
-	// Return no errors
 	return nil
 }
 
 // Save writes the cache to disk
 func (c *Cache) Save() error {
 	// Try to encode the cache
-	cacheData, err := json.Marshal(c.Content)
+	cacheData, err := json.Marshal(c)
 	if err != nil {
 		return err
 	}
 
 	// Try to write the data to the file
 	if err = os.WriteFile(c.filePath, cacheData, 0600); err != nil {
-		// Try to create the directory
-		err = os.MkdirAll(filepath.Dir(c.filePath), 0755)
-		if err != nil {
+		if err = os.MkdirAll(filepath.Dir(c.filePath), 0755); err != nil {
 			return err
 		}
 
-		// Try to write to the file again
-		err = os.WriteFile(c.filePath, cacheData, 0600)
-		if err != nil {
+		if err = os.WriteFile(c.filePath, cacheData, 0600); err != nil {
 			return err
 		}
 	}
 
-	// Writing was successful
 	return nil
 }
 
-// GetArticle returns an article list from the cache or fetches it from the internet
-// if it is not cached and updates the cache, it also updates expired items
-func (c *Cache) GetArticle(url string) ([]gofeed.Item, error) {
-	// Check if the cache contains the url
+// GetArticles returns an article list using the cache if possible
+func (c *Cache) GetArticles(url string) (SortableArticles, error) {
+	// Delete entry if expired
 	if item, ok := c.Content[url]; ok {
 		if item.Expire.After(time.Now()) {
-			return item.Items, nil
+			return item.Articles, nil
 		}
 
-		// Fetch the cacheItem from the internet
-		cacheItem, err := fetchArticle(url)
-		if err != nil {
-			return nil, err
-		}
-
-		// Add the item to the cache
-		c.Content[url] = cacheItem
-		return cacheItem.Items, nil
+		delete(c.Content, url)
 	}
 
-	// Fetch the cacheItem from the internet
-	cacheItem, err := fetchArticle(url)
+	articles, err := fetchArticles(url)
 	if err != nil {
 		return nil, err
 	}
 
-	// Check if the cache is full
+	// Delete oldest item if cache is full
 	if len(c.Content) >= DefaultCacheSize {
-		// Find the oldest item
 		var oldestKey string
 		var oldestTime time.Time
 		for key, value := range c.Content {
@@ -140,116 +120,72 @@ func (c *Cache) GetArticle(url string) ([]gofeed.Item, error) {
 			}
 		}
 
-		// Remove the item
 		delete(c.Content, oldestKey)
 	}
 
+	entry := Entry{
+		Expire:   time.Now().Add(DefaultCacheDuration),
+		Articles: articles,
+	}
+
 	// Add the item to the cache
-	c.Content[url] = cacheItem
-	return cacheItem.Items, nil
+	c.Content[url] = entry
+	return entry.Articles, nil
 }
 
-// GetAllArticles returns an article list from the cache or fetches it from the internet
-// if it is not cached and updates the cache, it also updates expired items and sorts
-// the items by publish date
-func (c *Cache) GetAllArticles(urls []string) []gofeed.Item {
-	// Create the result slice
-	var result []gofeed.Item
+// GetArticlesBulk returns a sorted list of articles from all the given urls, ignoring any errors
+func (c *Cache) GetArticlesBulk(urls []string) SortableArticles {
+	var result SortableArticles
 
-	// Iterate over the urls
 	for _, url := range urls {
-		// Get the article
-		if items, err := c.GetArticle(url); err == nil {
+		if items, err := c.GetArticles(url); err == nil {
 			result = append(result, items...)
 		}
 	}
 
-	// Sort the items
-	sort.Sort(itemList(result))
-
-	// Return the result
+	sort.Sort(result)
 	return result
 }
 
 // GetDownloaded returns a list of downloaded items
-func (c *Cache) GetDownloaded() []gofeed.Item {
-	// Create a slice to store the result
-	var result []gofeed.Item
-
-	// Iterate over the cache and add any downloaded items
-	for _, value := range c.Content {
-		if value.IsDownloaded {
-			result = append(result, value.Items...)
-		}
-	}
-
-	// Sort the items
-	sort.Sort(itemList(result))
-
-	// Return the items
-	return result
+func (c *Cache) GetDownloaded() SortableArticles {
+	sort.Sort(c.Downloaded)
+	return c.Downloaded
 }
 
 // AddToDownloaded adds an item to the downloaded list
 func (c *Cache) AddToDownloaded(url string, index int) error {
-	// Get the article
-	articleItems, err := c.GetArticle(url)
+	articles, err := c.GetArticles(url)
 	if err != nil {
 		return err
 	}
 
-	// Check if the index is valid
-	if index < 0 || index >= len(articleItems) {
+	if index < 0 || index >= len(articles) {
 		return fmt.Errorf("index out of range")
 	}
 
-	// Get the item
-	item := articleItems[index]
-
-	// Check if the cache contains the downloaded list
-	if value, ok := c.Content["downloaded"]; ok {
-		items := value.Items
-		items = append(items, item)
-		c.Content["downloaded"] = Item{
-			Expire:       time.Now(),
-			Items:        items,
-			IsDownloaded: true,
-		}
-	} else {
-		c.Content["downloaded"] = Item{
-			Expire:       time.Now(),
-			Items:        []gofeed.Item{item},
-			IsDownloaded: true,
-		}
-	}
-
+	c.Downloaded = append(c.Downloaded, articles[index])
 	return nil
 }
 
-// fetchArticle fetches an article list from the internet and returns a slice of items
-func fetchArticle(url string) (Item, error) {
-	// Parse the url
-	feed, err := parseURL(url)
+// fetchArticles fetches articles from the internet and returns them
+func fetchArticles(url string) (SortableArticles, error) {
+	feed, err := parseFeed(url)
 	if err != nil {
-		return Item{}, err
+		return nil, err
 	}
 
-	// Parse the items
-	items := make([]gofeed.Item, len(feed.Items))
+	items := make(SortableArticles, len(feed.Items))
 	for i, item := range feed.Items {
 		items[i] = *item
 	}
 
-	// Return the items
-	return Item{
-		Expire: time.Now().Add(DefaultCacheDuration),
-		Items:  items,
-	}, nil
+	return items, nil
 }
 
-// parseURL parses a url and attempts to return a parsed feed
+// parseFeed parses a url and attempts to return a parsed feed
 // authors note: this is made because the gofeed parser does not support some feeds, namely the ones from reddit
-func parseURL(feedURL string) (*gofeed.Feed, error) {
+func parseFeed(feedURL string) (*gofeed.Feed, error) {
 	// Create a new client
 	var client = http.Client{
 		Transport: &http.Transport{
@@ -270,17 +206,6 @@ func parseURL(feedURL string) (*gofeed.Feed, error) {
 		return nil, err
 	}
 
-	// Check the response
-	if resp != nil {
-		defer func() {
-			ce := resp.Body.Close()
-			if ce != nil {
-				err = ce
-			}
-		}()
-	}
-
-	// Check the status code
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, gofeed.HTTPError{
 			StatusCode: resp.StatusCode,
@@ -288,18 +213,24 @@ func parseURL(feedURL string) (*gofeed.Feed, error) {
 		}
 	}
 
-	// Try to parse the body
-	return gofeed.NewParser().Parse(resp.Body)
+	feed, err := gofeed.NewParser().Parse(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := resp.Body.Close(); err != nil {
+		return nil, err
+	}
+
+	return feed, nil
 }
 
 // getDefaultPath returns the default path to the cache file
 func getDefaultPath() (string, error) {
-	// Get the temporary directory
 	dir, err := os.UserCacheDir()
 	if err != nil {
 		return "", err
 	}
 
-	// Join the path
 	return filepath.Join(dir, "goread", "cache.json"), nil
 }

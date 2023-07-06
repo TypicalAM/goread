@@ -34,7 +34,7 @@ func New(urlPath, cachePath string, resetCache bool) (Backend, error) {
 	// Return the backend
 	rss := rss.New(urlPath)
 	return Backend{
-		Cache: &cache,
+		Cache: cache,
 		Rss:   &rss,
 	}, nil
 }
@@ -95,7 +95,7 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 		}
 
 		// Get the items from the cache
-		items, err := b.Cache.GetArticle(url)
+		items, err := b.Cache.GetArticles(url)
 		if err != nil {
 			return FetchErrorMessage{
 				Description: "Error while parsing the article",
@@ -133,7 +133,7 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 func (b Backend) FetchAllArticles(_ string) tea.Cmd {
 	return func() tea.Msg {
 		// Get all the articles and fetch them
-		items := b.Cache.GetAllArticles(b.Rss.GetAllURLs())
+		items := b.Cache.GetArticlesBulk(b.Rss.GetAllURLs())
 
 		// Create the list of list items
 		var result []list.Item
