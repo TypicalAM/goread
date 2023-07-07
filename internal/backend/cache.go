@@ -20,7 +20,7 @@ var DefaultCacheDuration = 24 * time.Hour
 var DefaultCacheSize = 100
 
 // ErrOfflineMode is returned when the backend is in offline mode
-var ErrOfflineMode = fmt.Errorf("turn online mode to download articles")
+var ErrOfflineMode = fmt.Errorf("offline mode")
 
 // Cache handles the caching of feeds and storing downloaded articles
 type Cache struct {

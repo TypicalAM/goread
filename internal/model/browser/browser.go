@@ -274,7 +274,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Toggle offline mode
 			m.offline = !m.offline
 			m.config.Backend.SetOfflineMode(m.offline)
-			m.msg = fmt.Sprintf("Offline mode: %t", m.offline)
+
+			if m.offline {
+				m.msg = "Offline mode enabled"
+			} else {
+				m.msg = "Offline mode disabled"
+			}
+
 			return m, nil
 		}
 	}
@@ -476,7 +482,7 @@ func (m Model) renderTabBar() string {
 // renderStatusBar is used to render the status bar at the bottom of the screen
 func (m Model) renderStatusBar() string {
 	// Render the status bar at the bottom of the screen
-	row := m.style.styleStatusBarCell(m.tabs[m.activeTab])
+	row := m.style.styleStatusBarCell(m.tabs[m.activeTab], m.offline)
 
 	// Calculate the gap amount
 	var gapAmount int
