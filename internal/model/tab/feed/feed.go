@@ -108,9 +108,13 @@ func (m Model) Title() string {
 	return m.title
 }
 
-// Type returns the type of the tab
-func (m Model) Type() tab.Type {
-	return tab.Feed
+// Style returns the style of the tab
+func (m Model) Style() tab.Style {
+	return tab.Style{
+		Color: m.colors.Color3,
+		Icon:  "",
+		Name:  "FEED",
+	}
 }
 
 // SetSize sets the dimensions of the tab

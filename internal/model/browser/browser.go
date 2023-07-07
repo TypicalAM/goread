@@ -439,13 +439,12 @@ func (m Model) showHelp() (tea.Model, tea.Cmd) {
 func (m *Model) renderTabBar() string {
 	// Render the tab bar at the top of the screen
 	tabs := make([]string, len(m.tabs))
-	for i, tabObj := range m.tabs {
-		tabs[i] = m.style.attachIconToTab(tabObj.Title(), tabObj.Type(), i == m.activeTab)
+	for i := range m.tabs {
+		tabs[i] = m.style.attachIcon(m.tabs[i], m.tabs[i].Title(), i == m.activeTab)
 	}
 
 	// Check if the row exceeds the width of the screen
 	if lipgloss.Width(strings.Join(tabs, "")) > m.windowWidth {
-		// Trim the tabs to fit the screen
 		tabs = tabs[m.activeTab:]
 	}
 
@@ -468,7 +467,7 @@ func (m *Model) renderTabBar() string {
 // renderStatusBar is used to render the status bar at the bottom of the screen
 func (m *Model) renderStatusBar() string {
 	// Render the status bar at the bottom of the screen
-	row := lipgloss.JoinHorizontal(lipgloss.Top, m.style.styleStatusBarCell(m.tabs[m.activeTab].Type()))
+	row := m.style.styleStatusBarCell(m.tabs[m.activeTab])
 
 	// Calculate the gap amount
 	var gapAmount int

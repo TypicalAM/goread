@@ -11,14 +11,11 @@ type style struct {
 	colors        colorscheme.Colorscheme
 	activeTab     lipgloss.Style
 	activeTabIcon lipgloss.Style
-	tabStyle      lipgloss.Style
+	tab           lipgloss.Style
 	tabIcon       lipgloss.Style
 	tabGap        lipgloss.Style
 	statusBarGap  lipgloss.Style
 	statusBarCell lipgloss.Style
-	iconColors    map[tab.Type]lipgloss.Color
-	icons         map[tab.Type]string
-	texts         map[tab.Type]string
 }
 
 // newStyle creates a new style
@@ -55,65 +52,45 @@ func newStyle(colors colorscheme.Colorscheme) style {
 		Padding(0, 1).
 		Foreground(colors.BgDark)
 
-	iconColors := map[tab.Type]lipgloss.Color{
-		tab.Welcome:  colors.Color4,
-		tab.Category: colors.Color5,
-		tab.Feed:     colors.Color3,
-	}
-
-	icons := map[tab.Type]string{
-		tab.Welcome:  "﫢",
-		tab.Category: "﫜",
-		tab.Feed:     "",
-	}
-
-	texts := map[tab.Type]string{
-		tab.Welcome:  "MAIN",
-		tab.Category: "CATEGORY",
-		tab.Feed:     "FEED",
-	}
-
 	return style{
 		colors:        colors,
 		activeTab:     activeTab,
 		activeTabIcon: activeTabIcon,
-		tabStyle:      tabStyle,
+		tab:           tabStyle,
 		tabIcon:       tabIcon,
 		tabGap:        tabGap,
 		statusBarGap:  statusBarGap,
 		statusBarCell: statusBarCell,
-		iconColors:    iconColors,
-		icons:         icons,
-		texts:         texts,
 	}
 }
 
-// attachIconToTab attaches an icon based on the tab type
-func (s style) attachIconToTab(text string, tabType tab.Type, isActive bool) string {
+// attachIcon attaches an icon based on the tab type
+func (s style) attachIcon(tabToStyle tab.Tab, title string, active bool) string {
 	var iconStyle, textStyle lipgloss.Style
-	if isActive {
-		iconStyle = s.activeTabIcon
-		textStyle = s.activeTab
+	if active {
+		iconStyle, textStyle = s.activeTabIcon, s.activeTab
 	} else {
-		iconStyle = s.tabIcon
-		textStyle = s.tabStyle
+		iconStyle, textStyle = s.tabIcon, s.tab
 	}
 
 	// Cut the text if the tab length is too much to handle
-	if len(text) > 12 {
-		text = text[:12] + ""
+	// TODO: Why 12 ???
+	if len(title) > 12 {
+		title = title[:12] + ""
 	}
 
+	tabStyle := tabToStyle.Style()
 	return lipgloss.JoinHorizontal(
 		lipgloss.Left,
-		iconStyle.Copy().Foreground(s.iconColors[tabType]).Render(s.icons[tabType]),
-		textStyle.Render(text),
+		iconStyle.Foreground(tabStyle.Color).Render(tabStyle.Icon),
+		textStyle.Render(title),
 	)
 }
 
 // styleStatusBarCell styles the status bar cell based on the tab type
-func (s style) styleStatusBarCell(tabType tab.Type) string {
-	return s.statusBarCell.Copy().
-		Background(s.iconColors[tabType]).
-		Render(s.texts[tabType])
+func (s style) styleStatusBarCell(tabToStyle tab.Tab) string {
+	tabStyle := tabToStyle.Style()
+	return s.statusBarCell.
+		Background(tabStyle.Color).
+		Render(tabStyle.Name)
 }

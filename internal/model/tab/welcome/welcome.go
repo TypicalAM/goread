@@ -83,9 +83,13 @@ func (m Model) Title() string {
 	return m.title
 }
 
-// Type returns the type of the tab
-func (m Model) Type() tab.Type {
-	return tab.Welcome
+// Style returns the style of the tab
+func (m Model) Style() tab.Style {
+	return tab.Style{
+		Color: m.colors.Color4,
+		Icon:  "﫢",
+		Name:  "WELCOME",
+	}
 }
 
 // SetSize sets the dimensions of the tab
