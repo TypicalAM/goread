@@ -1,7 +1,9 @@
 package backend
 
 import (
+	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/TypicalAM/goread/internal/model/simplelist"
 	"github.com/TypicalAM/goread/internal/rss"
@@ -215,6 +217,16 @@ func (b Backend) DownloadItem(key string, index int) tea.Cmd {
 		// Return nothing
 		return nil
 	}
+}
+
+// RemoveDownload tries to remove a download from the backend
+func (b Backend) RemoveDownload(key string) error {
+	index, err := strconv.Atoi(key)
+	if err != nil {
+		return errors.New("Invalid key")
+	}
+
+	return b.Cache.RemoveFromDownloaded(index)
 }
 
 // Close closes the backend

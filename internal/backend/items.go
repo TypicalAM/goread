@@ -11,12 +11,20 @@ type ItemType int
 const (
 	Category ItemType = iota + 1
 	Feed
+	Download
 )
 
 // FetchSuccessMessage is a message that is sent when the fetching of the
 // categories or feeds was successful
 type FetchSuccessMessage struct {
 	Items []list.Item
+}
+
+// FetchArticleSuccessMessage is a message that is sent when the fetching of the
+// articles was successful
+type FetchArticleSuccessMessage struct {
+	Items        []list.Item
+	Descriptions []string
 }
 
 // FetchErrorMessage is a message that is sent when the fetching of the

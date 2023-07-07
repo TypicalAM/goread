@@ -21,6 +21,7 @@ type Keymap struct {
 	ToggleFocus     key.Binding
 	RefreshArticles key.Binding
 	SaveArticle     key.Binding
+	DeleteFromSaved key.Binding
 }
 
 // DefaultKeymap contains the default key bindings for this tab
@@ -41,19 +42,23 @@ var DefaultKeymap = Keymap{
 		key.WithKeys("s", "ctrl+s"),
 		key.WithHelp("s/C-s", "Save"),
 	),
+	DeleteFromSaved: key.NewBinding(
+		key.WithKeys("d", "ctrl+d"),
+		key.WithHelp("d/C-d", "Delete from saved"),
+	),
 }
 
 // ShortHelp returns the short help for the tab
 func (k Keymap) ShortHelp() []key.Binding {
 	return []key.Binding{
-		k.OpenArticle, k.ToggleFocus, k.RefreshArticles, k.SaveArticle,
+		k.OpenArticle, k.ToggleFocus, k.RefreshArticles, k.SaveArticle, k.DeleteFromSaved,
 	}
 }
 
 // FullHelp returns the full help for the tab
 func (k Keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.OpenArticle, k.ToggleFocus, k.RefreshArticles, k.SaveArticle},
+		{k.OpenArticle, k.ToggleFocus, k.RefreshArticles, k.SaveArticle, k.DeleteFromSaved},
 	}
 }
 
@@ -186,6 +191,10 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		case key.Matches(msg, m.keymap.SaveArticle):
 			// Tell the main model to download the item
 			return m, backend.DownloadItem(m.title, m.list.Index())
+
+		case key.Matches(msg, m.keymap.DeleteFromSaved):
+			// Tell the main model to delete the item
+			return m, backend.DeleteItem(backend.Download, fmt.Sprintf("%d", m.list.Index()))
 		}
 
 	default:
@@ -328,6 +337,12 @@ func (m Model) View() string {
 // DisableSaving disables the saving of the article
 func (m Model) DisableSaving() Model {
 	m.keymap.SaveArticle.SetEnabled(false)
+	return m
+}
+
+// DisableDeleting disables the deleting of the article
+func (m Model) DisableDeleting() Model {
+	m.keymap.DeleteFromSaved.SetEnabled(false)
 	return m
 }
 

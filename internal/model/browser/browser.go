@@ -366,41 +366,21 @@ func (m *Model) createNewTab(title string, tabType tab.Type) {
 	case tab.Category:
 		switch title {
 		case rss.AllFeedsName:
-			newTab = feed.New(
-				m.config.Colors,
-				m.windowWidth,
-				m.windowHeight-5,
-				title,
-				m.config.Backend.FetchAllArticles,
-			).DisableSaving()
+			newTab = feed.New(m.config.Colors, m.windowWidth, m.windowHeight-5, title, m.config.Backend.FetchAllArticles).
+				DisableSaving().
+				DisableDeleting()
 
 		case rss.DownloadedFeedsName:
-			newTab = feed.New(
-				m.config.Colors,
-				m.windowWidth,
-				m.windowHeight-5,
-				title,
-				m.config.Backend.FetchDownloadedArticles,
-			)
+			newTab = feed.New(m.config.Colors, m.windowWidth, m.windowHeight-5, title, m.config.Backend.FetchDownloadedArticles).
+				DisableSaving()
 
 		default:
-			newTab = category.New(
-				m.config.Colors,
-				m.windowWidth,
-				m.windowHeight-5,
-				title,
-				m.config.Backend.FetchFeeds,
-			)
+			newTab = category.New(m.config.Colors, m.windowWidth, m.windowHeight-5, title, m.config.Backend.FetchFeeds)
 		}
 
 	case tab.Feed:
-		newTab = feed.New(
-			m.config.Colors,
-			m.windowWidth,
-			m.windowHeight-5,
-			title,
-			m.config.Backend.FetchArticles,
-		)
+		newTab = feed.New(m.config.Colors, m.windowWidth, m.windowHeight-5, title, m.config.Backend.FetchArticles).
+			DisableDeleting()
 	}
 
 	// Insert the tab after the active tab
@@ -415,24 +395,30 @@ func (m Model) deleteItem(msg backend.DeleteItemMessage) (tea.Model, tea.Cmd) {
 	m.msg = fmt.Sprintf("Deleting item %s", msg.Key)
 
 	// Check the type of the item
-	if msg.Type == backend.Category {
-		err := m.config.Backend.Rss.RemoveCategory(msg.Key)
-		if err != nil {
+	switch msg.Type {
+	case backend.Feed:
+		if err := m.config.Backend.Rss.RemoveFeed(m.tabs[m.activeTab].Title(), msg.Key); err != nil {
+			m.msg = fmt.Sprintf("Error deleting feed %s: %s", msg.Key, err.Error())
+		}
+
+		return m, m.config.Backend.FetchFeeds(m.tabs[m.activeTab].Title())
+
+	case backend.Category:
+		if err := m.config.Backend.Rss.RemoveCategory(msg.Key); err != nil {
 			m.msg = fmt.Sprintf("Error deleting category %s: %s", msg.Key, err.Error())
 		}
 
-		// Refresh the categories
 		return m, m.config.Backend.FetchCategories()
+
+	case backend.Download:
+		if err := m.config.Backend.RemoveDownload(msg.Key); err != nil {
+			m.msg = fmt.Sprintf("Error deleting download %s: %s", msg.Key, err.Error())
+		}
+
+		return m, m.config.Backend.FetchDownloadedArticles("")
 	}
 
-	// Delete the feed
-	err := m.config.Backend.Rss.RemoveFeed(m.tabs[m.activeTab].Title(), msg.Key)
-	if err != nil {
-		m.msg = fmt.Sprintf("Error deleting feed %s: %s", msg.Key, err.Error())
-	}
-
-	// Fetch the feeds again to update the list
-	return m, m.config.Backend.FetchFeeds(m.tabs[m.activeTab].Title())
+	return m, nil
 }
 
 // downloadItem downloads an item

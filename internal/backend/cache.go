@@ -168,6 +168,16 @@ func (c *Cache) AddToDownloaded(url string, index int) error {
 	return nil
 }
 
+// RemoveFromDownloaded removes an item from the downloaded list
+func (c *Cache) RemoveFromDownloaded(index int) error {
+	if index < 0 || index >= len(c.Downloaded) {
+		return fmt.Errorf("index out of range")
+	}
+
+	c.Downloaded = append(c.Downloaded[:index], c.Downloaded[index+1:]...)
+	return nil
+}
+
 // fetchArticles fetches articles from the internet and returns them
 func fetchArticles(url string) (SortableArticles, error) {
 	feed, err := parseFeed(url)
