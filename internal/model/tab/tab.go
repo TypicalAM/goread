@@ -6,14 +6,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type Type int
-
-const (
-	Welcome Type = iota + 1
-	Feed
-	Category
-)
-
 // Style is a struct that holds the style of a tab
 type Style struct {
 	Color lipgloss.Color
@@ -35,19 +27,18 @@ type Tab interface {
 	View() string
 }
 
-// NewTab returns a tea.Cmd which sends a message to the main
-// model to create a new tab
-func NewTab(title string, tabType Type) tea.Cmd {
+// NewTab returns a tea.Cmd which sends a message to the main model to create a new tab
+func NewTab(sender Tab, title string) tea.Cmd {
 	return func() tea.Msg {
 		return NewTabMessage{
-			Title: title,
-			Type:  tabType,
+			Sender: sender,
+			Title:  title,
 		}
 	}
 }
 
 // NewTabMessage is a tea.Msg that signals that a new tab should be created
 type NewTabMessage struct {
-	Title string
-	Type  Type
+	Sender Tab
+	Title  string
 }

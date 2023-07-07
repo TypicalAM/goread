@@ -136,7 +136,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		case key.Matches(msg, m.keymap.SelectCategory):
 			// Add a new tab with the selected category
 			if !m.list.IsEmpty() {
-				return m, tab.NewTab(m.list.SelectedItem().FilterValue(), tab.Category)
+				return m, tab.NewTab(m, m.list.SelectedItem().FilterValue())
 			}
 
 			// If the list is empty, return nothing
@@ -178,7 +178,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		default:
 			// Check if we need to open a new category
 			if item, ok := m.list.GetItem(msg.String()); ok {
-				return m, tab.NewTab(item.FilterValue(), tab.Category)
+				return m, tab.NewTab(m, item.FilterValue())
 			}
 		}
 	}

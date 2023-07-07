@@ -68,8 +68,8 @@ type Model struct {
 
 	// window size
 	waitingForSize bool
-	windowWidth    int
-	windowHeight   int
+	width          int
+	height         int
 
 	// popups
 	popupShown bool
@@ -165,13 +165,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tab.NewTabMessage:
 		// Create the new tab
-		m.createNewTab(msg.Title, msg.Type)
-		m.msg = ""
-		return m, m.tabs[m.activeTab].Init()
+		return m.createNewTab(msg)
 
 	case backend.NewItemMessage:
-		bg := lipgloss.NewStyle().Width(m.windowWidth).Height((m.windowHeight)).Render(m.View())
-		width := m.windowWidth / 2
+		bg := lipgloss.NewStyle().Width(m.width).Height((m.height)).Render(m.View())
+		width := m.width / 2
 		height := 17
 
 		// Open a new popup
@@ -202,13 +200,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.WindowSizeMsg:
 		// Resize the window
-		m.windowWidth = msg.Width
-		m.windowHeight = msg.Height
+		m.width = msg.Width
+		m.height = msg.Height
 		m.msg = ""
 
 		// Resize every tab
 		for i := range m.tabs {
-			m.tabs[i] = m.tabs[i].SetSize(m.windowWidth, m.windowHeight-5)
+			m.tabs[i] = m.tabs[i].SetSize(m.width, m.height-5)
 		}
 
 	case tea.KeyMsg:
@@ -309,7 +307,7 @@ func (m Model) View() string {
 	sections = append(sections, m.renderTabBar())
 
 	// Render the tab content and the status bar
-	constrainHeight := lipgloss.NewStyle().Height(m.windowHeight - 3)
+	constrainHeight := lipgloss.NewStyle().Height(m.height - 3)
 	sections = append(sections, constrainHeight.Render(m.tabs[m.activeTab].View()))
 
 	// Render the status bar
@@ -335,15 +333,15 @@ func (m Model) waitForSize(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Wait for the window size message
 	if msg, ok := msg.(tea.WindowSizeMsg); ok {
 		// Initialize the window height and width
-		m.windowWidth = msg.Width
-		m.windowHeight = msg.Height
+		m.width = msg.Width
+		m.height = msg.Height
 		m.waitingForSize = false
 
 		// Append a new welcome tab
 		m.tabs = append(m.tabs, welcome.New(
 			m.config.Colors,
-			m.windowWidth,
-			m.windowHeight-5,
+			m.width,
+			m.height-5,
 			"Welcome",
 			m.config.Backend.FetchCategories,
 		))
@@ -357,37 +355,37 @@ func (m Model) waitForSize(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // createNewTab bootstraps the new tab and adds it to the model
-func (m *Model) createNewTab(title string, tabType tab.Type) {
-	// Create and add the new tab
+func (m Model) createNewTab(msg tab.NewTabMessage) (Model, tea.Cmd) {
 	var newTab tab.Tab
+	height := m.height - 5
 
-	// Create a new tab based on the type
-	switch tabType {
-	case tab.Category:
-		switch title {
+	switch msg.Sender.(type) {
+	case welcome.Model:
+		switch msg.Title {
 		case rss.AllFeedsName:
-			newTab = feed.New(m.config.Colors, m.windowWidth, m.windowHeight-5, title, m.config.Backend.FetchAllArticles).
+			newTab = feed.New(m.config.Colors, m.width, height, msg.Title, m.config.Backend.FetchAllArticles).
 				DisableSaving().
 				DisableDeleting()
 
 		case rss.DownloadedFeedsName:
-			newTab = feed.New(m.config.Colors, m.windowWidth, m.windowHeight-5, title, m.config.Backend.FetchDownloadedArticles).
+			newTab = feed.New(m.config.Colors, m.width, height, msg.Title, m.config.Backend.FetchDownloadedArticles).
 				DisableSaving()
 
 		default:
-			newTab = category.New(m.config.Colors, m.windowWidth, m.windowHeight-5, title, m.config.Backend.FetchFeeds)
+			newTab = category.New(m.config.Colors, m.width, height, msg.Title, m.config.Backend.FetchFeeds)
 		}
 
-	case tab.Feed:
-		newTab = feed.New(m.config.Colors, m.windowWidth, m.windowHeight-5, title, m.config.Backend.FetchArticles).
+	case category.Model:
+		newTab = feed.New(m.config.Colors, m.width, height, msg.Title, m.config.Backend.FetchArticles).
 			DisableDeleting()
 	}
 
 	// Insert the tab after the active tab
 	m.tabs = append(m.tabs[:m.activeTab+1], append([]tab.Tab{newTab}, m.tabs[m.activeTab+1:]...)...)
-
-	// Increase the active tab count
 	m.activeTab++
+	m.msg = ""
+
+	return m, newTab.Init()
 }
 
 // deleteItem deletes the focused item from the backend
@@ -436,7 +434,7 @@ func (m Model) showHelp() (tea.Model, tea.Cmd) {
 }
 
 // renderTabBar renders the tab bar at the top of the screen
-func (m *Model) renderTabBar() string {
+func (m Model) renderTabBar() string {
 	// Render the tab bar at the top of the screen
 	tabs := make([]string, len(m.tabs))
 	for i := range m.tabs {
@@ -444,7 +442,7 @@ func (m *Model) renderTabBar() string {
 	}
 
 	// Check if the row exceeds the width of the screen
-	if lipgloss.Width(strings.Join(tabs, "")) > m.windowWidth {
+	if lipgloss.Width(strings.Join(tabs, "")) > m.width {
 		tabs = tabs[m.activeTab:]
 	}
 
@@ -453,10 +451,10 @@ func (m *Model) renderTabBar() string {
 
 	// Calculate the gap amount
 	var gapAmount int
-	if m.windowWidth-lipgloss.Width(row) < 0 {
+	if m.width-lipgloss.Width(row) < 0 {
 		gapAmount = 0
 	} else {
-		gapAmount = m.windowWidth - lipgloss.Width(row)
+		gapAmount = m.width - lipgloss.Width(row)
 	}
 
 	// Create the gap on the right
@@ -465,16 +463,16 @@ func (m *Model) renderTabBar() string {
 }
 
 // renderStatusBar is used to render the status bar at the bottom of the screen
-func (m *Model) renderStatusBar() string {
+func (m Model) renderStatusBar() string {
 	// Render the status bar at the bottom of the screen
 	row := m.style.styleStatusBarCell(m.tabs[m.activeTab])
 
 	// Calculate the gap amount
 	var gapAmount int
-	if m.windowWidth-lipgloss.Width(row) < 0 {
+	if m.width-lipgloss.Width(row) < 0 {
 		gapAmount = 0
 	} else {
-		gapAmount = m.windowWidth - lipgloss.Width(row)
+		gapAmount = m.width - lipgloss.Width(row)
 	}
 
 	// Render the gap on the right

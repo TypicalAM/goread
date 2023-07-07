@@ -134,7 +134,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		switch {
 		case key.Matches(msg, m.keymap.SelectFeed):
 			if !m.list.IsEmpty() {
-				return m, tab.NewTab(m.list.SelectedItem().FilterValue(), tab.Feed)
+				return m, tab.NewTab(m, m.list.SelectedItem().FilterValue())
 			}
 
 			// If the list is empty, return nothing
@@ -180,7 +180,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		default:
 			// Check if we need to open a new feed
 			if item, ok := m.list.GetItem(msg.String()); ok {
-				return m, tab.NewTab(item.FilterValue(), tab.Feed)
+				return m, tab.NewTab(m, item.FilterValue())
 			}
 		}
 	}
