@@ -13,8 +13,8 @@ import (
 
 // Backend uses a local cache to get all the feeds and their articles
 type Backend struct {
-	Cache *Cache
 	Rss   *rss.Rss
+	Cache *Cache
 }
 
 // New creates a new Cache Backend
@@ -100,7 +100,7 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 		items, err := b.Cache.GetArticles(url)
 		if err != nil {
 			return FetchErrorMessage{
-				Description: "Error while parsing the article",
+				Description: "Error while fetching the article",
 				Err:         err,
 			}
 		}
@@ -227,6 +227,11 @@ func (b Backend) RemoveDownload(key string) error {
 	}
 
 	return b.Cache.RemoveFromDownloaded(index)
+}
+
+// SetOfflineMode sets the offline mode of the backend
+func (b *Backend) SetOfflineMode(mode bool) {
+	b.Cache.SetOfflineMode(mode)
 }
 
 // Close closes the backend

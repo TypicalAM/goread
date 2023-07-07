@@ -8,14 +8,15 @@ import (
 
 // style is the internal style of the browser
 type style struct {
-	colors        colorscheme.Colorscheme
-	activeTab     lipgloss.Style
-	activeTabIcon lipgloss.Style
-	tab           lipgloss.Style
-	tabIcon       lipgloss.Style
-	tabGap        lipgloss.Style
-	statusBarGap  lipgloss.Style
-	statusBarCell lipgloss.Style
+	colors               colorscheme.Colorscheme
+	activeTab            lipgloss.Style
+	activeTabIcon        lipgloss.Style
+	tab                  lipgloss.Style
+	tabIcon              lipgloss.Style
+	tabGap               lipgloss.Style
+	statusBarGap         lipgloss.Style
+	statusBarCell        lipgloss.Style
+	offlineStatusBarCell lipgloss.Style
 }
 
 // newStyle creates a new style
@@ -53,14 +54,15 @@ func newStyle(colors colorscheme.Colorscheme) style {
 		Foreground(colors.BgDark)
 
 	return style{
-		colors:        colors,
-		activeTab:     activeTab,
-		activeTabIcon: activeTabIcon,
-		tab:           tabStyle,
-		tabIcon:       tabIcon,
-		tabGap:        tabGap,
-		statusBarGap:  statusBarGap,
-		statusBarCell: statusBarCell,
+		colors:               colors,
+		activeTab:            activeTab,
+		activeTabIcon:        activeTabIcon,
+		tab:                  tabStyle,
+		tabIcon:              tabIcon,
+		tabGap:               tabGap,
+		statusBarGap:         statusBarGap,
+		statusBarCell:        statusBarCell,
+		offlineStatusBarCell: statusBarCell.Copy().Background(colors.TextDark),
 	}
 }
 
@@ -88,8 +90,13 @@ func (s style) attachIcon(tabToStyle tab.Tab, title string, active bool) string 
 }
 
 // styleStatusBarCell styles the status bar cell based on the tab type
-func (s style) styleStatusBarCell(tabToStyle tab.Tab) string {
+func (s style) styleStatusBarCell(tabToStyle tab.Tab, offline bool) string {
 	tabStyle := tabToStyle.Style()
+	if offline {
+		return s.offlineStatusBarCell.
+			Render(tabStyle.Name)
+	}
+
 	return s.statusBarCell.
 		Background(tabStyle.Color).
 		Render(tabStyle.Name)

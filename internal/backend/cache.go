@@ -19,9 +19,14 @@ var DefaultCacheDuration = 24 * time.Hour
 // DefaultCacheSize is the default size of the cache
 var DefaultCacheSize = 100
 
+// ErrOfflineMode is returned when the backend is in offline mode
+var ErrOfflineMode = fmt.Errorf("offline mode")
+
 // Cache handles the caching of feeds and storing downloaded articles
 type Cache struct {
-	filePath   string
+	filePath    string
+	offlineMode bool
+
 	Content    map[string]Entry `json:"content"`
 	Downloaded SortableArticles `json:"downloaded"`
 }
@@ -93,6 +98,11 @@ func (c *Cache) Save() error {
 	return nil
 }
 
+// SetOfflineMode sets the offline mode
+func (c *Cache) SetOfflineMode(mode bool) {
+	c.offlineMode = mode
+}
+
 // GetArticles returns an article list using the cache if possible
 func (c *Cache) GetArticles(url string) (SortableArticles, error) {
 	// Delete entry if expired
@@ -104,6 +114,12 @@ func (c *Cache) GetArticles(url string) (SortableArticles, error) {
 		delete(c.Content, url)
 	}
 
+	// Check if we are in offline mode
+	if c.offlineMode {
+		return nil, ErrOfflineMode
+	}
+
+	// Fetch the articles
 	articles, err := fetchArticles(url)
 	if err != nil {
 		return nil, err
