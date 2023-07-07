@@ -13,8 +13,8 @@ import (
 
 // Backend uses a local cache to get all the feeds and their articles
 type Backend struct {
-	Cache *Cache
 	Rss   *rss.Rss
+	Cache *Cache
 }
 
 // New creates a new Cache Backend
@@ -227,6 +227,11 @@ func (b Backend) RemoveDownload(key string) error {
 	}
 
 	return b.Cache.RemoveFromDownloaded(index)
+}
+
+// SetOfflineMode sets the offline mode of the backend
+func (b *Backend) SetOfflineMode(mode bool) {
+	b.Cache.SetOfflineMode(mode)
 }
 
 // Close closes the backend

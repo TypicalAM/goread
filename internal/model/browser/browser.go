@@ -21,16 +21,17 @@ import (
 
 // Keymap contains the key bindings for the browser
 type Keymap struct {
-	CloseTab  key.Binding
-	CycleTabs key.Binding
-	ShowHelp  key.Binding
+	CloseTab          key.Binding
+	CycleTabs         key.Binding
+	ShowHelp          key.Binding
+	ToggleOfflineMode key.Binding
 }
 
 // DefaultKeymap contains the default key bindings for the browser
 var DefaultKeymap = Keymap{
 	CloseTab: key.NewBinding(
 		key.WithKeys("c", "ctrl+w"),
-		key.WithHelp("c/C-w", "Close tab"),
+		key.WithHelp("c", "Close tab"),
 	),
 	CycleTabs: key.NewBinding(
 		key.WithKeys("tab"),
@@ -38,21 +39,25 @@ var DefaultKeymap = Keymap{
 	),
 	ShowHelp: key.NewBinding(
 		key.WithKeys("h", "ctrl+h"),
-		key.WithHelp("h/C-h", "Help"),
+		key.WithHelp("h", "Help"),
+	),
+	ToggleOfflineMode: key.NewBinding(
+		key.WithKeys("o", "ctrl+o"),
+		key.WithHelp("o", "Offline mode"),
 	),
 }
 
 // ShortHelp returns the short help for this tab
 func (k Keymap) ShortHelp() []key.Binding {
 	return []key.Binding{
-		k.CloseTab, k.CycleTabs,
+		k.CloseTab, k.CycleTabs, k.ToggleOfflineMode,
 	}
 }
 
 // FullHelp returns the full help for this tab
 func (k Keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.CloseTab, k.CycleTabs},
+		{k.CloseTab, k.CycleTabs, k.ToggleOfflineMode},
 	}
 }
 
@@ -82,6 +87,7 @@ type Model struct {
 	// other
 	msg      string
 	quitting bool
+	offline  bool
 }
 
 // New returns a new model with some sensible defaults
@@ -263,6 +269,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if !m.popupShown {
 				return m.showHelp()
 			}
+
+		case key.Matches(msg, m.keymap.ToggleOfflineMode):
+			// Toggle offline mode
+			m.offline = !m.offline
+			m.config.Backend.SetOfflineMode(m.offline)
+			m.msg = fmt.Sprintf("Offline mode: %t", m.offline)
+			return m, nil
 		}
 	}
 
