@@ -100,7 +100,7 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 		items, err := b.Cache.GetArticles(url)
 		if err != nil {
 			return FetchErrorMessage{
-				Description: "Error while parsing the article",
+				Description: "Error while fetching the article",
 				Err:         err,
 			}
 		}
