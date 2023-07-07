@@ -172,19 +172,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		width := m.width / 2
 		height := 17
 
+		oldName, oldDesc := msg.OldFields[0], msg.OldFields[1]
+
 		// Open a new popup
-		if msg.Type == backend.Category {
-			if msg.New {
-				m.popup = category.NewPopup(m.style.colors, bg, width, height, "", "")
-			} else {
-				m.popup = category.NewPopup(m.style.colors, bg, width, height, msg.OldFields[0], msg.OldFields[1])
-			}
-		} else {
-			if msg.New {
-				m.popup = feed.NewPopup(m.style.colors, bg, width, height, "", "", msg.ItemPath[0])
-			} else {
-				m.popup = feed.NewPopup(m.style.colors, bg, width, height, msg.OldFields[0], msg.OldFields[1], msg.ItemPath[0])
-			}
+		switch msg.Sender.(type) {
+		case welcome.Model:
+			m.popup = category.NewPopup(m.style.colors, bg, width, height, oldName, oldDesc)
+		case category.Model:
+			m.popup = feed.NewPopup(m.style.colors, bg, width, height, oldName, oldDesc, msg.Sender.Title())
+		case feed.Model:
 		}
 
 		m.popupShown = true
@@ -393,24 +389,26 @@ func (m Model) deleteItem(msg backend.DeleteItemMessage) (tea.Model, tea.Cmd) {
 	m.msg = fmt.Sprintf("Deleting item %s", msg.Key)
 
 	// Check the type of the item
-	switch msg.Type {
-	case backend.Feed:
-		if err := m.config.Backend.Rss.RemoveFeed(m.tabs[m.activeTab].Title(), msg.Key); err != nil {
-			m.msg = fmt.Sprintf("Error deleting feed %s: %s", msg.Key, err.Error())
-		}
-
-		return m, m.config.Backend.FetchFeeds(m.tabs[m.activeTab].Title())
-
-	case backend.Category:
+	switch msg.Sender.(type) {
+	case welcome.Model:
 		if err := m.config.Backend.Rss.RemoveCategory(msg.Key); err != nil {
 			m.msg = fmt.Sprintf("Error deleting category %s: %s", msg.Key, err.Error())
 		}
 
 		return m, m.config.Backend.FetchCategories()
 
-	case backend.Download:
-		if err := m.config.Backend.RemoveDownload(msg.Key); err != nil {
-			m.msg = fmt.Sprintf("Error deleting download %s: %s", msg.Key, err.Error())
+	case category.Model:
+		if err := m.config.Backend.Rss.RemoveFeed(m.tabs[m.activeTab].Title(), msg.Key); err != nil {
+			m.msg = fmt.Sprintf("Error deleting feed %s: %s", msg.Key, err.Error())
+		}
+
+		return m, m.config.Backend.FetchFeeds(m.tabs[m.activeTab].Title())
+
+	case feed.Model:
+		if msg.Sender.Title() == rss.DownloadedFeedsName {
+			if err := m.config.Backend.RemoveDownload(msg.Key); err != nil {
+				m.msg = fmt.Sprintf("Error deleting download %s: %s", msg.Key, err.Error())
+			}
 		}
 
 		return m, m.config.Backend.FetchDownloadedArticles("")

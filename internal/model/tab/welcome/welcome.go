@@ -144,19 +144,14 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 		case key.Matches(msg, m.keymap.NewCategory):
 			// Add a new category
-			return m, backend.NewItem(backend.Category, true, nil, nil)
+			return m, backend.NewItem(m, false, make([]string, 2))
 
 		case key.Matches(msg, m.keymap.EditCategory):
 			// Edit the selected category
 			if !m.list.IsEmpty() {
-				categoryPath := []string{m.list.SelectedItem().FilterValue()}
 				item := m.list.SelectedItem().(simplelist.Item)
-				return m, backend.NewItem(
-					backend.Category,
-					false,
-					categoryPath,
-					[]string{item.Title(), item.Description()},
-				)
+				fields := []string{item.Title(), item.Description()}
+				return m, backend.NewItem(m, true, fields)
 			}
 
 		case key.Matches(msg, m.keymap.DeleteCategory):
@@ -172,7 +167,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 					m.list.SetIndex(m.list.Index() % (itemCount - 1))
 				}
 
-				return m, backend.DeleteItem(backend.Category, delItemName)
+				return m, backend.DeleteItem(m, delItemName)
 			}
 
 		default:

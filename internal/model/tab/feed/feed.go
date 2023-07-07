@@ -198,7 +198,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 		case key.Matches(msg, m.keymap.DeleteFromSaved):
 			// Tell the main model to delete the item
-			return m, backend.DeleteItem(backend.Download, fmt.Sprintf("%d", m.list.Index()))
+			return m, backend.DeleteItem(m, fmt.Sprintf("%d", m.list.Index()))
 		}
 
 	default:

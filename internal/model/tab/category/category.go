@@ -142,8 +142,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 		case key.Matches(msg, m.keymap.NewFeed):
 			// Add a new feed
-			feedPath := []string{m.title}
-			return m, backend.NewItem(backend.Feed, true, feedPath, nil)
+			return m, backend.NewItem(m, false, make([]string, 2))
 
 		case key.Matches(msg, m.keymap.EditFeed):
 			// If the list is empty, return nothing
@@ -152,14 +151,9 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			}
 
 			// Edit the selected feed
-			feedPath := []string{m.title, m.list.SelectedItem().FilterValue()}
 			item := m.list.SelectedItem().(simplelist.Item)
-			return m, backend.NewItem(
-				backend.Feed,
-				false,
-				feedPath,
-				[]string{item.FilterValue(), item.Description()},
-			)
+			fields := []string{item.Title(), item.Description()}
+			return m, backend.NewItem(m, true, fields)
 
 		case key.Matches(msg, m.keymap.DeleteFeed):
 			if !m.list.IsEmpty() {
@@ -174,7 +168,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 					m.list.SetIndex(m.list.Index() % (itemCount - 1))
 				}
 
-				return m, backend.DeleteItem(backend.Feed, delItemName)
+				return m, backend.DeleteItem(m, delItemName)
 			}
 
 		default:
