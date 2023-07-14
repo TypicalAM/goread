@@ -271,17 +271,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case key.Matches(msg, m.keymap.ToggleOfflineMode):
-			// Toggle offline mode
-			m.offline = !m.offline
-			m.config.Backend.SetOfflineMode(m.offline)
-
-			if m.offline {
-				m.msg = "Offline mode enabled"
-			} else {
-				m.msg = "Offline mode disabled"
+			if !m.popupShown {
+				return m.toggleOffline()
 			}
-
-			return m, nil
 		}
 	}
 
@@ -447,6 +439,20 @@ func (m Model) showHelp() (tea.Model, tea.Cmd) {
 	// Extend the bindings with the tab specific bindings
 	bindings := append(m.keymap.ShortHelp(), m.tabs[m.activeTab].GetKeyBinds()...)
 	m.msg = m.help.ShortHelpView(bindings)
+	return m, nil
+}
+
+// toggleOffline toggles the offline mode
+func (m Model) toggleOffline() (tea.Model, tea.Cmd) {
+	m.offline = !m.offline
+	m.config.Backend.SetOfflineMode(m.offline)
+
+	if m.offline {
+		m.msg = "Offline mode enabled"
+	} else {
+		m.msg = "Offline mode disabled"
+	}
+
 	return m, nil
 }
 
