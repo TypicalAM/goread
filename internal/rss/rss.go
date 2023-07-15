@@ -21,9 +21,6 @@ var DownloadedFeedsName = "Saved"
 // ErrNotFound is returned when a feed or category is not found
 var ErrNotFound = errors.New("not found")
 
-// ErrNotSupported is returned when a feed is not supported
-var ErrNotSupported = errors.New("not supported")
-
 // Rss will be used to structurize the rss feeds and categories
 // it will usually be read from a file
 type Rss struct {
@@ -160,7 +157,7 @@ func (rss Rss) GetFeeds(categoryName string) (names []string, urls []string, err
 func (rss Rss) GetFeedURL(feedName string) (string, error) {
 	// Check if the feed is reserved
 	if feedName == AllFeedsName || feedName == DownloadedFeedsName {
-		return "", ErrNotSupported
+		return "", ErrReservedName
 	}
 
 	// Iterate over all categories
