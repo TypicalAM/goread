@@ -51,7 +51,7 @@ func (b Backend) FetchCategories() tea.Cmd {
 		// Create a list of list items
 		items := make([]list.Item, len(names))
 		for i := range names {
-			items[i] = simplelist.NewItem(names[i], descs[i], "")
+			items[i] = simplelist.NewItem(names[i], descs[i])
 		}
 
 		// Return the message
@@ -75,7 +75,7 @@ func (b Backend) FetchFeeds(catName string) tea.Cmd {
 		// Create a list of list items
 		items := make([]list.Item, len(names))
 		for i := range names {
-			items[i] = simplelist.NewItem(names[i], urls[i], "")
+			items[i] = simplelist.NewItem(names[i], urls[i])
 		}
 
 		// Return the message
@@ -105,28 +105,20 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 			}
 		}
 
-		// Create the list of list items
-		var result []list.Item
-		for i, item := range items {
-			// Check if the description can be converted to a string
-			var description string
-			text, err := rss.HTMLToText(item.Description)
-			if err != nil {
-				description = item.Description
-			} else {
-				description = text
-			}
+		// Fill the lists with the items
+		result := make([]list.Item, len(items))
+		contents := make([]string, len(items))
 
-			// Create the list item
-			result = append(result, simplelist.NewItem(
-				item.Title,
-				description,
-				rss.YassifyItem(&items[i]),
-			))
+		for i, item := range items {
+			result[i] = simplelist.NewItem(item.Title, betterDesc(item.Description))
+			contents[i] = rss.YassifyItem(&items[i])
 		}
 
 		// Return the message
-		return FetchSuccessMessage{Items: result}
+		return FetchArticleSuccessMessage{
+			Items:           result,
+			ArticleContents: contents,
+		}
 	}
 }
 
@@ -137,28 +129,20 @@ func (b Backend) FetchAllArticles(_ string) tea.Cmd {
 		// Get all the articles and fetch them
 		items := b.Cache.getArticlesBulk(b.Rss.GetAllURLs())
 
-		// Create the list of list items
-		var result []list.Item
-		for i, item := range items {
-			// Check if the description can be converted to a string
-			var description string
-			text, err := rss.HTMLToText(item.Description)
-			if err != nil {
-				description = item.Description
-			} else {
-				description = text
-			}
+		// Fill the lists with the items
+		result := make([]list.Item, len(items))
+		contents := make([]string, len(items))
 
-			// Create the list item
-			result = append(result, simplelist.NewItem(
-				item.Title,
-				description,
-				rss.YassifyItem(&items[i]),
-			))
+		for i, item := range items {
+			result[i] = simplelist.NewItem(item.Title, betterDesc(item.Description))
+			contents[i] = rss.YassifyItem(&items[i])
 		}
 
 		// Return the message
-		return FetchSuccessMessage{Items: result}
+		return FetchArticleSuccessMessage{
+			Items:           result,
+			ArticleContents: contents,
+		}
 	}
 }
 
@@ -169,27 +153,20 @@ func (b Backend) FetchDownloadedArticles(_ string) tea.Cmd {
 		// Get all the downloaded articles
 		items := b.Cache.getDownloaded()
 
-		var result []list.Item
-		for i, item := range items {
-			// Check if the description can be converted to a string
-			var description string
-			text, err := rss.HTMLToText(item.Description)
-			if err != nil {
-				description = item.Description
-			} else {
-				description = text
-			}
+		// Fill the lists with the items
+		result := make([]list.Item, len(items))
+		contents := make([]string, len(items))
 
-			// Create the list item
-			result = append(result, simplelist.NewItem(
-				item.Title,
-				description,
-				rss.YassifyItem(&items[i]),
-			))
+		for i, item := range items {
+			result[i] = simplelist.NewItem(item.Title, betterDesc(item.Description))
+			contents[i] = rss.YassifyItem(&items[i])
 		}
 
 		// Return the message
-		return FetchSuccessMessage{Items: result}
+		return FetchArticleSuccessMessage{
+			Items:           result,
+			ArticleContents: contents,
+		}
 	}
 }
 
@@ -243,4 +220,15 @@ func (b Backend) Close() error {
 
 	// Try to save the cache
 	return b.Cache.save()
+}
+
+// betterDesc returns a styled description
+func betterDesc(rawDesc string) string {
+	desc := rawDesc
+	text, err := rss.HTMLToText(rawDesc)
+	if err == nil {
+		desc = text
+	}
+
+	return desc
 }

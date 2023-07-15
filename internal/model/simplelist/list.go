@@ -10,6 +10,35 @@ import (
 	"github.com/muesli/reflow/ansi"
 )
 
+// Item is an item in the list
+type Item struct {
+	title string
+	desc  string
+}
+
+// NewItem creates a new item
+func NewItem(title, desc string) Item {
+	return Item{
+		title: title,
+		desc:  desc,
+	}
+}
+
+// Title returns the title of the item
+func (i Item) Title() string {
+	return i.title
+}
+
+// Description returns the description of the item
+func (i Item) Description() string {
+	return i.desc
+}
+
+// FilterValue returns the title of the item
+func (i Item) FilterValue() string {
+	return i.title
+}
+
 // Model contains state of the list
 type Model struct {
 	colors       colorscheme.Colorscheme
@@ -127,10 +156,12 @@ func (m Model) View() string {
 
 		// If the description is shown add the description
 		if m.showDesc {
-			if ansi.PrintableRuneWidth(m.items[i].(Item).Description()) != 0 {
-				sections = append(sections, m.style.styleDescription(m.items[i].(Item).Description()))
-			} else {
-				sections = append(sections, "")
+			if item, ok := m.items[i].(list.DefaultItem); ok {
+				if ansi.PrintableRuneWidth(item.Description()) != 0 {
+					sections = append(sections, m.style.styleDescription(item.Description()))
+				} else {
+					sections = append(sections, "")
+				}
 			}
 		}
 	}

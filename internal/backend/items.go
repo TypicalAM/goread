@@ -15,8 +15,8 @@ type FetchSuccessMessage struct {
 // FetchArticleSuccessMessage is a message that is sent when the fetching of the
 // articles was successful
 type FetchArticleSuccessMessage struct {
-	Items        []list.Item
-	Descriptions []string
+	Items           []list.Item
+	ArticleContents []string
 }
 
 // FetchErrorMessage is a message that is sent when the fetching of the

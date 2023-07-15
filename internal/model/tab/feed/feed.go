@@ -12,7 +12,9 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/reflow/wrap"
 )
 
 // Keymap contains the key bindings for this tab
@@ -73,6 +75,8 @@ type Model struct {
 	loadingSpinner  spinner.Model
 	fetchFailed     bool
 	list            list.Model
+	articleContent  []string
+	termRenderer    glamour.TermRenderer
 	isViewportOpen  bool
 	viewport        viewport.Model
 	viewportFocused bool
@@ -147,9 +151,9 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		m.fetchFailed = true
 		return m, nil
 
-	case backend.FetchSuccessMessage:
+	case backend.FetchArticleSuccessMessage:
 		// If the fetch succeeded, we need to load the tab
-		return m.loadTab(msg.Items)
+		return m.loadTab(msg.Items, msg.ArticleContents)
 
 	case tea.KeyMsg:
 		// If the tab is not loaded, return
@@ -229,15 +233,8 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 // loadTab is fired when the items are retrieved from the backend, it
 // initializes the list and the viewport
-func (m Model) loadTab(items []list.Item) (tab.Tab, tea.Cmd) {
-	// Check if the items are simplelist.Item compliant
-	wrappedItems := make([]list.Item, len(items))
-	for i, item := range items {
-		if _, ok := item.(simplelist.Item); ok {
-			wrappedItems[i] = item.(simplelist.Item).WrapDescription(m.width/4 - 3)
-		}
-	}
-
+// TODO: Wrap descs to m.width/4 - 3
+func (m Model) loadTab(items []list.Item, articleContents []string) (tab.Tab, tea.Cmd) {
 	// Create the styles for the list items
 	delegateStyles := list.NewDefaultItemStyles()
 	delegateStyles.SelectedTitle = delegateStyles.SelectedTitle.Copy().
@@ -261,8 +258,14 @@ func (m Model) loadTab(items []list.Item) (tab.Tab, tea.Cmd) {
 	itemDelegate.Styles = delegateStyles
 	itemDelegate.SetHeight(3)
 
+	// Wrap the descs, it's better to do it upfront then to rely on the list pagination
+	for i := range items {
+		item := items[i].(list.DefaultItem)
+		items[i] = simplelist.NewItem(item.Title(), wrap.String(item.Description(), m.style.listWidth-4))
+	}
+
 	// Initialize the list
-	m.list = list.New(wrappedItems, itemDelegate, m.style.listWidth, m.height)
+	m.list = list.New(items, itemDelegate, m.style.listWidth, m.height)
 
 	// Set some attributes for the list
 	m.list.SetShowHelp(false)
@@ -273,7 +276,22 @@ func (m Model) loadTab(items []list.Item) (tab.Tab, tea.Cmd) {
 	// Initialize the viewport
 	m.viewport = viewport.New(m.style.viewportWidth, m.height)
 
-	// We are locked and loaded
+	// Create the renderer for the viewport
+	m.articleContent = articleContents
+	termRenderer, err := glamour.NewTermRenderer(
+		// TODO: Auto gen ansi.StyleConfig
+		glamour.WithStylePath("dracula"),
+		glamour.WithWordWrap(m.style.viewportWidth),
+	)
+
+	// TODO: Infinite loop?
+	if err != nil {
+		m.loaded = false
+		return m, nil
+	}
+
+	// Locked and loaded
+	m.termRenderer = *termRenderer
 	m.loaded = true
 	return m, nil
 }
@@ -291,15 +309,10 @@ func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
 		return m, nil
 	}
 
-	// Set the width of the styled content for word wrapping
-	contentWidth := m.width - m.width/4 - 2
-
 	// Get the content of the selected item
-	content, err := m.list.SelectedItem().(simplelist.Item).StyleContent(contentWidth)
+	content, err := m.termRenderer.Render(m.articleContent[m.list.Index()])
 	if err != nil {
-		m.viewport.SetContent(
-			fmt.Sprintf("We have encountered an error styling the content: %s", err),
-		)
+		m.viewport.SetContent(fmt.Sprintf("We have encountered an error styling the content: %s", err))
 		return m, nil
 	}
 
