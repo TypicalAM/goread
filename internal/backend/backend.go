@@ -27,7 +27,7 @@ func New(urlPath, cachePath string, resetCache bool) (Backend, error) {
 
 	// Try to load the cache
 	if !resetCache {
-		err = cache.Load()
+		err = cache.load()
 		if err != nil {
 			fmt.Printf("Failed to load the cache: %v, creating a new one", err)
 		}
@@ -97,7 +97,7 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 		}
 
 		// Get the items from the cache
-		items, err := b.Cache.GetArticles(url)
+		items, err := b.Cache.getArticles(url)
 		if err != nil {
 			return FetchErrorMessage{
 				Description: "Error while fetching the article",
@@ -135,7 +135,7 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 func (b Backend) FetchAllArticles(_ string) tea.Cmd {
 	return func() tea.Msg {
 		// Get all the articles and fetch them
-		items := b.Cache.GetArticlesBulk(b.Rss.GetAllURLs())
+		items := b.Cache.getArticlesBulk(b.Rss.GetAllURLs())
 
 		// Create the list of list items
 		var result []list.Item
@@ -167,7 +167,7 @@ func (b Backend) FetchAllArticles(_ string) tea.Cmd {
 func (b Backend) FetchDownloadedArticles(_ string) tea.Cmd {
 	return func() tea.Msg {
 		// Get all the downloaded articles
-		items := b.Cache.GetDownloaded()
+		items := b.Cache.getDownloaded()
 
 		var result []list.Item
 		for i, item := range items {
@@ -206,7 +206,7 @@ func (b Backend) DownloadItem(key string, index int) tea.Cmd {
 		}
 
 		// Get the items from the cache
-		err = b.Cache.AddToDownloaded(url, index)
+		err = b.Cache.addToDownloaded(url, index)
 		if err != nil {
 			return FetchErrorMessage{
 				Description: "Error while downloading the article",
@@ -226,12 +226,12 @@ func (b Backend) RemoveDownload(key string) error {
 		return errors.New("Invalid key")
 	}
 
-	return b.Cache.RemoveFromDownloaded(index)
+	return b.Cache.removeFromDownloaded(index)
 }
 
 // SetOfflineMode sets the offline mode of the backend
 func (b *Backend) SetOfflineMode(mode bool) {
-	b.Cache.SetOfflineMode(mode)
+	b.Cache.offlineMode = mode
 }
 
 // Close closes the backend
@@ -242,5 +242,5 @@ func (b Backend) Close() error {
 	}
 
 	// Try to save the cache
-	return b.Cache.Save()
+	return b.Cache.save()
 }

@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -14,7 +15,7 @@ func getCache() (*Cache, error) {
 		return nil, err
 	}
 
-	err = cache.Load()
+	err = cache.load()
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +31,7 @@ func TestCacheLoadNoFile(t *testing.T) {
 		t.Fatalf("couldn't get default path: %v", err)
 	}
 
-	err = cache.Load()
+	err = cache.load()
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -44,6 +45,7 @@ func TestCacheLoadCorrectly(t *testing.T) {
 		t.Fatalf("couldn't load the cache %v", err)
 	}
 
+	fmt.Println(cache)
 	// Check if the cache is loaded correctly
 	if len(cache.Content) != 1 {
 		t.Fatal("expected 1 item in cache")
@@ -63,7 +65,7 @@ func TestCacheGetArticles(t *testing.T) {
 	}
 
 	// Check if the cache hit works
-	_, err = cache.GetArticles("https://primordialsoup.info/feed")
+	_, err = cache.getArticles("https://primordialsoup.info/feed")
 	if err != nil {
 		t.Fatalf("couldn't get article: %v", err)
 	}
@@ -73,7 +75,7 @@ func TestCacheGetArticles(t *testing.T) {
 	}
 
 	// Check if the cache miss retrieves the item and puts it inside the cache
-	_, err = cache.GetArticles("https://christitus.com/categories/virtualization/index.xml")
+	_, err = cache.getArticles("https://christitus.com/categories/virtualization/index.xml")
 	if err != nil {
 		t.Fatalf("couldn't get article: %v", err)
 	}
@@ -105,7 +107,7 @@ func TestCacheGetArticleExpired(t *testing.T) {
 	oldItem.Expire = time.Now().Add(-2 * DefaultCacheDuration)
 	cache.Content["https://primordialsoup.info/feed"] = oldItem
 
-	_, err = cache.GetArticles("https://primordialsoup.info/feed")
+	_, err = cache.getArticles("https://primordialsoup.info/feed")
 	if err != nil {
 		t.Fatalf("couldn't get article: %v", err)
 	}
@@ -116,7 +118,7 @@ func TestCacheGetArticleExpired(t *testing.T) {
 		t.Fatal("expected https://primordialsoup.info/feed in cache")
 	}
 
-	if newItem.Expire == oldItem.Expire {
+	if newItem.Expire.Equal(oldItem.Expire) {
 		t.Fatal("expected the data to be refreshed and the expire to be updated")
 	}
 }

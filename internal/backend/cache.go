@@ -19,9 +19,6 @@ var DefaultCacheDuration = 24 * time.Hour
 // DefaultCacheSize is the default size of the cache
 var DefaultCacheSize = 100
 
-// ErrOfflineMode is returned when the backend is in offline mode
-var ErrOfflineMode = fmt.Errorf("offline mode")
-
 // Cache handles the caching of feeds and storing downloaded articles
 type Cache struct {
 	filePath    string
@@ -55,8 +52,8 @@ func newStore(path string) (*Cache, error) {
 	}, nil
 }
 
-// Load reads the cache from disk
-func (c *Cache) Load() error {
+// load reads the cache from disk
+func (c *Cache) load() error {
 	file, err := os.ReadFile(c.filePath)
 	if err != nil {
 		return err
@@ -76,8 +73,8 @@ func (c *Cache) Load() error {
 	return nil
 }
 
-// Save writes the cache to disk
-func (c *Cache) Save() error {
+// save writes the cache to disk
+func (c *Cache) save() error {
 	// Try to encode the cache
 	cacheData, err := json.Marshal(c)
 	if err != nil {
@@ -98,13 +95,8 @@ func (c *Cache) Save() error {
 	return nil
 }
 
-// SetOfflineMode sets the offline mode
-func (c *Cache) SetOfflineMode(mode bool) {
-	c.offlineMode = mode
-}
-
-// GetArticles returns an article list using the cache if possible
-func (c *Cache) GetArticles(url string) (SortableArticles, error) {
+// getArticles returns an article list using the cache if possible
+func (c *Cache) getArticles(url string) (SortableArticles, error) {
 	// Delete entry if expired
 	if item, ok := c.Content[url]; ok {
 		if item.Expire.After(time.Now()) {
@@ -116,7 +108,7 @@ func (c *Cache) GetArticles(url string) (SortableArticles, error) {
 
 	// Check if we are in offline mode
 	if c.offlineMode {
-		return nil, ErrOfflineMode
+		return nil, fmt.Errorf("offline mode")
 	}
 
 	// Fetch the articles
@@ -149,12 +141,12 @@ func (c *Cache) GetArticles(url string) (SortableArticles, error) {
 	return entry.Articles, nil
 }
 
-// GetArticlesBulk returns a sorted list of articles from all the given urls, ignoring any errors
-func (c *Cache) GetArticlesBulk(urls []string) SortableArticles {
+// getArticlesBulk returns a sorted list of articles from all the given urls, ignoring any errors
+func (c *Cache) getArticlesBulk(urls []string) SortableArticles {
 	var result SortableArticles
 
 	for _, url := range urls {
-		if items, err := c.GetArticles(url); err == nil {
+		if items, err := c.getArticles(url); err == nil {
 			result = append(result, items...)
 		}
 	}
@@ -163,15 +155,15 @@ func (c *Cache) GetArticlesBulk(urls []string) SortableArticles {
 	return result
 }
 
-// GetDownloaded returns a list of downloaded items
-func (c *Cache) GetDownloaded() SortableArticles {
+// getDownloaded returns a list of downloaded items
+func (c *Cache) getDownloaded() SortableArticles {
 	sort.Sort(c.Downloaded)
 	return c.Downloaded
 }
 
-// AddToDownloaded adds an item to the downloaded list
-func (c *Cache) AddToDownloaded(url string, index int) error {
-	articles, err := c.GetArticles(url)
+// addToDownloaded adds an item to the downloaded list
+func (c *Cache) addToDownloaded(url string, index int) error {
+	articles, err := c.getArticles(url)
 	if err != nil {
 		return err
 	}
@@ -184,8 +176,8 @@ func (c *Cache) AddToDownloaded(url string, index int) error {
 	return nil
 }
 
-// RemoveFromDownloaded removes an item from the downloaded list
-func (c *Cache) RemoveFromDownloaded(index int) error {
+// removeFromDownloaded removes an item from the downloaded list
+func (c *Cache) removeFromDownloaded(index int) error {
 	if index < 0 || index >= len(c.Downloaded) {
 		return fmt.Errorf("index out of range")
 	}
