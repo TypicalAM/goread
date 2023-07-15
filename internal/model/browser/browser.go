@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/TypicalAM/goread/internal/backend"
-	"github.com/TypicalAM/goread/internal/config"
+	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/TypicalAM/goread/internal/model/tab"
 	"github.com/TypicalAM/goread/internal/model/tab/category"
 	"github.com/TypicalAM/goread/internal/model/tab/feed"
@@ -63,44 +63,33 @@ func (k Keymap) FullHelp() [][]key.Binding {
 
 // Model is used to store the state of the application
 type Model struct {
-	// config is the config of the application
-	config config.Config
-	style  style
-
-	// managing tabs
-	tabs      []tab.Tab
-	activeTab int
-
-	// window size
+	style          style
+	backend        backend.Backend
+	tabs           []tab.Tab
+	activeTab      int
 	waitingForSize bool
 	width          int
 	height         int
-
-	// popups
-	popupShown bool
-	popup      popup.Popup
-
-	// keys
-	keymap Keymap
-	help   help.Model
-
-	// other
-	msg      string
-	quitting bool
-	offline  bool
+	popupShown     bool
+	popup          popup.Popup
+	keymap         Keymap
+	help           help.Model
+	msg            string
+	quitting       bool
+	offline        bool
 }
 
 // New returns a new model with some sensible defaults
-func New(cfg config.Config) Model {
+func New(colors colorscheme.Colorscheme, backend backend.Backend) Model {
 	help := help.New()
-	help.Styles.ShortDesc = lipgloss.NewStyle().Foreground(cfg.Colors.Text)
-	help.Styles.ShortKey = lipgloss.NewStyle().Foreground(cfg.Colors.Text)
-	help.Styles.ShortSeparator = lipgloss.NewStyle().Foreground(cfg.Colors.TextDark)
+	help.Styles.ShortDesc = lipgloss.NewStyle().Foreground(colors.Text)
+	help.Styles.ShortKey = lipgloss.NewStyle().Foreground(colors.Text)
+	help.Styles.ShortSeparator = lipgloss.NewStyle().Foreground(colors.TextDark)
 	help.ShortSeparator = " - "
 
 	return Model{
-		config:         cfg,
-		style:          newStyle(cfg.Colors),
+		style:          newStyle(colors),
+		backend:        backend,
 		waitingForSize: true,
 		keymap:         DefaultKeymap,
 		help:           help,
@@ -135,39 +124,39 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.popupShown = false
 
 		if msg.IsEdit {
-			if err := m.config.Backend.Rss.UpdateCategory(msg.OldName, msg.Name, msg.Desc); err != nil {
+			if err := m.backend.Rss.UpdateCategory(msg.OldName, msg.Name, msg.Desc); err != nil {
 				m.msg = fmt.Sprintf("Error updating category: %s", err.Error())
 			} else {
 				m.msg = fmt.Sprintf("Updated category %s", msg.Name)
 			}
 		} else {
-			if err := m.config.Backend.Rss.AddCategory(msg.Name, msg.Desc); err != nil {
+			if err := m.backend.Rss.AddCategory(msg.Name, msg.Desc); err != nil {
 				m.msg = fmt.Sprintf("Error adding category: %s", err.Error())
 			} else {
 				m.msg = fmt.Sprintf("Added category %s", msg.Name)
 			}
 		}
 
-		return m, m.config.Backend.FetchCategories()
+		return m, m.backend.FetchCategories()
 
 	case feed.ChosenFeedMsg:
 		m.popupShown = false
 
 		if msg.IsEdit {
-			if err := m.config.Backend.Rss.UpdateFeed(msg.ParentCategory, msg.OldName, msg.Name, msg.URL); err != nil {
+			if err := m.backend.Rss.UpdateFeed(msg.ParentCategory, msg.OldName, msg.Name, msg.URL); err != nil {
 				m.msg = fmt.Sprintf("Error updating feed: %s", err.Error())
 			} else {
 				m.msg = fmt.Sprintf("Updated feed %s", msg.Name)
 			}
 		} else {
-			if err := m.config.Backend.Rss.AddFeed(msg.ParentCategory, msg.Name, msg.URL); err != nil {
+			if err := m.backend.Rss.AddFeed(msg.ParentCategory, msg.Name, msg.URL); err != nil {
 				m.msg = fmt.Sprintf("Error adding feed: %s", err.Error())
 			} else {
 				m.msg = fmt.Sprintf("Added feed %s", msg.Name)
 			}
 		}
 
-		return m, m.config.Backend.FetchFeeds(msg.ParentCategory)
+		return m, m.backend.FetchFeeds(msg.ParentCategory)
 
 	case tab.NewTabMessage:
 		// Create the new tab
@@ -346,11 +335,11 @@ func (m Model) waitForSize(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Append a new welcome tab
 		m.tabs = append(m.tabs, welcome.New(
-			m.config.Colors,
+			m.style.colors,
 			m.width,
 			m.height-5,
 			"Welcome",
-			m.config.Backend.FetchCategories,
+			m.backend.FetchCategories,
 		))
 
 		// Return the init of the tab
@@ -370,20 +359,20 @@ func (m Model) createNewTab(msg tab.NewTabMessage) (Model, tea.Cmd) {
 	case welcome.Model:
 		switch msg.Title {
 		case rss.AllFeedsName:
-			newTab = feed.New(m.config.Colors, m.width, height, msg.Title, m.config.Backend.FetchAllArticles).
+			newTab = feed.New(m.style.colors, m.width, height, msg.Title, m.backend.FetchAllArticles).
 				DisableSaving().
 				DisableDeleting()
 
 		case rss.DownloadedFeedsName:
-			newTab = feed.New(m.config.Colors, m.width, height, msg.Title, m.config.Backend.FetchDownloadedArticles).
+			newTab = feed.New(m.style.colors, m.width, height, msg.Title, m.backend.FetchDownloadedArticles).
 				DisableSaving()
 
 		default:
-			newTab = category.New(m.config.Colors, m.width, height, msg.Title, m.config.Backend.FetchFeeds)
+			newTab = category.New(m.style.colors, m.width, height, msg.Title, m.backend.FetchFeeds)
 		}
 
 	case category.Model:
-		newTab = feed.New(m.config.Colors, m.width, height, msg.Title, m.config.Backend.FetchArticles).
+		newTab = feed.New(m.style.colors, m.width, height, msg.Title, m.backend.FetchArticles).
 			DisableDeleting()
 	}
 
@@ -402,27 +391,27 @@ func (m Model) deleteItem(msg backend.DeleteItemMessage) (tea.Model, tea.Cmd) {
 	// Check the type of the item
 	switch msg.Sender.(type) {
 	case welcome.Model:
-		if err := m.config.Backend.Rss.RemoveCategory(msg.Key); err != nil {
+		if err := m.backend.Rss.RemoveCategory(msg.Key); err != nil {
 			m.msg = fmt.Sprintf("Error deleting category %s: %s", msg.Key, err.Error())
 		}
 
-		return m, m.config.Backend.FetchCategories()
+		return m, m.backend.FetchCategories()
 
 	case category.Model:
-		if err := m.config.Backend.Rss.RemoveFeed(m.tabs[m.activeTab].Title(), msg.Key); err != nil {
+		if err := m.backend.Rss.RemoveFeed(m.tabs[m.activeTab].Title(), msg.Key); err != nil {
 			m.msg = fmt.Sprintf("Error deleting feed %s: %s", msg.Key, err.Error())
 		}
 
-		return m, m.config.Backend.FetchFeeds(m.tabs[m.activeTab].Title())
+		return m, m.backend.FetchFeeds(m.tabs[m.activeTab].Title())
 
 	case feed.Model:
 		if msg.Sender.Title() == rss.DownloadedFeedsName {
-			if err := m.config.Backend.RemoveDownload(msg.Key); err != nil {
+			if err := m.backend.RemoveDownload(msg.Key); err != nil {
 				m.msg = fmt.Sprintf("Error deleting download %s: %s", msg.Key, err.Error())
 			}
 		}
 
-		return m, m.config.Backend.FetchDownloadedArticles("")
+		return m, m.backend.FetchDownloadedArticles("")
 	}
 
 	return m, nil
@@ -431,7 +420,7 @@ func (m Model) deleteItem(msg backend.DeleteItemMessage) (tea.Model, tea.Cmd) {
 // downloadItem downloads an item
 func (m Model) downloadItem(msg backend.DownloadItemMessage) (tea.Model, tea.Cmd) {
 	m.msg = fmt.Sprintf("Saving item from feed %s", msg.Key)
-	return m, m.config.Backend.DownloadItem(msg.Key, msg.Index)
+	return m, m.backend.DownloadItem(msg.Key, msg.Index)
 }
 
 // showHelp shows the help menu at the bottom of the screen
@@ -445,7 +434,7 @@ func (m Model) showHelp() (tea.Model, tea.Cmd) {
 // toggleOffline toggles the offline mode
 func (m Model) toggleOffline() (tea.Model, tea.Cmd) {
 	m.offline = !m.offline
-	m.config.Backend.SetOfflineMode(m.offline)
+	m.backend.SetOfflineMode(m.offline)
 
 	if m.offline {
 		m.msg = "Offline mode enabled"

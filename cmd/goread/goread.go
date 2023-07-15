@@ -7,7 +7,6 @@ import (
 
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/colorscheme"
-	"github.com/TypicalAM/goread/internal/config"
 	"github.com/TypicalAM/goread/internal/model/browser"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -105,14 +104,17 @@ func Run() error {
 		backend.DefaultCacheDuration = time.Hour * time.Duration(opts.cacheDuration)
 	}
 
-	// Initialize the cfg
-	cfg, err := config.New(colors, opts.urlsPath, opts.cachePath, opts.resetCache)
+	// Initialize the backend
+	backend, err := backend.New(opts.urlsPath, opts.cachePath, opts.resetCache)
 	if err != nil {
 		return err
 	}
 
+	// Initialize the colorscheme
+	colors = colorscheme.New(opts.colorschemePath)
+
 	// Create the browser
-	browser := browser.New(cfg)
+	browser := browser.New(colors, backend)
 
 	// Start the program
 	p := tea.NewProgram(browser)
@@ -120,6 +122,6 @@ func Run() error {
 		return err
 	}
 
-	// Close the config
-	return cfg.Close()
+	// Clean up the backend
+	return backend.Close()
 }
