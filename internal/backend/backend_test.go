@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -45,7 +44,6 @@ func TestCacheLoadCorrectly(t *testing.T) {
 		t.Fatalf("couldn't load the cache %v", err)
 	}
 
-	fmt.Println(cache)
 	// Check if the cache is loaded correctly
 	if len(cache.Content) != 1 {
 		t.Fatal("expected 1 item in cache")
