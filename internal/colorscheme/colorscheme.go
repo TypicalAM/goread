@@ -26,37 +26,44 @@ type Colorscheme struct {
 	Color7   lipgloss.Color `json:"color7"`
 }
 
-// New will create a new colorscheme
-func New(path string) Colorscheme {
-	// Create a new colorscheme
-	colors := Colorscheme{FilePath: path}
+// New will create a new colorscheme and try to load it
+func New(path string) (*Colorscheme, error) {
+	if path == "" {
+		defaultPath, err := getDefaultPath()
+		if err != nil {
+			return nil, err
+		}
 
-	// Check if we can load from a file
-	err := colors.load()
-	if err == nil {
-		return colors
+		path = defaultPath
 	}
 
-	// Return the default colorscheme
-	return newDefault()
+	fileContent, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	colors := Colorscheme{FilePath: path}
+	if err = json.Unmarshal(fileContent, &colors); err != nil {
+		return nil, err
+	}
+
+	return &colors, nil
 }
 
-// newDefault returns a new default colorscheme
-func newDefault() Colorscheme {
-	return Colorscheme{
+// NewDefault returns a new default colorscheme
+func NewDefault() *Colorscheme {
+	return &Colorscheme{
 		BgDark:   "#161622",
 		BgDarker: "#11111a",
-
 		Text:     "#FFFFFF",
 		TextDark: "#47485b",
-
-		Color1: "#c29fec",
-		Color2: "#ddbec0",
-		Color3: "#89b4fa",
-		Color4: "#e06c75",
-		Color5: "#98c379",
-		Color6: "#fab387",
-		Color7: "#f1c1e4",
+		Color1:   "#c29fec",
+		Color2:   "#ddbec0",
+		Color3:   "#89b4fa",
+		Color4:   "#e06c75",
+		Color5:   "#98c379",
+		Color6:   "#fab387",
+		Color7:   "#f1c1e4",
 	}
 }
 
@@ -95,36 +102,6 @@ func (c Colorscheme) Save() error {
 	}
 
 	// Successfully wrote the file
-	return nil
-}
-
-// Load loads a colorscheme from a JSON file
-func (c *Colorscheme) load() error {
-	// Check if the path is valid
-	if c.FilePath == "" {
-		// Get the default path
-		defaultPath, err := getDefaultPath()
-		if err != nil {
-			return err
-		}
-
-		// Set the path
-		c.FilePath = defaultPath
-	}
-
-	// Try to open the file
-	fileContent, err := os.ReadFile(c.FilePath)
-	if err != nil {
-		return err
-	}
-
-	// Try to decode the file
-	err = json.Unmarshal(fileContent, &c)
-	if err != nil {
-		return err
-	}
-
-	// Successfully loaded the file
 	return nil
 }
 

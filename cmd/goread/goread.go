@@ -64,7 +64,10 @@ func Execute() {
 // Run runs the program
 func Run() error {
 	messageStyle := lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("#6bae6c"))
-	colors := colorscheme.New(opts.colorschemePath)
+	colors, err := colorscheme.New(opts.colorschemePath)
+	if err != nil {
+		return err
+	}
 
 	// If the user wants to test the colors, do that and exit
 	if opts.testColors {
@@ -121,7 +124,7 @@ func Run() error {
 	}
 
 	// Create the browser
-	browser := browser.New(colors, backend)
+	browser := browser.New(*colors, backend)
 
 	// Start the program
 	p := tea.NewProgram(browser)
