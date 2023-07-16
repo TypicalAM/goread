@@ -234,27 +234,10 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 // loadTab is fired when the items are retrieved from the backend, it
 // initializes the list and the viewport
 func (m Model) loadTab(items []list.Item, articleContents []string) (tab.Tab, tea.Cmd) {
-	// Create the styles for the list items
-	delegateStyles := list.NewDefaultItemStyles()
-	delegateStyles.SelectedTitle = delegateStyles.SelectedTitle.Copy().
-		BorderForeground(m.colors.Color3).
-		Foreground(m.colors.Color3).
-		Italic(true)
-
-	delegateStyles.SelectedDesc = delegateStyles.SelectedDesc.Copy().
-		BorderForeground(m.colors.Color3).
-		Foreground(m.colors.Color2).
-		Height(2).
-		Italic(true)
-
-	delegateStyles.NormalDesc = delegateStyles.NormalDesc.Copy().
-		Foreground(m.colors.TextDark).
-		Height(2)
-
 	// Create the list
 	itemDelegate := list.NewDefaultDelegate()
 	itemDelegate.ShowDescription = true
-	itemDelegate.Styles = delegateStyles
+	itemDelegate.Styles = m.style.listItems
 	itemDelegate.SetHeight(3)
 
 	// Wrap the descs, it's better to do it upfront then to rely on the list pagination

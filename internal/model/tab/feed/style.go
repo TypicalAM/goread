@@ -2,6 +2,7 @@ package feed
 
 import (
 	"github.com/TypicalAM/goread/internal/colorscheme"
+	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -17,6 +18,7 @@ type style struct {
 	focusedList     lipgloss.Style
 	idleViewport    lipgloss.Style
 	focusedViewport lipgloss.Style
+	listItems       list.DefaultItemStyles
 
 	errIcon string
 }
@@ -52,6 +54,23 @@ func newStyle(colors colorscheme.Colorscheme, width, height int) style {
 	focusedViewport := idleViewport.Copy().
 		BorderForeground(colors.Color1)
 
+	// Create the styles for the list items
+	delegateStyles := list.NewDefaultItemStyles()
+	delegateStyles.SelectedTitle = delegateStyles.SelectedTitle.Copy().
+		BorderForeground(colors.Color3).
+		Foreground(colors.Color3).
+		Italic(true)
+
+	delegateStyles.SelectedDesc = delegateStyles.SelectedDesc.Copy().
+		BorderForeground(colors.Color3).
+		Foreground(colors.Color2).
+		Height(2).
+		Italic(true)
+
+	delegateStyles.NormalDesc = delegateStyles.NormalDesc.Copy().
+		Foreground(colors.TextDark).
+		Height(2)
+
 	return style{
 		width:           width,
 		height:          height,
@@ -63,6 +82,7 @@ func newStyle(colors colorscheme.Colorscheme, width, height int) style {
 		focusedList:     focusedList,
 		idleViewport:    idleViewport,
 		focusedViewport: focusedViewport,
+		listItems:       delegateStyles,
 	}
 }
 
