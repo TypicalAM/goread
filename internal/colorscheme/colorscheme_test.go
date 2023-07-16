@@ -20,7 +20,7 @@ func TestColorschemeLoadFile(t *testing.T) {
 		t.Error("Colorscheme couldn't be created", err)
 	}
 
-	if colors == NewDefault() {
+	if colors == &Default {
 		t.Error("Colorscheme not loaded correctly")
 	}
 }
@@ -28,14 +28,14 @@ func TestColorschemeLoadFile(t *testing.T) {
 // TestPywalConvert if we get an error then the conversion doesn't work correctly
 func TestPywalConvert(t *testing.T) {
 	// Create the colorscheme with a non-existent file path
-	colors := NewDefault()
+	colors := Default
 
 	// Try to convert the colorscheme
 	if err := colors.Convert("../test/data/pywal.json"); err != nil {
 		t.Error("Colorscheme couldn't convert", err)
 	}
 
-	if colors == NewDefault() {
+	if colors == Default {
 		t.Errorf("Colorscheme not converted correctly")
 	}
 }

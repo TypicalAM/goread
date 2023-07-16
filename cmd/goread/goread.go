@@ -27,6 +27,9 @@ type options struct {
 }
 
 var (
+	msgStyle = lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("#6bae6c"))
+	errStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#e06c75"))
+
 	opts    = options{}
 	rootCmd = &cobra.Command{
 		Use:   "goread",
@@ -63,48 +66,43 @@ func Execute() {
 
 // Run runs the program
 func Run() error {
-	messageStyle := lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("#6bae6c"))
 	colors, err := colorscheme.New(opts.colorschemePath)
 	if err != nil {
 		return err
 	}
 
-	// If the user wants to test the colors, do that and exit
+	_ = colors.Load()
+
+	// Pretty printing colors
 	if opts.testColors {
-		fmt.Println(colors.TestColors())
+		fmt.Println(colors.PrettyPrint())
 		return nil
 	}
 
-	// If the user wants to dump the colors, do that and exit
+	// Dumping colors to file
 	if opts.dumpColors {
 		if err := colors.Save(); err != nil {
-			fmt.Println(messageStyle.Render("Failed to save the colorscheme"))
+			fmt.Println(errStyle.Render("Failed to save the colorscheme"))
 			return err
 		}
 
-		fmt.Println(messageStyle.Render(fmt.Sprint("The colorscheme was saved to", colors.FilePath)))
+		fmt.Println(msgStyle.Render(fmt.Sprint("The colorscheme was saved to ", colors.FilePath)))
 		return nil
 	}
 
-	// If the user wants to get the colors from pywal, do that and exit
+	// Get colors from pywal
 	if opts.getColors != "" {
-		// Get the colors from pywal
-		err := colors.Convert(opts.getColors)
-		if err != nil {
+		if err := colors.Convert(opts.getColors); err != nil {
 			return err
 		}
 
-		// Save the colorscheme
-		err = colors.Save()
-		if err != nil {
+		if err = colors.Save(); err != nil {
 			return err
 		}
 
-		// Notify the user
-		fmt.Println(messageStyle.Render(fmt.Sprint("The colorscheme was saved to", colors.FilePath)))
-		fmt.Println(colors.TestColors())
-
-		return colors.Convert(opts.getColors)
+		fmt.Println(msgStyle.Render(fmt.Sprint("The colorscheme was saved to ", colors.FilePath)))
+		fmt.Println(colors.PrettyPrint())
+		return nil
 	}
 
 	// Set the cache size
@@ -127,8 +125,7 @@ func Run() error {
 	browser := browser.New(*colors, backend)
 
 	// Start the program
-	p := tea.NewProgram(browser)
-	if _, err = p.Run(); err != nil {
+	if _, err = tea.NewProgram(browser).Run(); err != nil {
 		return err
 	}
 
