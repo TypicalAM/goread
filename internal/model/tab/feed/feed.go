@@ -123,6 +123,10 @@ func (m Model) Style() tab.Style {
 
 // SetSize sets the dimensions of the tab
 func (m Model) SetSize(width, height int) tab.Tab {
+	if !m.loaded {
+		return m
+	}
+
 	m.style = m.style.setSize(width, height)
 	m.list.SetSize(m.style.listWidth, height)
 	m.viewport.Width = m.style.viewportWidth
