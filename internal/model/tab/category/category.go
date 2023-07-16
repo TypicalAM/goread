@@ -113,7 +113,7 @@ func (m Model) Init() tea.Cmd {
 // Update updates the variables of the tab
 func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	switch msg := msg.(type) {
-	case backend.FetchSuccessMessage:
+	case backend.FetchSuccessMsg:
 		// The data fetch was successful
 		if !m.loaded {
 			m.list = simplelist.New(m.colors, m.title, m.height, false)

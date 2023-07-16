@@ -161,7 +161,7 @@ func TestBackendGetCategories(t *testing.T) {
 
 	// Try to fetch the categories
 	result := b.FetchCategories()()
-	if msg, ok := result.(FetchSuccessMessage); ok {
+	if msg, ok := result.(FetchSuccessMsg); ok {
 		if len(msg.Items) != 2 {
 			t.Errorf("expected 2 items, got %d", len(msg.Items))
 		}
@@ -181,12 +181,12 @@ func TestBackendGetFeeds(t *testing.T) {
 	// Try to fetch the feeds
 	result := b.FetchFeeds("News")()
 	switch msg := result.(type) {
-	case FetchSuccessMessage:
+	case FetchSuccessMsg:
 		if len(msg.Items) != 1 {
 			t.Errorf("expected 1 item, got %d", len(msg.Items))
 		}
 
-	case FetchErrorMessage:
+	case FetchErrorMsg:
 		t.Errorf("expected FetchSuccessMessage, got a FetchError message %v", msg.Err)
 
 	default:
@@ -196,10 +196,10 @@ func TestBackendGetFeeds(t *testing.T) {
 	// Try to fetch the feeds from a non-existent category
 	result = b.FetchFeeds("No Category")()
 	switch msg := result.(type) {
-	case FetchSuccessMessage:
+	case FetchSuccessMsg:
 		t.Errorf("expected FetchErrorMessage, got a FetchSuccessMessage with %v items", len(msg.Items))
 
-	case FetchErrorMessage:
+	case FetchErrorMsg:
 		if msg.Err != rss.ErrNotFound {
 			t.Errorf("expected ErrNotFound, got %v", msg.Err)
 		}
@@ -220,7 +220,7 @@ func TestBackendGetArticles(t *testing.T) {
 	// Try to fetch the articles for a feed
 	result := b.FetchArticles("Primordial soup")()
 	switch msg := result.(type) {
-	case FetchArticleSuccessMessage:
+	case FetchArticleSuccessMsg:
 		if len(msg.Items) != 9 {
 			t.Errorf("expected 9 items, got %d", len(msg.Items))
 		}
@@ -229,7 +229,7 @@ func TestBackendGetArticles(t *testing.T) {
 			t.Errorf("expected BBC, got %s", msg.Items[0].FilterValue())
 		}
 
-	case FetchErrorMessage:
+	case FetchErrorMsg:
 		t.Errorf("expected FetchSuccessMessage, got a FetchErrorMessage with %v", msg.Err)
 
 	default:
@@ -239,10 +239,10 @@ func TestBackendGetArticles(t *testing.T) {
 	// Try to fetch the articles for a non-existent feed
 	result = b.FetchArticles("No Feed")()
 	switch msg := result.(type) {
-	case FetchSuccessMessage:
+	case FetchSuccessMsg:
 		t.Errorf("expected FetchErrorMessage, got a FetchSuccessMessage with %v items", len(msg.Items))
 
-	case FetchErrorMessage:
+	case FetchErrorMsg:
 		if msg.Err != rss.ErrNotFound {
 			t.Errorf("expected ErrNotFound, got %v", msg.Err)
 		}

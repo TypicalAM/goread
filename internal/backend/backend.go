@@ -62,7 +62,7 @@ func (b Backend) FetchCategories() tea.Cmd {
 		}
 
 		// Return the message
-		return FetchSuccessMessage{Items: items}
+		return FetchSuccessMsg{Items: items}
 	}
 }
 
@@ -73,7 +73,7 @@ func (b Backend) FetchFeeds(catName string) tea.Cmd {
 		// Create a list of feeds
 		names, urls, err := b.Rss.GetFeeds(catName)
 		if err != nil {
-			return FetchErrorMessage{
+			return FetchErrorMsg{
 				Description: "Error while trying to get feeds",
 				Err:         err,
 			}
@@ -86,7 +86,7 @@ func (b Backend) FetchFeeds(catName string) tea.Cmd {
 		}
 
 		// Return the message
-		return FetchSuccessMessage{Items: items}
+		return FetchSuccessMsg{Items: items}
 	}
 }
 
@@ -97,7 +97,7 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 		// Create a list of articles
 		url, err := b.Rss.GetFeedURL(feedName)
 		if err != nil {
-			return FetchErrorMessage{
+			return FetchErrorMsg{
 				Description: "Error while trying to get the article url",
 				Err:         err,
 			}
@@ -106,7 +106,7 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 		// Get the items from the cache
 		items, err := b.Cache.getArticles(url)
 		if err != nil {
-			return FetchErrorMessage{
+			return FetchErrorMsg{
 				Description: "Error while fetching the article",
 				Err:         err,
 			}
@@ -122,7 +122,7 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 		}
 
 		// Return the message
-		return FetchArticleSuccessMessage{
+		return FetchArticleSuccessMsg{
 			Items:           result,
 			ArticleContents: contents,
 		}
@@ -146,7 +146,7 @@ func (b Backend) FetchAllArticles(_ string) tea.Cmd {
 		}
 
 		// Return the message
-		return FetchArticleSuccessMessage{
+		return FetchArticleSuccessMsg{
 			Items:           result,
 			ArticleContents: contents,
 		}
@@ -170,7 +170,7 @@ func (b Backend) FetchDownloadedArticles(_ string) tea.Cmd {
 		}
 
 		// Return the message
-		return FetchArticleSuccessMessage{
+		return FetchArticleSuccessMsg{
 			Items:           result,
 			ArticleContents: contents,
 		}
@@ -183,7 +183,7 @@ func (b Backend) DownloadItem(key string, index int) tea.Cmd {
 		// Get the url for the item
 		url, err := b.Rss.GetFeedURL(key)
 		if err != nil {
-			return FetchErrorMessage{
+			return FetchErrorMsg{
 				Description: "Error while getting the article url",
 				Err:         err,
 			}
@@ -192,7 +192,7 @@ func (b Backend) DownloadItem(key string, index int) tea.Cmd {
 		// Get the items from the cache
 		err = b.Cache.addToDownloaded(url, index)
 		if err != nil {
-			return FetchErrorMessage{
+			return FetchErrorMsg{
 				Description: "Error while downloading the article",
 				Err:         err,
 			}

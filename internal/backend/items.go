@@ -6,29 +6,29 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-// FetchSuccessMessage is a message that is sent when the fetching of the
+// FetchSuccessMsg is a message that is sent when the fetching of the
 // categories or feeds was successful
-type FetchSuccessMessage struct {
+type FetchSuccessMsg struct {
 	Items []list.Item
 }
 
-// FetchArticleSuccessMessage is a message that is sent when the fetching of the
+// FetchArticleSuccessMsg is a message that is sent when the fetching of the
 // articles was successful
-type FetchArticleSuccessMessage struct {
+type FetchArticleSuccessMsg struct {
 	Items           []list.Item
 	ArticleContents []string
 }
 
-// FetchErrorMessage is a message that is sent when the fetching of the
+// FetchErrorMsgssage that is sent when the fetching of the
 // categories or feeds failed
-type FetchErrorMessage struct {
+type FetchErrorMsg struct {
 	Description string
 	Err         error
 }
 
-// NewItemMessage is a message to tell the main model that a new item
+// NewItemMsg is a message to tell the main model that a new item
 // needs to be added to the list
-type NewItemMessage struct {
+type NewItemMsg struct {
 	Sender    tab.Tab
 	Editing   bool
 	OldFields []string
@@ -38,7 +38,7 @@ type NewItemMessage struct {
 // needs to be added to the list
 func NewItem(sender tab.Tab, editing bool, fields []string) tea.Cmd {
 	return func() tea.Msg {
-		return NewItemMessage{
+		return NewItemMsg{
 			Sender:    sender,
 			Editing:   editing,
 			OldFields: fields,
@@ -46,9 +46,9 @@ func NewItem(sender tab.Tab, editing bool, fields []string) tea.Cmd {
 	}
 }
 
-// DeleteItemMessage is a message to tell the main model that a new item
+// DeleteItemMsg is a message to tell the main model that a new item
 // needs to be removed from the list
-type DeleteItemMessage struct {
+type DeleteItemMsg struct {
 	Sender tab.Tab
 	Key    string
 }
@@ -57,16 +57,16 @@ type DeleteItemMessage struct {
 // needs to be removed from the list
 func DeleteItem(sender tab.Tab, key string) tea.Cmd {
 	return func() tea.Msg {
-		return DeleteItemMessage{
+		return DeleteItemMsg{
 			Sender: sender,
 			Key:    key,
 		}
 	}
 }
 
-// DownloadItemMessage is a message to tell the main model that a new item
+// DownloadItemMsg is a message to tell the main model that a new item
 // needs to be downloaded
-type DownloadItemMessage struct {
+type DownloadItemMsg struct {
 	Key   string
 	Index int
 }
@@ -75,7 +75,7 @@ type DownloadItemMessage struct {
 // needs to be downloaded
 func DownloadItem(key string, index int) tea.Cmd {
 	return func() tea.Msg {
-		return DownloadItemMessage{
+		return DownloadItemMsg{
 			Key:   key,
 			Index: index,
 		}

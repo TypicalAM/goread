@@ -111,7 +111,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	switch msg := msg.(type) {
-	case backend.FetchErrorMessage:
+	case backend.FetchErrorMsg:
 		// If there is an error, display it on the status bar
 		// the error message will be cleared when the user closes the tab
 		m.msg = fmt.Sprintf("%s: %s", msg.Description, msg.Err.Error())
@@ -162,7 +162,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Create the new tab
 		return m.createNewTab(msg)
 
-	case backend.NewItemMessage:
+	case backend.NewItemMsg:
 		bg := lipgloss.NewStyle().Width(m.width).Height((m.height)).Render(m.View())
 		width := m.width / 2
 		height := 17
@@ -181,11 +181,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.popupShown = true
 		return m, m.popup.Init()
 
-	case backend.DeleteItemMessage:
+	case backend.DeleteItemMsg:
 		// Delete the item
 		return m.deleteItem(msg)
 
-	case backend.DownloadItemMessage:
+	case backend.DownloadItemMsg:
 		// Download the item
 		return m.downloadItem(msg)
 
@@ -385,7 +385,7 @@ func (m Model) createNewTab(msg tab.NewTabMessage) (Model, tea.Cmd) {
 }
 
 // deleteItem deletes the focused item from the backend
-func (m Model) deleteItem(msg backend.DeleteItemMessage) (tea.Model, tea.Cmd) {
+func (m Model) deleteItem(msg backend.DeleteItemMsg) (tea.Model, tea.Cmd) {
 	m.msg = fmt.Sprintf("Deleting item %s", msg.Key)
 
 	// Check the type of the item
@@ -418,7 +418,7 @@ func (m Model) deleteItem(msg backend.DeleteItemMessage) (tea.Model, tea.Cmd) {
 }
 
 // downloadItem downloads an item
-func (m Model) downloadItem(msg backend.DownloadItemMessage) (tea.Model, tea.Cmd) {
+func (m Model) downloadItem(msg backend.DownloadItemMsg) (tea.Model, tea.Cmd) {
 	m.msg = fmt.Sprintf("Saving item from feed %s", msg.Key)
 	return m, m.backend.DownloadItem(msg.Key, msg.Index)
 }

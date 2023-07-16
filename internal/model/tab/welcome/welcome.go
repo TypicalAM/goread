@@ -114,7 +114,7 @@ func (m Model) Init() tea.Cmd {
 func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	// Wait for items to be loaded
 	if !m.loaded {
-		_, ok := msg.(backend.FetchSuccessMessage)
+		_, ok := msg.(backend.FetchSuccessMsg)
 		if !ok {
 			return m, nil
 		}
@@ -127,7 +127,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	}
 
 	switch msg := msg.(type) {
-	case backend.FetchSuccessMessage:
+	case backend.FetchSuccessMsg:
 		// Update the list of categories
 		m.list.SetItems(msg.Items)
 

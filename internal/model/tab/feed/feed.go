@@ -146,12 +146,12 @@ func (m Model) Init() tea.Cmd {
 // Update the variables of the tab
 func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	switch msg := msg.(type) {
-	case backend.FetchErrorMessage:
+	case backend.FetchErrorMsg:
 		// If the fetch failed, we need to display an error message
 		m.fetchFailed = true
 		return m, nil
 
-	case backend.FetchArticleSuccessMessage:
+	case backend.FetchArticleSuccessMsg:
 		// If the fetch succeeded, we need to load the tab
 		return m.loadTab(msg.Items, msg.ArticleContents)
 
