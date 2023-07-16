@@ -17,9 +17,9 @@ import (
 type options struct {
 	cachePath       string
 	colorschemePath string
-	keymapPath      string
 	urlsPath        string
 	getColors       string
+	dumpColors      bool
 	testColors      bool
 	resetCache      bool
 	cacheSize       int
@@ -42,15 +42,15 @@ var (
 )
 
 func init() {
-	rootCmd.Flags().StringVarP(&opts.cachePath, "cache_path", "c", "", "The path to the cache file")
-	rootCmd.Flags().StringVarP(&opts.colorschemePath, "colorscheme_path", "s", "", "The path to the colorscheme file")
-	rootCmd.Flags().StringVarP(&opts.keymapPath, "keymap_path", "k", "", "The path to the keymap file")
+	rootCmd.Flags().StringVarP(&opts.cachePath, "cache_path", "", "", "The path to the cache file")
+	rootCmd.Flags().StringVarP(&opts.colorschemePath, "colorscheme_path", "c", "", "The path to the colorscheme file")
 	rootCmd.Flags().StringVarP(&opts.urlsPath, "urls_path", "u", "", "The path to the urls file")
-	rootCmd.Flags().BoolVarP(&opts.testColors, "test_colors", "t", false, "Test the colorscheme")
-	rootCmd.Flags().StringVarP(&opts.getColors, "get_colors", "g", "", "Get the colors from pywal and save them to the colorscheme file")
-	rootCmd.Flags().BoolVarP(&opts.resetCache, "reset_cache", "r", false, "Reset the cache")
-	rootCmd.Flags().IntVarP(&opts.cacheSize, "cache_size", "z", 0, "The size of the cache")
-	rootCmd.Flags().IntVarP(&opts.cacheDuration, "cache_duration", "d", 0, "The duration of the cache in hours")
+	rootCmd.Flags().BoolVarP(&opts.testColors, "test_colors", "", false, "Test the colorscheme")
+	rootCmd.Flags().BoolVarP(&opts.dumpColors, "dump_colors", "", false, "Dump the colors to the colorscheme file")
+	rootCmd.Flags().StringVarP(&opts.getColors, "get_colors", "", "", "Get the colors from pywal and save them to the colorscheme file")
+	rootCmd.Flags().BoolVarP(&opts.resetCache, "reset_cache", "", false, "Reset the cache")
+	rootCmd.Flags().IntVarP(&opts.cacheSize, "cache_size", "", 0, "The size of the cache")
+	rootCmd.Flags().IntVarP(&opts.cacheDuration, "cache_duration", "", 0, "The duration of the cache in hours")
 }
 
 // Execute executes the commands
@@ -63,12 +63,23 @@ func Execute() {
 
 // Run runs the program
 func Run() error {
-	// Initialize the colorscheme
+	messageStyle := lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("#6bae6c"))
 	colors := colorscheme.New(opts.colorschemePath)
 
 	// If the user wants to test the colors, do that and exit
 	if opts.testColors {
 		fmt.Println(colors.TestColors())
+		return nil
+	}
+
+	// If the user wants to dump the colors, do that and exit
+	if opts.dumpColors {
+		if err := colors.Save(); err != nil {
+			fmt.Println(messageStyle.Render("Failed to save the colorscheme"))
+			return err
+		}
+
+		fmt.Println(messageStyle.Render(fmt.Sprint("The colorscheme was saved to", colors.FilePath)))
 		return nil
 	}
 
@@ -87,8 +98,7 @@ func Run() error {
 		}
 
 		// Notify the user
-		messageStyle := lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("#6bae6c"))
-		fmt.Println(messageStyle.Render("The new colorscheme was saved to the config directory\n"))
+		fmt.Println(messageStyle.Render(fmt.Sprint("The colorscheme was saved to", colors.FilePath)))
 		fmt.Println(colors.TestColors())
 
 		return colors.Convert(opts.getColors)
@@ -109,9 +119,6 @@ func Run() error {
 	if err != nil {
 		return err
 	}
-
-	// Initialize the colorscheme
-	colors = colorscheme.New(opts.colorschemePath)
 
 	// Create the browser
 	browser := browser.New(colors, backend)

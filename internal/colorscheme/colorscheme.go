@@ -12,31 +12,24 @@ import (
 
 // Colorscheme is a struct that contains all the colors for the application
 type Colorscheme struct {
-	// The path to the colorscheme
-	path string
-
-	// Background color
-	BgDark   lipgloss.Color
-	BgDarker lipgloss.Color
-
-	// Text colors
-	Text     lipgloss.Color
-	TextDark lipgloss.Color
-
-	// Accent colors
-	Color1 lipgloss.Color
-	Color2 lipgloss.Color
-	Color3 lipgloss.Color
-	Color4 lipgloss.Color
-	Color5 lipgloss.Color
-	Color6 lipgloss.Color
-	Color7 lipgloss.Color
+	FilePath string         `json:"-"`
+	BgDark   lipgloss.Color `json:"bg_dark"`
+	BgDarker lipgloss.Color `json:"bg_darker"`
+	Text     lipgloss.Color `json:"text"`
+	TextDark lipgloss.Color `json:"text_dark"`
+	Color1   lipgloss.Color `json:"color1"`
+	Color2   lipgloss.Color `json:"color2"`
+	Color3   lipgloss.Color `json:"color3"`
+	Color4   lipgloss.Color `json:"color4"`
+	Color5   lipgloss.Color `json:"color5"`
+	Color6   lipgloss.Color `json:"color6"`
+	Color7   lipgloss.Color `json:"color7"`
 }
 
 // New will create a new colorscheme
 func New(path string) Colorscheme {
 	// Create a new colorscheme
-	colors := Colorscheme{path: path}
+	colors := Colorscheme{FilePath: path}
 
 	// Check if we can load from a file
 	err := colors.load()
@@ -69,14 +62,8 @@ func newDefault() Colorscheme {
 
 // Save saves the colorscheme to a JSON file
 func (c Colorscheme) Save() error {
-	// Try to marshall the data
-	yamlData, err := json.Marshal(c)
-	if err != nil {
-		return err
-	}
-
 	// Check if the path exists
-	if c.path == "" {
+	if c.FilePath == "" {
 		// Get the default path
 		defaultPath, err := getDefaultPath()
 		if err != nil {
@@ -84,19 +71,24 @@ func (c Colorscheme) Save() error {
 		}
 
 		// Set the path
-		c.path = defaultPath
+		c.FilePath = defaultPath
+	}
+
+	jsonData, err := json.Marshal(c)
+	if err != nil {
+		return err
 	}
 
 	// Try to write the data to the file
-	if err = os.WriteFile(c.path, yamlData, 0600); err != nil {
+	if err = os.WriteFile(c.FilePath, jsonData, 0600); err != nil {
 		// Try to create the directory
-		err = os.MkdirAll(filepath.Dir(c.path), 0755)
+		err = os.MkdirAll(filepath.Dir(c.FilePath), 0755)
 		if err != nil {
 			return err
 		}
 
 		// Try to write to the file again
-		err = os.WriteFile(c.path, yamlData, 0600)
+		err = os.WriteFile(c.FilePath, jsonData, 0600)
 		if err != nil {
 			return err
 		}
@@ -109,7 +101,7 @@ func (c Colorscheme) Save() error {
 // Load loads a colorscheme from a JSON file
 func (c *Colorscheme) load() error {
 	// Check if the path is valid
-	if c.path == "" {
+	if c.FilePath == "" {
 		// Get the default path
 		defaultPath, err := getDefaultPath()
 		if err != nil {
@@ -117,11 +109,11 @@ func (c *Colorscheme) load() error {
 		}
 
 		// Set the path
-		c.path = defaultPath
+		c.FilePath = defaultPath
 	}
 
 	// Try to open the file
-	fileContent, err := os.ReadFile(c.path)
+	fileContent, err := os.ReadFile(c.FilePath)
 	if err != nil {
 		return err
 	}

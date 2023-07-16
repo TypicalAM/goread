@@ -220,7 +220,7 @@ func TestBackendGetArticles(t *testing.T) {
 	// Try to fetch the articles for a feed
 	result := b.FetchArticles("Primordial soup")()
 	switch msg := result.(type) {
-	case FetchSuccessMessage:
+	case FetchArticleSuccessMessage:
 		if len(msg.Items) != 9 {
 			t.Errorf("expected 9 items, got %d", len(msg.Items))
 		}
