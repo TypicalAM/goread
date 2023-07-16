@@ -278,8 +278,7 @@ func (m Model) loadTab(items []list.Item, articleContents []string) (tab.Tab, te
 	// Create the renderer for the viewport
 	m.articleContent = articleContents
 	termRenderer, err := glamour.NewTermRenderer(
-		// TODO: Auto gen ansi.StyleConfig
-		glamour.WithStylePath("dracula"),
+		glamour.WithStyles(m.colors.MarkdownStyle),
 		glamour.WithWordWrap(m.style.viewportWidth),
 	)
 

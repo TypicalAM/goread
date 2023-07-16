@@ -7,22 +7,25 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/charmbracelet/glamour"
+	"github.com/charmbracelet/glamour/ansi"
 	"github.com/charmbracelet/lipgloss"
 )
 
 // Default is the default colorscheme
 var Default = Colorscheme{
-	BgDark:   "#161622",
-	BgDarker: "#11111a",
-	Text:     "#FFFFFF",
-	TextDark: "#47485b",
-	Color1:   "#c29fec",
-	Color2:   "#ddbec0",
-	Color3:   "#89b4fa",
-	Color4:   "#e06c75",
-	Color5:   "#98c379",
-	Color6:   "#fab387",
-	Color7:   "#f1c1e4",
+	BgDark:        "#161622",
+	BgDarker:      "#11111a",
+	Text:          "#FFFFFF",
+	TextDark:      "#47485b",
+	Color1:        "#c29fec",
+	Color2:        "#ddbec0",
+	Color3:        "#89b4fa",
+	Color4:        "#e06c75",
+	Color5:        "#98c379",
+	Color6:        "#fab387",
+	Color7:        "#f1c1e4",
+	MarkdownStyle: glamour.DraculaStyleConfig,
 }
 
 // Colorscheme is a struct that contains all the colors for the application
@@ -39,6 +42,9 @@ type Colorscheme struct {
 	Color5   lipgloss.Color `json:"color5"`
 	Color6   lipgloss.Color `json:"color6"`
 	Color7   lipgloss.Color `json:"color7"`
+
+	// TODO: For the sake of config clarity we are just generating the styles at loadtime
+	MarkdownStyle ansi.StyleConfig `json:"-"`
 }
 
 // New will create a new colorscheme and try to load it
@@ -64,7 +70,11 @@ func (c *Colorscheme) Load() error {
 		return err
 	}
 
-	return json.Unmarshal(fileContent, &c)
+	if err = json.Unmarshal(fileContent, c); err != nil {
+		return err
+	}
+
+	return c.genMarkdownStyle()
 }
 
 // Save saves the colorscheme to a JSON file
@@ -141,6 +151,12 @@ func (c Colorscheme) PrettyPrint() string {
 	}
 
 	return strings.Join(result, "\n")
+}
+
+// generateMarkDownStyle generates the markdown style from the colorscheme
+func (c *Colorscheme) genMarkdownStyle() error {
+	c.MarkdownStyle = glamour.DraculaStyleConfig
+	return nil
 }
 
 // getDefaultPath returns the default path for the colorscheme file
