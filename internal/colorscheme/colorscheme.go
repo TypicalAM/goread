@@ -81,7 +81,7 @@ func (c *Colorscheme) Load() error {
 
 // Save saves the colorscheme to a JSON file
 func (c Colorscheme) Save() error {
-	jsonData, err := json.Marshal(c)
+	jsonData, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		return err
 	}
