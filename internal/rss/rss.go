@@ -21,8 +21,36 @@ var DownloadedFeedsName = "Saved"
 // ErrNotFound is returned when a feed or category is not found
 var ErrNotFound = errors.New("not found")
 
+// Default is the default rss structure
+var Default = Rss{
+	Categories: []Category{{
+		Name:        AllFeedsName,
+		Description: "All feeds",
+		Subscriptions: []Feed{{
+			Name:        "BBC",
+			Description: "News from the BBC",
+			URL:         "http://feeds.bbci.co.uk/news/rss.xml",
+		}},
+	}, {
+		Name:        "News",
+		Description: "News from around the world",
+		Subscriptions: []Feed{{
+			Name:        "Wired",
+			Description: "News from the wired team",
+			URL:         "https://www.wired.com/feed/rss",
+		}},
+	}, {
+		Name:        "Tech",
+		Description: "Tech news",
+		Subscriptions: []Feed{{
+			Name:        "Chris Titus Tech (virtualization)",
+			Description: "Chris Titus Tech on virtualization",
+			URL:         "https://christitus.com/categories/virtualization/index.xml",
+		}},
+	}},
+}
+
 // Rss will be used to structurize the rss feeds and categories
-// it will usually be read from a file
 type Rss struct {
 	FilePath   string     `yaml:"-"`
 	Categories []Category `yaml:"categories"`
@@ -43,81 +71,54 @@ type Feed struct {
 }
 
 // New will create a new Rss structure
-func New(urlFilePath string) Rss {
-	// Create the rss object
-	rss := Rss{FilePath: urlFilePath}
-
-	// Check if we can load it from file
-	err := rss.loadFromFile()
-	if err == nil {
-		return rss
-	}
-
-	// Append some default categories
-	rss.Categories = append(rss.Categories, createBasicCategories()...)
-	return rss
-}
-
-// loadFromFile will load the Rss structure from a file
-func (rss *Rss) loadFromFile() error {
-	// Check if the path is valid
-	if rss.FilePath == "" {
-		// Get the default path
-		path, err := getDefaultPath()
+func New(path string) (*Rss, error) {
+	if path == "" {
+		defaultPath, err := getDefaultPath()
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		// Set the path
-		rss.FilePath = path
+		path = defaultPath
 	}
 
-	// Try to open the file
+	rss := Default
+	rss.FilePath = path
+	return &rss, nil
+}
+
+// Load will try to load the Rss structure from a file
+func (rss *Rss) Load() error {
 	fileContent, err := os.ReadFile(rss.FilePath)
 	if err != nil {
 		return err
 	}
 
-	// Try to decode the file
-	err = yaml.Unmarshal(fileContent, rss)
-	if err != nil {
-		return err
-	}
-
-	// Successfully loaded the file
-	return nil
+	return yaml.Unmarshal(fileContent, rss)
 }
 
 // Save will write the Rss structure to a file
-func (rss *Rss) Save() error {
-	// Try to marshall the data
+func (rss Rss) Save() error {
 	yamlData, err := yaml.Marshal(rss)
 	if err != nil {
 		return err
 	}
 
-	// Try to write the data to the file
 	if err = os.WriteFile(rss.FilePath, yamlData, 0600); err != nil {
-		// Try to create the directory
-		err = os.MkdirAll(filepath.Dir(rss.FilePath), 0755)
-		if err != nil {
+		if err = os.MkdirAll(filepath.Dir(rss.FilePath), 0755); err != nil {
 			return err
 		}
 
-		// Try to write to the file again
-		err = os.WriteFile(rss.FilePath, yamlData, 0600)
-		if err != nil {
+		if err = os.WriteFile(rss.FilePath, yamlData, 0600); err != nil {
 			return err
 		}
 	}
 
-	// Successfully wrote the file
 	return nil
 }
 
 // GetCategories will return a list of all the names and descriptions of the categories
 func (rss Rss) GetCategories() (names []string, descs []string) {
-	// Create a list of categories
 	names = make([]string, len(rss.Categories))
 	descs = make([]string, len(rss.Categories))
 
@@ -126,43 +127,36 @@ func (rss Rss) GetCategories() (names []string, descs []string) {
 		descs[i] = cat.Description
 	}
 
-	// Return the list
 	return names, descs
 }
 
 // GetFeeds will return a list of all the names and descriptions of the feeds
 // in a category denoted by the name
 func (rss Rss) GetFeeds(categoryName string) (names []string, urls []string, err error) {
-	// Find the category
 	for _, cat := range rss.Categories {
 		if cat.Name == categoryName {
-			// Create a list of feeds
 			feeds := make([]string, len(cat.Subscriptions))
 			urls = make([]string, len(cat.Subscriptions))
+
 			for i, feed := range cat.Subscriptions {
 				feeds[i] = feed.Name
 				urls[i] = feed.URL
 			}
 
-			// Return the list
 			return feeds, urls, nil
 		}
 	}
 
-	// Category not found
 	return nil, nil, ErrNotFound
 }
 
 // GetFeedURL will return the url of a feed denoted by the name
 func (rss Rss) GetFeedURL(feedName string) (string, error) {
-	// Check if the feed is reserved
 	if feedName == AllFeedsName || feedName == DownloadedFeedsName {
 		return "", ErrReservedName
 	}
 
-	// Iterate over all categories
 	for _, cat := range rss.Categories {
-		// Iterate over all feeds
 		for _, feed := range cat.Subscriptions {
 			if feed.Name == feedName {
 				return feed.URL, nil
@@ -170,18 +164,14 @@ func (rss Rss) GetFeedURL(feedName string) (string, error) {
 		}
 	}
 
-	// Feed not found
 	return "", ErrNotFound
 }
 
 // GetAllURLs will return a list of all the urls
 func (rss Rss) GetAllURLs() []string {
-	// Create a list of urls
 	var urls []string
 
-	// Iterate over all categories
 	for _, cat := range rss.Categories {
-		// Iterate over all feeds
 		for _, feed := range cat.Subscriptions {
 			if feed.URL != AllFeedsName {
 				urls = append(urls, feed.URL)
@@ -189,20 +179,7 @@ func (rss Rss) GetAllURLs() []string {
 		}
 	}
 
-	// Return the list
 	return urls
-}
-
-// getDefaultPath will return the default path for the urls file
-func getDefaultPath() (string, error) {
-	// Get the default config path
-	configDir, err := os.UserConfigDir()
-	if err != nil {
-		return "", err
-	}
-
-	// Create the config path
-	return filepath.Join(configDir, "goread", "urls.yml"), nil
 }
 
 // YassifyItem will return a yassified string which is used in the viewport
@@ -276,42 +253,12 @@ func HTMLToText(content string) (string, error) {
 	return doc.Text(), nil
 }
 
-// createBasicCategories will create some basic categories
-func createBasicCategories() []Category {
-	var categories []Category
+// getDefaultPath will return the default path for the urls file
+func getDefaultPath() (string, error) {
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
+	}
 
-	categories = append(categories, Category{
-		Name:        AllFeedsName,
-		Description: "All feeds",
-	})
-
-	categories = append(categories, Category{
-		Name:        "News",
-		Description: "News from around the world",
-	})
-
-	categories = append(categories, Category{
-		Name:        "Tech",
-		Description: "Tech news",
-	})
-
-	categories[0].Subscriptions = append(categories[0].Subscriptions, Feed{
-		Name:        "BBC",
-		Description: "News from the BBC",
-		URL:         "http://feeds.bbci.co.uk/news/rss.xml",
-	})
-
-	categories[1].Subscriptions = append(categories[1].Subscriptions, Feed{
-		Name:        "Wired",
-		Description: "News from the wired team",
-		URL:         "https://www.wired.com/feed/rss",
-	})
-
-	categories[1].Subscriptions = append(categories[1].Subscriptions, Feed{
-		Name:        "Chris Titus Tech (virtualization)",
-		Description: "Chris Titus Tech on virtualization",
-		URL:         "https://christitus.com/categories/virtualization/index.xml",
-	})
-
-	return categories
+	return filepath.Join(configDir, "goread", "urls.yml"), nil
 }

@@ -18,26 +18,33 @@ type Backend struct {
 }
 
 // New creates a new Cache Backend
-func New(urlPath, cachePath string, resetCache bool) (Backend, error) {
+func New(urlPath, cachePath string, resetCache bool) (*Backend, error) {
 	// Create the cache
 	cache, err := newStore(cachePath)
 	if err != nil {
-		return Backend{}, err
+		return nil, err
 	}
 
 	// Try to load the cache
 	if !resetCache {
-		err = cache.load()
-		if err != nil {
+		if err = cache.load(); err != nil {
 			fmt.Printf("Failed to load the cache: %v, creating a new one", err)
 		}
 	}
 
 	// Return the backend
-	rss := rss.New(urlPath)
-	return Backend{
+	rss, err := rss.New(urlPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = rss.Load(); err != nil {
+		return nil, err
+	}
+
+	return &Backend{
 		Cache: cache,
-		Rss:   &rss,
+		Rss:   rss,
 	}, nil
 }
 
