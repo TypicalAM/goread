@@ -7,8 +7,10 @@ Set Width 1280
 Set Height 720
 Set Theme "Catppuccin Mocha"
 
-Type "../goread"
+Type "zsh"
+Enter
 
+Type "../goread"
 Enter
 
 # Wait for the program to start
@@ -17,17 +19,17 @@ Sleep 1s
 # Select technology
 Down
 
-Sleep 3s
+Sleep 2s
 
 Enter
 
 # Wait until the category is loaded
-Sleep 3s
+Sleep 2s
 
 Type "1"
 
 # Wait until the feed is loaded
-Sleep 3s
+Sleep 2s
 
 Enter
 
