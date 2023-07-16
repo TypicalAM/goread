@@ -122,6 +122,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case category.ChosenCategoryMsg:
 		m.popupShown = false
+		m.keymap.CloseTab.SetEnabled(true)
+		m.keymap.CycleTabs.SetEnabled(true)
+		m.keymap.ToggleOfflineMode.SetEnabled(true)
+		m.keymap.ShowHelp.SetEnabled(true)
 
 		if msg.IsEdit {
 			if err := m.backend.Rss.UpdateCategory(msg.OldName, msg.Name, msg.Desc); err != nil {
@@ -178,15 +182,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case feed.Model:
 		}
 
+		// Diable keyboard shortcuts
+		m.keymap.CloseTab.SetEnabled(false)
+		m.keymap.CycleTabs.SetEnabled(false)
+		m.keymap.ToggleOfflineMode.SetEnabled(false)
+		m.keymap.ShowHelp.SetEnabled(false)
 		m.popupShown = true
 		return m, m.popup.Init()
 
 	case backend.DeleteItemMsg:
-		// Delete the item
 		return m.deleteItem(msg)
 
 	case backend.DownloadItemMsg:
-		// Download the item
 		return m.downloadItem(msg)
 
 	case tea.WindowSizeMsg:
@@ -210,6 +217,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case msg.String() == "esc":
 			// If we are showing a popup, close it
 			if m.popupShown {
+				m.keymap.CloseTab.SetEnabled(true)
+				m.keymap.CycleTabs.SetEnabled(true)
+				m.keymap.ToggleOfflineMode.SetEnabled(true)
+				m.keymap.ShowHelp.SetEnabled(true)
 				m.popupShown = false
 				return m, nil
 			}
@@ -219,10 +230,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case key.Matches(msg, m.keymap.CloseTab):
-			if m.popupShown {
-				break
-			}
-
 			// If there is only one tab, quit
 			if len(m.tabs) == 1 {
 				m.quitting = true
@@ -254,15 +261,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		case key.Matches(msg, m.keymap.ShowHelp):
-			// View the help page
-			if !m.popupShown {
-				return m.showHelp()
-			}
+			return m.showHelp()
 
 		case key.Matches(msg, m.keymap.ToggleOfflineMode):
-			if !m.popupShown {
-				return m.toggleOffline()
-			}
+			return m.toggleOffline()
 		}
 	}
 
