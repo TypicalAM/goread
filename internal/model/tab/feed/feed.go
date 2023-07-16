@@ -73,7 +73,7 @@ type Model struct {
 	title           string
 	loaded          bool
 	loadingSpinner  spinner.Model
-	fetchFailed     bool
+	errShown        bool
 	list            list.Model
 	articleContent  []string
 	termRenderer    glamour.TermRenderer
@@ -148,7 +148,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	switch msg := msg.(type) {
 	case backend.FetchErrorMsg:
 		// If the fetch failed, we need to display an error message
-		m.fetchFailed = true
+		m.errShown = true
 		return m, nil
 
 	case backend.FetchArticleSuccessMsg:
@@ -233,7 +233,6 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 // loadTab is fired when the items are retrieved from the backend, it
 // initializes the list and the viewport
-// TODO: Wrap descs to m.width/4 - 3
 func (m Model) loadTab(items []list.Item, articleContents []string) (tab.Tab, tea.Cmd) {
 	// Create the styles for the list items
 	delegateStyles := list.NewDefaultItemStyles()
@@ -284,8 +283,8 @@ func (m Model) loadTab(items []list.Item, articleContents []string) (tab.Tab, te
 		glamour.WithWordWrap(m.style.viewportWidth),
 	)
 
-	// TODO: Infinite loop?
 	if err != nil {
+		m.errShown = true
 		m.loaded = false
 		return m, nil
 	}
@@ -365,28 +364,19 @@ func (m Model) DisableDeleting() Model {
 
 // showLoading shows the loading message or the error message
 func (m Model) showLoading() string {
-	// The style of the message
-	messageStyle := lipgloss.NewStyle().
-		MarginLeft(3).
-		MarginTop(1)
-
 	var loadingMsg string
-	if m.fetchFailed {
-		// Render the failed message with a cross mark
-		errorMsgStyle := messageStyle.Copy().
-			Foreground(m.colors.Color4)
+
+	if m.errShown {
 		loadingMsg = lipgloss.JoinHorizontal(
 			lipgloss.Top,
-			errorMsgStyle.Render(" "),
-			messageStyle.Render("Failed to load the articles"),
+			m.style.errIcon,
+			m.style.loadingMsg.Render("Failed to load the tab"),
 		)
 	} else {
-		// Render the loading message with a spinner
-		loadingMsg = messageStyle.Render(
+		loadingMsg = m.style.loadingMsg.Render(
 			fmt.Sprintf("%s Loading feed %s", m.loadingSpinner.View(), m.title),
 		)
 	}
 
-	// Render the message
 	return loadingMsg
 }

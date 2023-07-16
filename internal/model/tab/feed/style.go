@@ -12,16 +12,27 @@ type style struct {
 	listWidth     int
 	viewportWidth int
 
+	loadingMsg      lipgloss.Style
 	idleList        lipgloss.Style
 	focusedList     lipgloss.Style
 	idleViewport    lipgloss.Style
 	focusedViewport lipgloss.Style
+
+	errIcon string
 }
 
 // newStyle creates a new style for the feed tab.
 func newStyle(colors colorscheme.Colorscheme, width, height int) style {
 	listWidth := width/4 - 2
 	viewportWidth := width - listWidth - 4
+
+	loadingMsg := lipgloss.NewStyle().
+		MarginLeft(3).
+		MarginTop(1)
+
+	errIconStyle := loadingMsg.Copy().
+		Foreground(colors.Color4).
+		SetString("")
 
 	idleList := lipgloss.NewStyle().
 		Width(listWidth).
@@ -46,6 +57,8 @@ func newStyle(colors colorscheme.Colorscheme, width, height int) style {
 		height:          height,
 		listWidth:       listWidth,
 		viewportWidth:   viewportWidth,
+		loadingMsg:      loadingMsg,
+		errIcon:         errIconStyle.String(),
 		idleList:        idleList,
 		focusedList:     focusedList,
 		idleViewport:    idleViewport,
