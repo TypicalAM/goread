@@ -7,22 +7,25 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/charmbracelet/glamour"
+	"github.com/charmbracelet/glamour/ansi"
 	"github.com/charmbracelet/lipgloss"
 )
 
 // Default is the default colorscheme
 var Default = Colorscheme{
-	BgDark:   "#161622",
-	BgDarker: "#11111a",
-	Text:     "#FFFFFF",
-	TextDark: "#47485b",
-	Color1:   "#c29fec",
-	Color2:   "#ddbec0",
-	Color3:   "#89b4fa",
-	Color4:   "#e06c75",
-	Color5:   "#98c379",
-	Color6:   "#fab387",
-	Color7:   "#f1c1e4",
+	BgDark:        "#161622",
+	BgDarker:      "#11111a",
+	Text:          "#FFFFFF",
+	TextDark:      "#47485b",
+	Color1:        "#c29fec",
+	Color2:        "#ddbec0",
+	Color3:        "#89b4fa",
+	Color4:        "#e06c75",
+	Color5:        "#98c379",
+	Color6:        "#fab387",
+	Color7:        "#f1c1e4",
+	MarkdownStyle: glamour.DraculaStyleConfig,
 }
 
 // Colorscheme is a struct that contains all the colors for the application
@@ -39,6 +42,9 @@ type Colorscheme struct {
 	Color5   lipgloss.Color `json:"color5"`
 	Color6   lipgloss.Color `json:"color6"`
 	Color7   lipgloss.Color `json:"color7"`
+
+	// TODO: For the sake of config clarity we are just generating the styles at loadtime
+	MarkdownStyle ansi.StyleConfig `json:"-"`
 }
 
 // New will create a new colorscheme and try to load it
@@ -54,6 +60,7 @@ func New(path string) (*Colorscheme, error) {
 
 	colors := Default
 	colors.FilePath = path
+	colors.genMarkdownStyle()
 	return &colors, nil
 }
 
@@ -64,12 +71,17 @@ func (c *Colorscheme) Load() error {
 		return err
 	}
 
-	return json.Unmarshal(fileContent, &c)
+	if err = json.Unmarshal(fileContent, c); err != nil {
+		return err
+	}
+
+	c.genMarkdownStyle()
+	return nil
 }
 
 // Save saves the colorscheme to a JSON file
 func (c Colorscheme) Save() error {
-	jsonData, err := json.Marshal(c)
+	jsonData, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -154,3 +166,201 @@ func getDefaultPath() (string, error) {
 	// Create the config path
 	return filepath.Join(configDir, "goread", "colorscheme.json"), nil
 }
+
+// generateMarkDownStyle generates the markdown style from the colorscheme
+func (c *Colorscheme) genMarkdownStyle() {
+	c.MarkdownStyle = ansi.StyleConfig{
+		Document: ansi.StyleBlock{
+			StylePrimitive: ansi.StylePrimitive{
+				BlockPrefix: "\n",
+				BlockSuffix: "\n",
+				Color:       stringPtr(string(c.Text)),
+			},
+			Margin: uintPtr(2),
+		},
+		BlockQuote: ansi.StyleBlock{
+			StylePrimitive: ansi.StylePrimitive{
+				Color:  stringPtr(string(c.Color7)),
+				Italic: boolPtr(true),
+			},
+			Indent:      uintPtr(1),
+			IndentToken: stringPtr("│ "),
+		},
+		List: ansi.StyleList{
+			LevelIndent: 2,
+			StyleBlock: ansi.StyleBlock{
+				StylePrimitive: ansi.StylePrimitive{Color: stringPtr(string(c.Text))},
+			},
+		},
+		Heading: ansi.StyleBlock{
+			StylePrimitive: ansi.StylePrimitive{
+				BlockSuffix: "\n",
+				Color:       stringPtr(string(c.Color3)),
+				Bold:        boolPtr(true),
+			},
+		},
+		H1:            ansi.StyleBlock{StylePrimitive: ansi.StylePrimitive{Prefix: "# "}},
+		H2:            ansi.StyleBlock{StylePrimitive: ansi.StylePrimitive{Prefix: "## "}},
+		H3:            ansi.StyleBlock{StylePrimitive: ansi.StylePrimitive{Prefix: "### "}},
+		H4:            ansi.StyleBlock{StylePrimitive: ansi.StylePrimitive{Prefix: "#### "}},
+		H5:            ansi.StyleBlock{StylePrimitive: ansi.StylePrimitive{Prefix: "##### "}},
+		H6:            ansi.StyleBlock{StylePrimitive: ansi.StylePrimitive{Prefix: "###### "}},
+		Strikethrough: ansi.StylePrimitive{CrossedOut: boolPtr(true)},
+		Emph: ansi.StylePrimitive{
+			Italic: boolPtr(true),
+			Color:  stringPtr(string(c.Color1)),
+		},
+		Strong: ansi.StylePrimitive{
+			Bold:  boolPtr(true),
+			Color: stringPtr(string(c.Color1)),
+		},
+		HorizontalRule: ansi.StylePrimitive{
+			Color:  stringPtr(string(c.TextDark)),
+			Format: "\n--------\n",
+		},
+		Item: ansi.StylePrimitive{
+			BlockPrefix: "• ",
+		},
+		Enumeration: ansi.StylePrimitive{
+			BlockPrefix: ". ",
+			Color:       stringPtr("#8be9fd"),
+		},
+		Task: ansi.StyleTask{
+			StylePrimitive: ansi.StylePrimitive{},
+			Ticked:         "[✓] ",
+			Unticked:       "[ ] ",
+		},
+		Link: ansi.StylePrimitive{
+			Color:     stringPtr(string(c.Color6)),
+			Underline: boolPtr(true),
+		},
+		LinkText: ansi.StylePrimitive{
+			Color: stringPtr(string(c.Color5)),
+			Bold:  boolPtr(true),
+		},
+		Image: ansi.StylePrimitive{
+			Color:     stringPtr(string(c.Color6)),
+			Underline: boolPtr(true),
+		},
+		ImageText: ansi.StylePrimitive{
+			Color:  stringPtr(string(c.TextDark)),
+			Format: "Image: {{.text}} →",
+		},
+		Code: ansi.StyleBlock{
+			StylePrimitive: ansi.StylePrimitive{
+				Prefix:          " ",
+				Suffix:          " ",
+				Color:           stringPtr(string(c.Text)),
+				BackgroundColor: stringPtr(string(c.BgDark)),
+			},
+		},
+		CodeBlock: ansi.StyleCodeBlock{
+			StyleBlock: ansi.StyleBlock{
+				StylePrimitive: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Text)),
+				},
+				Margin: uintPtr(2),
+			},
+			Chroma: &ansi.Chroma{
+				Text: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Text)),
+				},
+				Error: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Color4)),
+				},
+				Comment: ansi.StylePrimitive{
+					Color: stringPtr(string(c.TextDark)),
+				},
+				CommentPreproc: ansi.StylePrimitive{
+					Color: stringPtr(string(c.TextDark)),
+				},
+				Keyword: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Color1)),
+				},
+				KeywordReserved: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Color1)),
+				},
+				KeywordNamespace: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Color1)),
+				},
+				KeywordType: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Color2)),
+				},
+				Operator: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Color3)),
+				},
+				Punctuation: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Text)),
+				},
+				Name: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Text)),
+				},
+				NameBuiltin: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Color6)),
+				},
+				NameTag: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Color6)),
+				},
+				NameAttribute: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Color6)),
+				},
+				NameClass: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Color2)),
+				},
+				NameConstant: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Text)),
+				},
+				NameDecorator: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Color3)),
+				},
+				NameFunction: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Color3)),
+				},
+				LiteralNumber: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Color5)),
+				},
+				LiteralString: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Color5)),
+				},
+				LiteralStringEscape: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Color5)),
+				},
+				GenericDeleted: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Color4)),
+				},
+				GenericEmph: ansi.StylePrimitive{
+					Color:  stringPtr(string(c.Color1)),
+					Italic: boolPtr(true),
+				},
+				GenericInserted: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Color1)),
+				},
+				GenericStrong: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Color1)),
+					Bold:  boolPtr(true),
+				},
+				GenericSubheading: ansi.StylePrimitive{
+					Color: stringPtr(string(c.Color2)),
+				},
+				Background: ansi.StylePrimitive{
+					BackgroundColor: stringPtr(string(c.BgDark)),
+				},
+			},
+		},
+		Table: ansi.StyleTable{
+			StyleBlock: ansi.StyleBlock{
+				StylePrimitive: ansi.StylePrimitive{},
+			},
+			CenterSeparator: stringPtr("┼"),
+			ColumnSeparator: stringPtr("│"),
+			RowSeparator:    stringPtr("─"),
+		},
+		DefinitionDescription: ansi.StylePrimitive{
+			BlockPrefix: "\n🠶 ",
+		},
+	}
+}
+
+func boolPtr(b bool) *bool       { return &b }
+func stringPtr(s string) *string { return &s }
+func uintPtr(u uint) *uint       { return &u }
