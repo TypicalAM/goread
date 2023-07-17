@@ -27,6 +27,15 @@ type Keymap struct {
 	ToggleOfflineMode key.Binding
 }
 
+// SetEnabled allows to disable/enable shortcuts
+func (k Keymap) SetEnabled(enabled bool) Keymap {
+	k.CloseTab.SetEnabled(enabled)
+	k.CycleTabs.SetEnabled(enabled)
+	k.ShowHelp.SetEnabled(enabled)
+	k.ToggleOfflineMode.SetEnabled(enabled)
+	return k
+}
+
 // DefaultKeymap contains the default key bindings for the browser
 var DefaultKeymap = Keymap{
 	CloseTab: key.NewBinding(
@@ -123,10 +132,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case category.ChosenCategoryMsg:
 		m.popupShown = false
 		m.popup = nil
-		m.keymap.CloseTab.SetEnabled(true)
-		m.keymap.CycleTabs.SetEnabled(true)
-		m.keymap.ToggleOfflineMode.SetEnabled(true)
-		m.keymap.ShowHelp.SetEnabled(true)
+		m.keymap = m.keymap.SetEnabled(true)
 
 		if msg.IsEdit {
 			if err := m.backend.Rss.UpdateCategory(msg.OldName, msg.Name, msg.Desc); err != nil {
@@ -147,6 +153,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case feed.ChosenFeedMsg:
 		m.popupShown = false
 		m.popup = nil
+		m.keymap = m.keymap.SetEnabled(true)
 
 		if msg.IsEdit {
 			if err := m.backend.Rss.UpdateFeed(msg.ParentCategory, msg.OldName, msg.Name, msg.URL); err != nil {
@@ -185,10 +192,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// Diable keyboard shortcuts
-		m.keymap.CloseTab.SetEnabled(false)
-		m.keymap.CycleTabs.SetEnabled(false)
-		m.keymap.ToggleOfflineMode.SetEnabled(false)
-		m.keymap.ShowHelp.SetEnabled(false)
+		m.keymap = m.keymap.SetEnabled(false)
 		m.popupShown = true
 		return m, m.popup.Init()
 
@@ -204,18 +208,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.popup = popup.NewChoice(m.style.colors, bg, width, msg.Question, msg.Default)
 
 		// Diable keyboard shortcuts
-		m.keymap.CloseTab.SetEnabled(false)
-		m.keymap.CycleTabs.SetEnabled(false)
-		m.keymap.ToggleOfflineMode.SetEnabled(false)
-		m.keymap.ShowHelp.SetEnabled(false)
+		m.keymap = m.keymap.SetEnabled(false)
 		m.popupShown = true
 		return m, m.popup.Init()
 
 	case popup.ChoiceResultMsg:
-		m.keymap.CloseTab.SetEnabled(true)
-		m.keymap.CycleTabs.SetEnabled(true)
-		m.keymap.ToggleOfflineMode.SetEnabled(true)
-		m.keymap.ShowHelp.SetEnabled(true)
+		m.keymap = m.keymap.SetEnabled(true)
 		m.popupShown = false
 		m.popup = nil
 
@@ -240,10 +238,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case msg.String() == "esc":
 			// If we are showing a popup, close it
 			if m.popupShown {
-				m.keymap.CloseTab.SetEnabled(true)
-				m.keymap.CycleTabs.SetEnabled(true)
-				m.keymap.ToggleOfflineMode.SetEnabled(true)
-				m.keymap.ShowHelp.SetEnabled(true)
+				m.keymap = m.keymap.SetEnabled(true)
 				m.popupShown = false
 				m.popup = nil
 				return m, nil
