@@ -1,7 +1,10 @@
 package feed
 
 import (
+	"errors"
 	"fmt"
+	"os/exec"
+	"runtime"
 	"strings"
 
 	"github.com/TypicalAM/goread/internal/backend"
@@ -21,7 +24,7 @@ import (
 
 // Keymap contains the key bindings for this tab
 type Keymap struct {
-	OpenArticle     key.Binding
+	Open            key.Binding
 	ToggleFocus     key.Binding
 	RefreshArticles key.Binding
 	SaveArticle     key.Binding
@@ -31,7 +34,7 @@ type Keymap struct {
 
 // DefaultKeymap contains the default key bindings for this tab
 var DefaultKeymap = Keymap{
-	OpenArticle: key.NewBinding(
+	Open: key.NewBinding(
 		key.WithKeys("enter"),
 		key.WithHelp("Enter", "Open"),
 	),
@@ -60,14 +63,14 @@ var DefaultKeymap = Keymap{
 // ShortHelp returns the short help for the tab
 func (k Keymap) ShortHelp() []key.Binding {
 	return []key.Binding{
-		k.OpenArticle, k.ToggleFocus, k.RefreshArticles, k.SaveArticle, k.DeleteFromSaved, k.CycleSelection,
+		k.Open, k.ToggleFocus, k.RefreshArticles, k.SaveArticle, k.DeleteFromSaved, k.CycleSelection,
 	}
 }
 
 // FullHelp returns the full help for the tab
 func (k Keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.OpenArticle, k.ToggleFocus, k.RefreshArticles, k.SaveArticle, k.DeleteFromSaved, k.CycleSelection},
+		{k.Open, k.ToggleFocus, k.RefreshArticles, k.SaveArticle, k.DeleteFromSaved, k.CycleSelection},
 	}
 }
 
@@ -177,7 +180,12 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 		// Handle the key message
 		switch {
-		case key.Matches(msg, m.keymap.OpenArticle):
+		case key.Matches(msg, m.keymap.Open):
+			if m.viewportFocused && m.selActive {
+				start, end := m.selCandidates[m.selIndex][0], m.selCandidates[m.selIndex][1]
+				_ = openBrowser(m.articleContent[m.list.Index()][start:end])
+			}
+
 			// If there are no items, don't do anything
 			if m.list.SelectedItem() == nil {
 				return m, nil
@@ -397,7 +405,6 @@ func (m Model) cycleSelection(content string) (tab.Tab, tea.Cmd) {
 	var b strings.Builder
 	b.WriteString(content[:start])
 	b.WriteString(m.style.link.Render(content[start:end]))
-	b.WriteString(fmt.Sprintf("%d", len(content[start:end])))
 	b.WriteString(content[end:])
 
 	m.viewport.SetContent(b.String())
@@ -406,4 +413,18 @@ func (m Model) cycleSelection(content string) (tab.Tab, tea.Cmd) {
 	m.selIndex = (m.selIndex + 1) % len(m.selCandidates)
 
 	return m, nil
+}
+
+// openLink opens the link in the browser
+func openBrowser(url string) error {
+	switch runtime.GOOS {
+	case "linux":
+		return exec.Command("xdg-open", url).Start()
+	case "windows":
+		return exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+	case "darwin":
+		return exec.Command("open", url).Start()
+	default:
+		return errors.New("unsupported platform")
+	}
 }
