@@ -13,6 +13,7 @@ type style struct {
 	listWidth     int
 	viewportWidth int
 
+	link            lipgloss.Style
 	loadingMsg      lipgloss.Style
 	idleList        lipgloss.Style
 	focusedList     lipgloss.Style
@@ -27,6 +28,10 @@ type style struct {
 func newStyle(colors colorscheme.Colorscheme, width, height int) style {
 	listWidth := width/4 - 2
 	viewportWidth := width - listWidth - 4
+
+	link := lipgloss.NewStyle().
+		Background(colors.Color1).
+		Underline(true)
 
 	loadingMsg := lipgloss.NewStyle().
 		MarginLeft(3).
@@ -76,6 +81,7 @@ func newStyle(colors colorscheme.Colorscheme, width, height int) style {
 		height:          height,
 		listWidth:       listWidth,
 		viewportWidth:   viewportWidth,
+		link:            link,
 		loadingMsg:      loadingMsg,
 		errIcon:         errIconStyle.String(),
 		idleList:        idleList,

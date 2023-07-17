@@ -2,6 +2,7 @@ package feed
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/colorscheme"
@@ -15,6 +16,7 @@ import (
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/reflow/wrap"
+	"mvdan.cc/xurls/v2"
 )
 
 // Keymap contains the key bindings for this tab
@@ -24,6 +26,7 @@ type Keymap struct {
 	RefreshArticles key.Binding
 	SaveArticle     key.Binding
 	DeleteFromSaved key.Binding
+	CycleSelection  key.Binding
 }
 
 // DefaultKeymap contains the default key bindings for this tab
@@ -48,19 +51,23 @@ var DefaultKeymap = Keymap{
 		key.WithKeys("d", "ctrl+d"),
 		key.WithHelp("d/C-d", "Delete from saved"),
 	),
+	CycleSelection: key.NewBinding(
+		key.WithKeys("g"),
+		key.WithHelp("g", "Cycle selection"),
+	),
 }
 
 // ShortHelp returns the short help for the tab
 func (k Keymap) ShortHelp() []key.Binding {
 	return []key.Binding{
-		k.OpenArticle, k.ToggleFocus, k.RefreshArticles, k.SaveArticle, k.DeleteFromSaved,
+		k.OpenArticle, k.ToggleFocus, k.RefreshArticles, k.SaveArticle, k.DeleteFromSaved, k.CycleSelection,
 	}
 }
 
 // FullHelp returns the full help for the tab
 func (k Keymap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.OpenArticle, k.ToggleFocus, k.RefreshArticles, k.SaveArticle, k.DeleteFromSaved},
+		{k.OpenArticle, k.ToggleFocus, k.RefreshArticles, k.SaveArticle, k.DeleteFromSaved, k.CycleSelection},
 	}
 }
 
@@ -76,6 +83,9 @@ type Model struct {
 	errShown        bool
 	list            list.Model
 	articleContent  []string
+	selCandidates   [][]int
+	selIndex        int
+	selActive       bool
 	termRenderer    glamour.TermRenderer
 	isViewportOpen  bool
 	viewport        viewport.Model
@@ -207,6 +217,12 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		case key.Matches(msg, m.keymap.DeleteFromSaved):
 			// Tell the main model to delete the item
 			return m, backend.DeleteItem(m, fmt.Sprintf("%d", m.list.Index()))
+
+		case key.Matches(msg, m.keymap.CycleSelection):
+			// TODO: We do not display styles if we are selecting, this is because
+			// selection doesn't play well with line breaks. This is a problem for
+			// future me.
+			return m.cycleSelection(m.articleContent[m.list.Index()])
 		}
 
 	default:
@@ -295,14 +311,20 @@ func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
 	}
 
 	// Get the content of the selected item
-	content, err := m.termRenderer.Render(m.articleContent[m.list.Index()])
+	content := m.articleContent[m.list.Index()]
+	text, err := m.termRenderer.Render(content)
 	if err != nil {
 		m.viewport.SetContent(fmt.Sprintf("We have encountered an error styling the content: %s", err))
 		return m, nil
 	}
 
+	// Find all the selectable URLs
+	m.selCandidates = xurls.Strict().FindAllStringIndex(content, -1)
+	m.selIndex = 0
+	m.selActive = false
+
 	// Set the content of the viewport
-	m.viewport.SetContent(content)
+	m.viewport.SetContent(text)
 	m.viewport.SetYOffset(0)
 	return m, nil
 }
@@ -365,4 +387,23 @@ func (m Model) showLoading() string {
 	}
 
 	return loadingMsg
+}
+
+// cycleSelection highlights the link in the viewport
+func (m Model) cycleSelection(content string) (tab.Tab, tea.Cmd) {
+	start, end := m.selCandidates[m.selIndex][0], m.selCandidates[m.selIndex][1]
+	ogOffset := m.viewport.YOffset
+
+	var b strings.Builder
+	b.WriteString(content[:start])
+	b.WriteString(m.style.link.Render(content[start:end]))
+	b.WriteString(fmt.Sprintf("%d", len(content[start:end])))
+	b.WriteString(content[end:])
+
+	m.viewport.SetContent(b.String())
+	m.viewport.SetYOffset(ogOffset)
+	m.selActive = true
+	m.selIndex = (m.selIndex + 1) % len(m.selCandidates)
+
+	return m, nil
 }
