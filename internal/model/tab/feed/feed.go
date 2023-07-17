@@ -11,6 +11,7 @@ import (
 	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/TypicalAM/goread/internal/model/simplelist"
 	"github.com/TypicalAM/goread/internal/model/tab"
+	"github.com/TypicalAM/goread/internal/popup"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -172,6 +173,13 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		// If the fetch succeeded, we need to load the tab
 		return m.loadTab(msg.Items, msg.ArticleContents)
 
+	case popup.ChoiceResultMsg:
+		// TODO: Error handling
+		if msg.Result {
+			start, end := m.selCandidates[m.selIndex][0], m.selCandidates[m.selIndex][1]
+			_ = openBrowser(m.articleContent[m.list.Index()][start:end])
+		}
+
 	case tea.KeyMsg:
 		// If the tab is not loaded, return
 		if !m.loaded {
@@ -182,8 +190,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		switch {
 		case key.Matches(msg, m.keymap.Open):
 			if m.viewportFocused && m.selActive {
-				start, end := m.selCandidates[m.selIndex][0], m.selCandidates[m.selIndex][1]
-				_ = openBrowser(m.articleContent[m.list.Index()][start:end])
+				return m, backend.MakeChoice("Open in browser?", true)
 			}
 
 			// If there are no items, don't do anything

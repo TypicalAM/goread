@@ -81,3 +81,21 @@ func DownloadItem(key string, index int) tea.Cmd {
 		}
 	}
 }
+
+// MakeChoiceMsg is a message to tell the main model that a choice
+// needs to be made
+type MakeChoiceMsg struct {
+	Question string
+	Default  bool
+}
+
+// MakeChoice is a function to tell the main model that a choice
+// needs to be made
+func MakeChoice(question string, defaultChoice bool) tea.Cmd {
+	return func() tea.Msg {
+		return MakeChoiceMsg{
+			Question: question,
+			Default:  defaultChoice,
+		}
+	}
+}

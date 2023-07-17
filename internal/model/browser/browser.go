@@ -122,6 +122,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case category.ChosenCategoryMsg:
 		m.popupShown = false
+		m.popup = nil
 		m.keymap.CloseTab.SetEnabled(true)
 		m.keymap.CycleTabs.SetEnabled(true)
 		m.keymap.ToggleOfflineMode.SetEnabled(true)
@@ -145,6 +146,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case feed.ChosenFeedMsg:
 		m.popupShown = false
+		m.popup = nil
 
 		if msg.IsEdit {
 			if err := m.backend.Rss.UpdateFeed(msg.ParentCategory, msg.OldName, msg.Name, msg.URL); err != nil {
@@ -196,6 +198,27 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case backend.DownloadItemMsg:
 		return m.downloadItem(msg)
 
+	case backend.MakeChoiceMsg:
+		bg := lipgloss.NewStyle().Width(m.width).Height((m.height)).Render(m.View())
+		width := m.width / 2
+		m.popup = popup.NewChoice(m.style.colors, bg, width, msg.Question, msg.Default)
+
+		// Diable keyboard shortcuts
+		m.keymap.CloseTab.SetEnabled(false)
+		m.keymap.CycleTabs.SetEnabled(false)
+		m.keymap.ToggleOfflineMode.SetEnabled(false)
+		m.keymap.ShowHelp.SetEnabled(false)
+		m.popupShown = true
+		return m, m.popup.Init()
+
+	case popup.ChoiceResultMsg:
+		m.keymap.CloseTab.SetEnabled(true)
+		m.keymap.CycleTabs.SetEnabled(true)
+		m.keymap.ToggleOfflineMode.SetEnabled(true)
+		m.keymap.ShowHelp.SetEnabled(true)
+		m.popupShown = false
+		m.popup = nil
+
 	case tea.WindowSizeMsg:
 		// Resize the window
 		m.width = msg.Width
@@ -222,6 +245,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.keymap.ToggleOfflineMode.SetEnabled(true)
 				m.keymap.ShowHelp.SetEnabled(true)
 				m.popupShown = false
+				m.popup = nil
 				return m, nil
 			}
 
