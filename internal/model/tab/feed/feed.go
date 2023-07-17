@@ -174,11 +174,13 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		return m.loadTab(msg.Items, msg.ArticleContents)
 
 	case popup.ChoiceResultMsg:
-		// TODO: Error handling
-		if msg.Result {
-			start, end := m.selCandidates[m.selIndex][0], m.selCandidates[m.selIndex][1]
-			_ = openBrowser(m.articleContent[m.list.Index()][start:end])
+		if !msg.Result {
+			return m, nil
 		}
+
+		start, end := m.selCandidates[m.selIndex][0], m.selCandidates[m.selIndex][1]
+		_ = openBrowser(m.articleContent[m.list.Index()][start:end])
+		return m, nil
 
 	case tea.KeyMsg:
 		// If the tab is not loaded, return

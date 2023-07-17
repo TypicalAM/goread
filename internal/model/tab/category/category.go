@@ -5,6 +5,7 @@ import (
 	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/TypicalAM/goread/internal/model/simplelist"
 	"github.com/TypicalAM/goread/internal/model/tab"
+	"github.com/TypicalAM/goread/internal/popup"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -128,6 +129,24 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		m.list.SetItems(msg.Items)
 		return m, nil
 
+	case popup.ChoiceResultMsg:
+		if !msg.Result {
+			return m, nil
+		}
+
+		// Delete the selected feed
+		delItemName := m.list.SelectedItem().FilterValue()
+		itemCount := len(m.list.Items())
+
+		// Move the selection to the next item
+		if itemCount == 1 {
+			m.list.SetIndex(0)
+		} else {
+			m.list.SetIndex(m.list.Index() % (itemCount - 1))
+		}
+
+		return m, backend.DeleteItem(m, delItemName)
+
 	case tea.KeyMsg:
 		// If the tab is not loaded, return
 		if !m.loaded {
@@ -161,18 +180,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 		case key.Matches(msg, m.keymap.DeleteFeed):
 			if !m.list.IsEmpty() {
-				// Delete the selected feed
-				delItemName := m.list.SelectedItem().FilterValue()
-				itemCount := len(m.list.Items())
-
-				// Move the selection to the next item
-				if itemCount == 1 {
-					m.list.SetIndex(0)
-				} else {
-					m.list.SetIndex(m.list.Index() % (itemCount - 1))
-				}
-
-				return m, backend.DeleteItem(m, delItemName)
+				return m, backend.MakeChoice("Delete this feed?", true)
 			}
 
 		default:
