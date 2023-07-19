@@ -2,7 +2,6 @@ package rss
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -258,7 +257,6 @@ func HTMLToText(content string) (string, error) {
 func getDefaultPath() (string, error) {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
-		fmt.Println("WE ARE HERE in gedefault")
 		return "", err
 	}
 
