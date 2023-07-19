@@ -89,7 +89,7 @@ pywal `colors.json` file which is usually located at `~/.cache/wal/colors.json`.
 
 Here are the things that I've not yet implemented, contributions and suggestions are very welcome!
 
-- [ ] URL highlighting and opening
+- [x] URL highlighting and opening (Experimental, feel free to create an issue)
 - [ ] AI-Generated feed suggestions
 - [ ] Adding customizable keybinds
 - [x] Automatically theming the glamour viewer

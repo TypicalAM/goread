@@ -1,11 +1,7 @@
 package feed
 
 import (
-	"errors"
 	"fmt"
-	"os/exec"
-	"runtime"
-	"strings"
 
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/colorscheme"
@@ -20,7 +16,6 @@ import (
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/reflow/wrap"
-	"mvdan.cc/xurls/v2"
 )
 
 // Keymap contains the key bindings for this tab
@@ -87,9 +82,7 @@ type Model struct {
 	errShown        bool
 	list            list.Model
 	articleContent  []string
-	selCandidates   [][]int
-	selIndex        int
-	selActive       bool
+	selector        *selector
 	termRenderer    glamour.TermRenderer
 	isViewportOpen  bool
 	viewport        viewport.Model
@@ -114,6 +107,7 @@ func New(colors colorscheme.Colorscheme, width, height int, title string, reader
 		style:          newStyle(colors, width, height),
 		width:          width,
 		height:         height,
+		selector:       newSelector(colors),
 		loadingSpinner: spin,
 		title:          title,
 		reader:         reader,
@@ -178,8 +172,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			return m, nil
 		}
 
-		start, end := m.selCandidates[m.selIndex][0], m.selCandidates[m.selIndex][1]
-		_ = openBrowser(m.articleContent[m.list.Index()][start:end])
+		_ = m.selector.open()
 		return m, nil
 
 	case tea.KeyMsg:
@@ -191,7 +184,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		// Handle the key message
 		switch {
 		case key.Matches(msg, m.keymap.Open):
-			if m.viewportFocused && m.selActive {
+			if m.viewportFocused && m.selector.active {
 				return m, backend.MakeChoice("Open in browser?", true)
 			}
 
@@ -236,10 +229,12 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			return m, backend.DeleteItem(m, fmt.Sprintf("%d", m.list.Index()))
 
 		case key.Matches(msg, m.keymap.CycleSelection):
-			// TODO: We do not display styles if we are selecting, this is because
-			// selection doesn't play well with line breaks. This is a problem for
-			// future me.
-			return m.cycleSelection(m.articleContent[m.list.Index()])
+			if !m.viewportFocused {
+				return m, nil
+			}
+
+			m.viewport.SetContent(m.selector.cycle())
+			return m, nil
 		}
 
 	default:
@@ -299,7 +294,7 @@ func (m Model) loadTab(items []list.Item, articleContents []string) (tab.Tab, te
 	m.articleContent = articleContents
 	termRenderer, err := glamour.NewTermRenderer(
 		glamour.WithStyles(m.colors.MarkdownStyle),
-		glamour.WithWordWrap(m.style.viewportWidth),
+		glamour.WithWordWrap(m.style.viewportWidth-2),
 	)
 
 	if err != nil {
@@ -335,10 +330,8 @@ func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
 		return m, nil
 	}
 
-	// Find all the selectable URLs
-	m.selCandidates = xurls.Strict().FindAllStringIndex(content, -1)
-	m.selIndex = 0
-	m.selActive = false
+	// Update the selector
+	m.selector.newArticle(text)
 
 	// Set the content of the viewport
 	m.viewport.SetContent(text)
@@ -404,36 +397,4 @@ func (m Model) showLoading() string {
 	}
 
 	return loadingMsg
-}
-
-// cycleSelection highlights the link in the viewport
-func (m Model) cycleSelection(content string) (tab.Tab, tea.Cmd) {
-	start, end := m.selCandidates[m.selIndex][0], m.selCandidates[m.selIndex][1]
-	ogOffset := m.viewport.YOffset
-
-	var b strings.Builder
-	b.WriteString(content[:start])
-	b.WriteString(m.style.link.Render(content[start:end]))
-	b.WriteString(content[end:])
-
-	m.viewport.SetContent(b.String())
-	m.viewport.SetYOffset(ogOffset)
-	m.selActive = true
-	m.selIndex = (m.selIndex + 1) % len(m.selCandidates)
-
-	return m, nil
-}
-
-// openLink opens the link in the browser
-func openBrowser(url string) error {
-	switch runtime.GOOS {
-	case "linux":
-		return exec.Command("xdg-open", url).Start()
-	case "windows":
-		return exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
-	case "darwin":
-		return exec.Command("open", url).Start()
-	default:
-		return errors.New("unsupported platform")
-	}
 }
