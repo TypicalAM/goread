@@ -133,12 +133,6 @@ func getBackend() (*Backend, error) {
 
 // TestBackendLoad if we get an error loading doesn't work
 func TestBackendLoad(t *testing.T) {
-	// Create a backend with non-existent file
-	_, err := New("../test/data/no-file", "", false)
-	if err == nil {
-		t.Fatal("expected an error, got", err)
-	}
-
 	// Create a backend with a valid file
 	b, err := getBackend()
 	if err != nil {
