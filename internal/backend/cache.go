@@ -216,7 +216,7 @@ func parseFeed(feedURL string) (*gofeed.Feed, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "goread:v1.3.0 (by /u/TypicalAM)")
+	req.Header.Set("User-Agent", "goread:v1.3.1 (by /u/TypicalAM)")
 
 	// Send the request
 	resp, err := client.Do(req)
