@@ -38,7 +38,10 @@ func New(urlPath, cachePath string, resetCache bool) (*Backend, error) {
 		return nil, err
 	}
 
+	fmt.Println("RSS NEW GOOD, LOAD NOW")
+
 	if err = rss.Load(); err != nil {
+		fmt.Println("load fail :(")
 		return nil, err
 	}
 
