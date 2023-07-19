@@ -28,7 +28,7 @@ func New(urlPath, cachePath string, resetCache bool) (*Backend, error) {
 	// Try to load the cache
 	if !resetCache {
 		if err = cache.load(); err != nil {
-			fmt.Printf("Failed to load the cache: %v, creating a new one", err)
+			fmt.Printf("Failed to load the cache: %v, creating a new one\n", err)
 		}
 	}
 
@@ -39,7 +39,7 @@ func New(urlPath, cachePath string, resetCache bool) (*Backend, error) {
 	}
 
 	if err = rss.Load(); err != nil {
-		return nil, err
+		fmt.Printf("Failed to load the rss: %v, leaving the default one\n", err)
 	}
 
 	return &Backend{
