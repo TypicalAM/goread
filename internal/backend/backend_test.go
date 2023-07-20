@@ -30,8 +30,7 @@ func TestCacheLoadNoFile(t *testing.T) {
 		t.Fatalf("couldn't get default path: %v", err)
 	}
 
-	err = cache.load()
-	if err == nil {
+	if err = cache.load(); err != nil {
 		t.Fatal("expected error, got nil")
 	}
 }

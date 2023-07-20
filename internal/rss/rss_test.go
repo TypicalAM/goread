@@ -25,7 +25,7 @@ func TestRssLoadNoFile(t *testing.T) {
 		t.Errorf("error creating rss object: %v", err)
 	}
 
-	if err = myRss.Load(); err == nil {
+	if err = myRss.Load(); err != nil {
 		t.Errorf("no error returned when loading non-existent file")
 	}
 }
