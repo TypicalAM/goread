@@ -13,14 +13,14 @@ type ChoiceResultMsg struct {
 
 // Choice is a popup that presents a yes/no choice to the user.
 type Choice struct {
-	style        choiceStyle
-	defaultPopup Default
+	style        style
 	question     string
+	defaultPopup Default
 	selected     bool
 }
 
 // NewChoice creates a new Choice popup.
-func NewChoice(colors colorscheme.Colorscheme, bgRaw string, width int, question string, defaultChoice bool) Choice {
+func NewChoice(colors *colorscheme.Colorscheme, bgRaw string, width int, question string, defaultChoice bool) Choice {
 	optWidth := len(question) + 16
 	if optWidth > width {
 		optWidth = width
@@ -29,7 +29,7 @@ func NewChoice(colors colorscheme.Colorscheme, bgRaw string, width int, question
 	height := 7
 
 	return Choice{
-		style:        newChoiceStyle(colors, optWidth, height),
+		style:        newStyle(colors, optWidth, height),
 		defaultPopup: New(bgRaw, optWidth, height),
 		question:     question,
 		selected:     defaultChoice,

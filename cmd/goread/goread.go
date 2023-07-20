@@ -122,7 +122,7 @@ func Run() error {
 	}
 
 	// Create the browser
-	browser := browser.New(*colors, *backend)
+	browser := browser.New(colors, backend)
 
 	// Start the program
 	if _, err = tea.NewProgram(browser).Run(); err != nil {

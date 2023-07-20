@@ -19,7 +19,7 @@ type popupStyle struct {
 }
 
 // newPopupStyle creates a new popup style.
-func newPopupStyle(colors colorscheme.Colorscheme, width, height int) popupStyle {
+func newPopupStyle(colors *colorscheme.Colorscheme, width, height int) popupStyle {
 	general := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#FFFFFF")).
 		Width(width - 2).

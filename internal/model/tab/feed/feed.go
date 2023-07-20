@@ -5,9 +5,9 @@ import (
 
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/colorscheme"
+	"github.com/TypicalAM/goread/internal/model/popup"
 	"github.com/TypicalAM/goread/internal/model/simplelist"
 	"github.com/TypicalAM/goread/internal/model/tab"
-	"github.com/TypicalAM/goread/internal/popup"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -72,46 +72,42 @@ func (k Keymap) FullHelp() [][]key.Binding {
 
 // Model contains the state of this tab
 type Model struct {
-	colors          colorscheme.Colorscheme
-	style           style
-	width           int
-	height          int
-	title           string
-	loaded          bool
-	loadingSpinner  spinner.Model
-	errShown        bool
 	list            list.Model
-	articleContent  []string
+	fetcher         backend.Fetcher
+	tr              *glamour.TermRenderer
+	colors          *colorscheme.Colorscheme
 	selector        *selector
-	termRenderer    glamour.TermRenderer
-	isViewportOpen  bool
+	title           string
 	viewport        viewport.Model
-	viewportFocused bool
 	keymap          Keymap
-
-	// reader is a function which returns a tea.Cmd which will be executed
-	// when the tab is initialized
-	reader func(string) tea.Cmd
+	articleContent  []string
+	spinner         spinner.Model
+	style           style
+	height          int
+	width           int
+	errShown        bool
+	loaded          bool
+	viewportOpen    bool
+	viewportFocused bool
 }
 
 // New creates a new feed tab with sensible defaults
-func New(colors colorscheme.Colorscheme, width, height int, title string, reader func(string) tea.Cmd) Model {
-	// Create a spinner for loading the data
+func New(colors *colorscheme.Colorscheme, width, height int, title string, fetcher backend.Fetcher) Model {
 	spin := spinner.New()
 	spin.Spinner = spinner.Points
 	spin.Style = lipgloss.NewStyle().Foreground(colors.Color1)
 
 	// Create the model
 	return Model{
-		colors:         colors,
-		style:          newStyle(colors, width, height),
-		width:          width,
-		height:         height,
-		selector:       newSelector(colors),
-		loadingSpinner: spin,
-		title:          title,
-		reader:         reader,
-		keymap:         DefaultKeymap,
+		colors:   colors,
+		style:    newStyle(colors, width, height),
+		width:    width,
+		height:   height,
+		selector: newSelector(colors),
+		spinner:  spin,
+		title:    title,
+		fetcher:  fetcher,
+		keymap:   DefaultKeymap,
 	}
 }
 
@@ -152,19 +148,17 @@ func (m Model) GetKeyBinds() []key.Binding {
 
 // Init initializes the tab
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(m.reader(m.title), m.loadingSpinner.Tick)
+	return tea.Batch(m.fetcher(m.title), m.spinner.Tick)
 }
 
 // Update the variables of the tab
 func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	switch msg := msg.(type) {
 	case backend.FetchErrorMsg:
-		// If the fetch failed, we need to display an error message
 		m.errShown = true
 		return m, nil
 
 	case backend.FetchArticleSuccessMsg:
-		// If the fetch succeeded, we need to load the tab
 		return m.loadTab(msg.Items, msg.ArticleContents)
 
 	case popup.ChoiceResultMsg:
@@ -176,56 +170,45 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
-		// If the tab is not loaded, return
 		if !m.loaded {
 			return m, nil
 		}
 
-		// Handle the key message
 		switch {
 		case key.Matches(msg, m.keymap.Open):
 			if m.viewportFocused && m.selector.active {
 				return m, backend.MakeChoice("Open in browser?", true)
 			}
 
-			// If there are no items, don't do anything
 			if m.list.SelectedItem() == nil {
 				return m, nil
 			}
 
-			// Set the view as open if it isn't
-			if !m.isViewportOpen {
-				m.isViewportOpen = true
+			if !m.viewportOpen {
+				m.viewportOpen = true
 			}
 
-			// Update the viewport
 			return m.updateViewport()
 
 		case key.Matches(msg, m.keymap.ToggleFocus):
-			// If the viewport isn't open, don't do anything
-			if !m.isViewportOpen {
+			if !m.viewportOpen {
 				return m, nil
 			}
 
-			// Toggle the viewport focus
 			m.viewportFocused = !m.viewportFocused
 			return m, nil
 
 		case key.Matches(msg, m.keymap.RefreshArticles):
-			// Refresh the contents of the tab
-			m.isViewportOpen = false
+			m.viewportOpen = false
 			m.loaded = false
 			m.viewportFocused = false
 
-			// Rerun with data fetching and loading
-			return m, tea.Batch(m.reader(m.title), m.loadingSpinner.Tick)
+			return m, tea.Batch(m.fetcher(m.title), m.spinner.Tick)
 
 		case key.Matches(msg, m.keymap.SaveArticle):
-			// Tell the main model to download the item
 			return m, backend.DownloadItem(m.title, m.list.Index())
 
 		case key.Matches(msg, m.keymap.DeleteFromSaved):
-			// Tell the main model to delete the item
 			return m, backend.DeleteItem(m, fmt.Sprintf("%d", m.list.Index()))
 
 		case key.Matches(msg, m.keymap.CycleSelection):
@@ -238,35 +221,29 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		}
 
 	default:
-		// If the model is not loaded, update the loading spinner
 		if !m.loaded {
 			var cmd tea.Cmd
-			m.loadingSpinner, cmd = m.loadingSpinner.Update(msg)
+			m.spinner, cmd = m.spinner.Update(msg)
 			return m, cmd
 		}
 	}
 
-	// Update the selected item from the pane
 	var cmd tea.Cmd
 	if m.viewportFocused {
 		m.viewport, cmd = m.viewport.Update(msg)
 		return m, cmd
 	}
 
-	// Prevent the list from updating if we are not loaded yet
 	if m.loaded {
 		m.list, cmd = m.list.Update(msg)
 		return m, cmd
 	}
 
-	// Return no commands
 	return m, nil
 }
 
-// loadTab is fired when the items are retrieved from the backend, it
-// initializes the list and the viewport
+// loadTab is fired when the items are retrieved from the backend
 func (m Model) loadTab(items []list.Item, articleContents []string) (tab.Tab, tea.Cmd) {
-	// Create the list
 	itemDelegate := list.NewDefaultDelegate()
 	itemDelegate.ShowDescription = true
 	itemDelegate.Styles = m.style.listItems
@@ -278,19 +255,15 @@ func (m Model) loadTab(items []list.Item, articleContents []string) (tab.Tab, te
 		items[i] = simplelist.NewItem(item.Title(), wrap.String(item.Description(), m.style.listWidth-4))
 	}
 
-	// Initialize the list
 	m.list = list.New(items, itemDelegate, m.style.listWidth, m.height)
 
-	// Set some attributes for the list
 	m.list.SetShowHelp(false)
 	m.list.SetShowTitle(false)
 	m.list.SetShowStatusBar(false)
 	m.list.DisableQuitKeybindings()
 
-	// Initialize the viewport
 	m.viewport = viewport.New(m.style.viewportWidth, m.height)
 
-	// Create the renderer for the viewport
 	m.articleContent = articleContents
 	termRenderer, err := glamour.NewTermRenderer(
 		glamour.WithStyles(m.colors.MarkdownStyle),
@@ -304,7 +277,7 @@ func (m Model) loadTab(items []list.Item, articleContents []string) (tab.Tab, te
 	}
 
 	// Locked and loaded
-	m.termRenderer = *termRenderer
+	m.tr = termRenderer
 	m.loaded = true
 	return m, nil
 }
@@ -312,28 +285,21 @@ func (m Model) loadTab(items []list.Item, articleContents []string) (tab.Tab, te
 // updateViewport is fired when the user presses enter, it updates the
 // viewport with the selected item
 func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
-	// If the viewport isn't open, don't do anything
-	if !m.isViewportOpen {
+	if !m.viewportOpen {
 		return m, nil
 	}
 
-	// If therer are no items selected, don't do anything
 	if m.list.SelectedItem() == nil {
 		return m, nil
 	}
 
-	// Get the content of the selected item
-	content := m.articleContent[m.list.Index()]
-	text, err := m.termRenderer.Render(content)
+	text, err := m.tr.Render(m.articleContent[m.list.Index()])
 	if err != nil {
 		m.viewport.SetContent(fmt.Sprintf("We have encountered an error styling the content: %s", err))
 		return m, nil
 	}
 
-	// Update the selector
 	m.selector.newArticle(text)
-
-	// Set the content of the viewport
 	m.viewport.SetContent(text)
 	m.viewport.SetYOffset(0)
 	return m, nil
@@ -342,16 +308,13 @@ func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
 // View the tab
 func (m Model) View() string {
 	if !m.loaded {
-		// Show the loading message
 		return m.showLoading()
 	}
 
-	// If the view is not open show just the rss list
-	if !m.isViewportOpen {
+	if !m.viewportOpen {
 		return m.style.focusedList.Render(m.list.View())
 	}
 
-	// If the viewport is focused, render it with the focused style
 	if m.viewportFocused {
 		return lipgloss.JoinHorizontal(
 			lipgloss.Left,
@@ -360,7 +323,6 @@ func (m Model) View() string {
 		)
 	}
 
-	// Otherwise render it with the default style
 	return lipgloss.JoinHorizontal(
 		lipgloss.Left,
 		m.style.focusedList.Render(m.list.View()),
@@ -382,19 +344,15 @@ func (m Model) DisableDeleting() Model {
 
 // showLoading shows the loading message or the error message
 func (m Model) showLoading() string {
-	var loadingMsg string
-
 	if m.errShown {
-		loadingMsg = lipgloss.JoinHorizontal(
+		return lipgloss.JoinHorizontal(
 			lipgloss.Top,
 			m.style.errIcon,
 			m.style.loadingMsg.Render("Failed to load the tab"),
 		)
-	} else {
-		loadingMsg = m.style.loadingMsg.Render(
-			fmt.Sprintf("%s Loading feed %s", m.loadingSpinner.View(), m.title),
-		)
 	}
 
-	return loadingMsg
+	return m.style.loadingMsg.Render(
+		fmt.Sprintf("%s Loading feed %s", m.spinner.View(), m.title),
+	)
 }

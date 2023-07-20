@@ -6,11 +6,11 @@ import (
 
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/colorscheme"
+	"github.com/TypicalAM/goread/internal/model/popup"
 	"github.com/TypicalAM/goread/internal/model/tab"
 	"github.com/TypicalAM/goread/internal/model/tab/category"
 	"github.com/TypicalAM/goread/internal/model/tab/feed"
 	"github.com/TypicalAM/goread/internal/model/tab/welcome"
-	"github.com/TypicalAM/goread/internal/popup"
 	"github.com/TypicalAM/goread/internal/rss"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -72,24 +72,23 @@ func (k Keymap) FullHelp() [][]key.Binding {
 
 // Model is used to store the state of the application
 type Model struct {
+	popup          popup.Popup
+	backend        *backend.Backend
+	help           help.Model
 	style          style
-	backend        backend.Backend
+	msg            string
+	keymap         Keymap
 	tabs           []tab.Tab
 	activeTab      int
-	waitingForSize bool
-	width          int
 	height         int
-	popupShown     bool
-	popup          popup.Popup
-	keymap         Keymap
-	help           help.Model
-	msg            string
+	width          int
+	waitingForSize bool
 	quitting       bool
 	offline        bool
 }
 
 // New returns a new model with some sensible defaults
-func New(colors colorscheme.Colorscheme, backend backend.Backend) Model {
+func New(colors *colorscheme.Colorscheme, backend *backend.Backend) Model {
 	help := help.New()
 	help.Styles.ShortDesc = lipgloss.NewStyle().Foreground(colors.Text)
 	help.Styles.ShortKey = lipgloss.NewStyle().Foreground(colors.Text)
@@ -106,31 +105,27 @@ func New(colors colorscheme.Colorscheme, backend backend.Backend) Model {
 	}
 }
 
-// Init initializes the model, there are no I/O operations needed
+// Init initializes the model
 func (m Model) Init() tea.Cmd {
 	return nil
 }
 
-// Update handles the terminal size, modifying rss items
-// and modifying tabs
+// Update handles the terminal size, modifying rss items and modifying tabs
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	// Check if we have the window size, if not, we wait for it
 	if m.waitingForSize {
 		return m.waitForSize(msg)
 	}
 
+	var cmd tea.Cmd
+
 	switch msg := msg.(type) {
 	case backend.FetchErrorMsg:
-		// If there is an error, display it on the status bar
-		// the error message will be cleared when the user closes the tab
-		m.msg = fmt.Sprintf("%s: %s", msg.Description, msg.Err.Error())
-
 		// Update the underlying tab in case it also handles error input
 		m.tabs[m.activeTab], _ = m.tabs[m.activeTab].Update(msg)
+		m.msg = fmt.Sprintf("%s: %s", msg.Description, msg.Err.Error())
 		return m, nil
 
 	case category.ChosenCategoryMsg:
-		m.popupShown = false
 		m.popup = nil
 		m.keymap = m.keymap.SetEnabled(true)
 
@@ -148,10 +143,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
-		return m, m.backend.FetchCategories()
+		return m, m.backend.FetchCategories("")
 
 	case feed.ChosenFeedMsg:
-		m.popupShown = false
 		m.popup = nil
 		m.keymap = m.keymap.SetEnabled(true)
 
@@ -172,7 +166,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.backend.FetchFeeds(msg.ParentCategory)
 
 	case tab.NewTabMessage:
-		// Create the new tab
 		return m.createNewTab(msg)
 
 	case backend.NewItemMsg:
@@ -191,9 +184,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case feed.Model:
 		}
 
-		// Diable keyboard shortcuts
 		m.keymap = m.keymap.SetEnabled(false)
-		m.popupShown = true
 		return m, m.popup.Init()
 
 	case backend.DeleteItemMsg:
@@ -207,23 +198,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		width := m.width / 2
 		m.popup = popup.NewChoice(m.style.colors, bg, width, msg.Question, msg.Default)
 
-		// Diable keyboard shortcuts
 		m.keymap = m.keymap.SetEnabled(false)
-		m.popupShown = true
 		return m, m.popup.Init()
 
 	case popup.ChoiceResultMsg:
 		m.keymap = m.keymap.SetEnabled(true)
-		m.popupShown = false
 		m.popup = nil
 
 	case tea.WindowSizeMsg:
-		// Resize the window
 		m.width = msg.Width
 		m.height = msg.Height
 		m.msg = ""
 
-		// Resize every tab
 		for i := range m.tabs {
 			m.tabs[i] = m.tabs[i].SetSize(m.width, m.height-5)
 		}
@@ -231,25 +217,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case msg.String() == "ctrl+c":
-			// Quit the program
 			m.quitting = true
 			return m, tea.Quit
 
 		case msg.String() == "esc":
 			// If we are showing a popup, close it
-			if m.popupShown {
+			if m.popup != nil {
 				m.keymap = m.keymap.SetEnabled(true)
-				m.popupShown = false
 				m.popup = nil
 				return m, nil
 			}
 
-			// Quit the program
 			m.quitting = true
 			return m, tea.Quit
 
 		case key.Matches(msg, m.keymap.CloseTab):
-			// If there is only one tab, quit
 			if len(m.tabs) == 1 {
 				m.quitting = true
 				return m, tea.Quit
@@ -259,23 +241,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.tabs = append(m.tabs[:m.activeTab], m.tabs[m.activeTab+1:]...)
 			m.activeTab--
 
-			// Wrap around
 			if m.activeTab < 0 {
 				m.activeTab = 0
 			}
 
-			// Set the message
 			m.msg = fmt.Sprintf("Closed tab - %s", m.tabs[m.activeTab].Title())
 			return m, nil
 
 		case key.Matches(msg, m.keymap.CycleTabs):
-			// Cycle through the tabs
 			m.activeTab++
 			if m.activeTab > len(m.tabs)-1 {
 				m.activeTab = 0
 			}
 
-			// Clear the message
 			m.msg = ""
 			return m, nil
 
@@ -288,87 +266,65 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	// If we are showing a popup, we need to update the popup
-	if m.popupShown {
-		var cmd tea.Cmd
+	if m.popup != nil {
 		m.popup, cmd = m.popup.Update(msg)
 		return m, cmd
 	}
 
-	// Call the tab model and update its variables
-	var cmd tea.Cmd
 	m.tabs[m.activeTab], cmd = m.tabs[m.activeTab].Update(msg)
-	return m, tea.Batch(cmd)
+	return m, cmd
 }
 
 // View renders the tab bar, the active tab and the status bar
 func (m Model) View() string {
-	// If we are quitting, render the quit message
 	if m.quitting {
 		return "Goodbye!"
 	}
 
-	// If we are not loaded, render the loading message
 	if m.waitingForSize {
 		return "Loading..."
 	}
 
-	// If we are showing a popup, render the popup
-	if m.popupShown {
+	if m.popup != nil {
 		return m.popup.View()
 	}
 
-	// Hold the sections of the screen
+	// TODO: refactor
 	var sections []string
-
-	// Do not render the tab bar if there is only one tab
 	sections = append(sections, m.renderTabBar())
-
-	// Render the tab content and the status bar
 	constrainHeight := lipgloss.NewStyle().Height(m.height - 3).MaxHeight(m.height - 3)
 	sections = append(sections, constrainHeight.Render(m.tabs[m.activeTab].View()))
-
-	// Render the status bar
 	sections = append(sections, m.renderStatusBar())
 
-	// Render the message bar
 	if strings.Contains(m.msg, "Error") {
-		errStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#f08ca8")).
-			Italic(true)
-		sections = append(sections, errStyle.Render(m.msg))
+		sections = append(sections, m.style.errMsg.Render(m.msg))
 	} else {
 		sections = append(sections, m.msg)
 	}
 
-	// Join all the sections
-	return lipgloss.JoinVertical(lipgloss.Top, sections...)
+	return strings.Join(sections, "\n")
 }
 
 // waitForSize waits for the window size to be set and loads the tab
-// if it receives it
 func (m Model) waitForSize(msg tea.Msg) (tea.Model, tea.Cmd) {
-	// Wait for the window size message
-	if msg, ok := msg.(tea.WindowSizeMsg); ok {
-		// Initialize the window height and width
-		m.width = msg.Width
-		m.height = msg.Height
-		m.waitingForSize = false
-
-		// Append a new welcome tab
-		m.tabs = append(m.tabs, welcome.New(
-			m.style.colors,
-			m.width,
-			m.height-5,
-			"Welcome",
-			m.backend.FetchCategories,
-		))
-
-		// Return the init of the tab
-		return m, m.tabs[0].Init()
+	if _, ok := msg.(tea.WindowSizeMsg); !ok {
+		return m, nil
 	}
 
-	// Return nothing if we didn't get size yet
-	return m, nil
+	sizeMsg := msg.(tea.WindowSizeMsg)
+	m.width = sizeMsg.Width
+	m.height = sizeMsg.Height
+	m.waitingForSize = false
+
+	m.tabs = append(m.tabs, welcome.New(
+		m.style.colors,
+		m.width,
+		m.height-5,
+		"Welcome",
+		m.backend.FetchCategories,
+	))
+
+	return m, m.tabs[0].Init()
 }
 
 // createNewTab bootstraps the new tab and adds it to the model
@@ -416,7 +372,7 @@ func (m Model) deleteItem(msg backend.DeleteItemMsg) (tea.Model, tea.Cmd) {
 			m.msg = fmt.Sprintf("Error deleting category %s: %s", msg.Key, err.Error())
 		}
 
-		return m, m.backend.FetchCategories()
+		return m, m.backend.FetchCategories("")
 
 	case category.Model:
 		if err := m.backend.Rss.RemoveFeed(m.tabs[m.activeTab].Title(), msg.Key); err != nil {
@@ -440,7 +396,7 @@ func (m Model) deleteItem(msg backend.DeleteItemMsg) (tea.Model, tea.Cmd) {
 
 // downloadItem downloads an item
 func (m Model) downloadItem(msg backend.DownloadItemMsg) (tea.Model, tea.Cmd) {
-	m.msg = fmt.Sprintf("Saving item from feed %s", msg.Key)
+	m.msg = "Item saved! You can find it in the downloaded category"
 	return m, m.backend.DownloadItem(msg.Key, msg.Index)
 }
 
@@ -468,21 +424,17 @@ func (m Model) toggleOffline() (tea.Model, tea.Cmd) {
 
 // renderTabBar renders the tab bar at the top of the screen
 func (m Model) renderTabBar() string {
-	// Render the tab bar at the top of the screen
 	tabs := make([]string, len(m.tabs))
 	for i := range m.tabs {
 		tabs[i] = m.style.attachIcon(m.tabs[i], m.tabs[i].Title(), i == m.activeTab)
 	}
 
-	// Check if the row exceeds the width of the screen
 	if lipgloss.Width(strings.Join(tabs, "")) > m.width {
 		tabs = tabs[m.activeTab:]
 	}
 
-	// Create the row
 	row := strings.Join(tabs, "")
 
-	// Calculate the gap amount
 	var gapAmount int
 	if m.width-lipgloss.Width(row) < 0 {
 		gapAmount = 0
@@ -490,17 +442,14 @@ func (m Model) renderTabBar() string {
 		gapAmount = m.width - lipgloss.Width(row)
 	}
 
-	// Create the gap on the right
 	gap := m.style.tabGap.Render(strings.Repeat(" ", gapAmount))
 	return lipgloss.JoinHorizontal(lipgloss.Left, row, gap)
 }
 
 // renderStatusBar is used to render the status bar at the bottom of the screen
 func (m Model) renderStatusBar() string {
-	// Render the status bar at the bottom of the screen
 	row := m.style.styleStatusBarCell(m.tabs[m.activeTab], m.offline)
 
-	// Calculate the gap amount
 	var gapAmount int
 	if m.width-lipgloss.Width(row) < 0 {
 		gapAmount = 0
@@ -508,7 +457,6 @@ func (m Model) renderStatusBar() string {
 		gapAmount = m.width - lipgloss.Width(row)
 	}
 
-	// Render the gap on the right
 	gap := m.style.statusBarGap.Render(strings.Repeat(" ", gapAmount))
 	return lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap)
 }

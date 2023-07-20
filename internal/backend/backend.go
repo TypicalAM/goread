@@ -19,20 +19,17 @@ type Backend struct {
 
 // New creates a new Cache Backend
 func New(urlPath, cachePath string, resetCache bool) (*Backend, error) {
-	// Create the cache
 	cache, err := newStore(cachePath)
 	if err != nil {
 		return nil, err
 	}
 
-	// Try to load the cache
 	if !resetCache {
 		if err = cache.load(); err != nil {
 			fmt.Println("Cache load failed ", err)
 		}
 	}
 
-	// Return the backend
 	rss, err := rss.New(urlPath)
 	if err != nil {
 		return nil, err
@@ -49,28 +46,22 @@ func New(urlPath, cachePath string, resetCache bool) (*Backend, error) {
 }
 
 // FetchCategories returns a tea.Cmd which gets the category list
-// from the backend
-func (b Backend) FetchCategories() tea.Cmd {
+func (b Backend) FetchCategories(_ string) tea.Cmd {
 	return func() tea.Msg {
-		// Create a list of categories
 		names, descs := b.Rss.GetCategories()
 
-		// Create a list of list items
 		items := make([]list.Item, len(names))
 		for i := range names {
 			items[i] = simplelist.NewItem(names[i], descs[i])
 		}
 
-		// Return the message
 		return FetchSuccessMsg{Items: items}
 	}
 }
 
-// FetchFeeds returns a tea.Cmd which gets the feed list from
-// the backend via a string key
+// FetchFeeds returns a tea.Cmd which gets the feeds for a category
 func (b Backend) FetchFeeds(catName string) tea.Cmd {
 	return func() tea.Msg {
-		// Create a list of feeds
 		names, urls, err := b.Rss.GetFeeds(catName)
 		if err != nil {
 			return FetchErrorMsg{
@@ -79,22 +70,18 @@ func (b Backend) FetchFeeds(catName string) tea.Cmd {
 			}
 		}
 
-		// Create a list of list items
 		items := make([]list.Item, len(names))
 		for i := range names {
 			items[i] = simplelist.NewItem(names[i], urls[i])
 		}
 
-		// Return the message
 		return FetchSuccessMsg{Items: items}
 	}
 }
 
-// FetchArticles returns a tea.Cmd which gets the articles from
-// the backend via a string key
+// FetchArticles returns a tea.Cmd which gets the articles
 func (b Backend) FetchArticles(feedName string) tea.Cmd {
 	return func() tea.Msg {
-		// Create a list of articles
 		url, err := b.Rss.GetFeedURL(feedName)
 		if err != nil {
 			return FetchErrorMsg{
@@ -103,7 +90,6 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 			}
 		}
 
-		// Get the items from the cache
 		items, err := b.Cache.getArticles(url)
 		if err != nil {
 			return FetchErrorMsg{
@@ -112,7 +98,6 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 			}
 		}
 
-		// Fill the lists with the items
 		result := make([]list.Item, len(items))
 		contents := make([]string, len(items))
 
@@ -121,7 +106,6 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 			contents[i] = rss.YassifyItem(&items[i])
 		}
 
-		// Return the message
 		return FetchArticleSuccessMsg{
 			Items:           result,
 			ArticleContents: contents,
@@ -129,14 +113,11 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 	}
 }
 
-// FetchAllArticles returns a tea.Cmd which gets all the articles from
-// the backend
+// FetchAllArticles returns a tea.Cmd which gets all the articles
 func (b Backend) FetchAllArticles(_ string) tea.Cmd {
 	return func() tea.Msg {
-		// Get all the articles and fetch them
 		items := b.Cache.getArticlesBulk(b.Rss.GetAllURLs())
 
-		// Fill the lists with the items
 		result := make([]list.Item, len(items))
 		contents := make([]string, len(items))
 
@@ -145,7 +126,6 @@ func (b Backend) FetchAllArticles(_ string) tea.Cmd {
 			contents[i] = rss.YassifyItem(&items[i])
 		}
 
-		// Return the message
 		return FetchArticleSuccessMsg{
 			Items:           result,
 			ArticleContents: contents,
@@ -153,14 +133,11 @@ func (b Backend) FetchAllArticles(_ string) tea.Cmd {
 	}
 }
 
-// FetchDownloaded returns a tea.Cmd which gets all the downloaded
-// articles from the backend
+// FetchDownloaded returns a tea.Cmd which gets the downloaded articles
 func (b Backend) FetchDownloadedArticles(_ string) tea.Cmd {
 	return func() tea.Msg {
-		// Get all the downloaded articles
 		items := b.Cache.getDownloaded()
 
-		// Fill the lists with the items
 		result := make([]list.Item, len(items))
 		contents := make([]string, len(items))
 
@@ -169,7 +146,6 @@ func (b Backend) FetchDownloadedArticles(_ string) tea.Cmd {
 			contents[i] = rss.YassifyItem(&items[i])
 		}
 
-		// Return the message
 		return FetchArticleSuccessMsg{
 			Items:           result,
 			ArticleContents: contents,
@@ -180,7 +156,6 @@ func (b Backend) FetchDownloadedArticles(_ string) tea.Cmd {
 // DownloadItem returns a tea.Cmd which downloads an item
 func (b Backend) DownloadItem(key string, index int) tea.Cmd {
 	return func() tea.Msg {
-		// Get the url for the item
 		url, err := b.Rss.GetFeedURL(key)
 		if err != nil {
 			return FetchErrorMsg{
@@ -189,16 +164,13 @@ func (b Backend) DownloadItem(key string, index int) tea.Cmd {
 			}
 		}
 
-		// Get the items from the cache
-		err = b.Cache.addToDownloaded(url, index)
-		if err != nil {
+		if err = b.Cache.addToDownloaded(url, index); err != nil {
 			return FetchErrorMsg{
 				Description: "Error while downloading the article",
 				Err:         err,
 			}
 		}
 
-		// Return nothing
 		return nil
 	}
 }
@@ -207,7 +179,7 @@ func (b Backend) DownloadItem(key string, index int) tea.Cmd {
 func (b Backend) RemoveDownload(key string) error {
 	index, err := strconv.Atoi(key)
 	if err != nil {
-		return errors.New("Invalid key")
+		return errors.New("invalid key")
 	}
 
 	return b.Cache.removeFromDownloaded(index)
@@ -220,12 +192,10 @@ func (b *Backend) SetOfflineMode(mode bool) {
 
 // Close closes the backend
 func (b Backend) Close() error {
-	// Try to save the rss
 	if err := b.Rss.Save(); err != nil {
 		return err
 	}
 
-	// Try to save the cache
 	return b.Cache.save()
 }
 

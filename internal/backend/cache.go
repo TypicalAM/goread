@@ -19,13 +19,32 @@ var DefaultCacheDuration = 24 * time.Hour
 // DefaultCacheSize is the default size of the cache
 var DefaultCacheSize = 100
 
+// SortableArticles is a sortable list of articles
+type SortableArticles []gofeed.Item
+
+// Len returns the length of the item list, needed for sorting
+func (sa SortableArticles) Len() int {
+	return len(sa)
+}
+
+// Less returns true if the item at index i is less than the item at index j, needed for sorting
+func (sa SortableArticles) Less(a, b int) bool {
+	return sa[a].PublishedParsed.Before(
+		*sa[b].PublishedParsed,
+	)
+}
+
+// Swap swaps the items at index i and j, needed for sorting
+func (sa SortableArticles) Swap(a, b int) {
+	sa[a], sa[b] = sa[b], sa[a]
+}
+
 // Cache handles the caching of feeds and storing downloaded articles
 type Cache struct {
+	Content     map[string]Entry `json:"content"`
 	filePath    string
+	Downloaded  SortableArticles `json:"downloaded"`
 	offlineMode bool
-
-	Content    map[string]Entry `json:"content"`
-	Downloaded SortableArticles `json:"downloaded"`
 }
 
 // Entry is a cache entry
@@ -79,7 +98,6 @@ func (c *Cache) load() error {
 
 // save writes the cache to disk
 func (c *Cache) save() error {
-	// Try to encode the cache
 	cacheData, err := json.Marshal(c)
 	if err != nil {
 		return err
@@ -110,12 +128,10 @@ func (c *Cache) getArticles(url string) (SortableArticles, error) {
 		delete(c.Content, url)
 	}
 
-	// Check if we are in offline mode
 	if c.offlineMode {
 		return nil, fmt.Errorf("offline mode")
 	}
 
-	// Fetch the articles
 	articles, err := fetchArticles(url)
 	if err != nil {
 		return nil, err
@@ -140,7 +156,6 @@ func (c *Cache) getArticles(url string) (SortableArticles, error) {
 		Articles: articles,
 	}
 
-	// Add the item to the cache
 	c.Content[url] = entry
 	return entry.Articles, nil
 }
@@ -206,24 +221,21 @@ func fetchArticles(url string) (SortableArticles, error) {
 }
 
 // parseFeed parses a url and attempts to return a parsed feed
-// authors note: this is made because the gofeed parser does not support some feeds, namely the ones from reddit
-func parseFeed(feedURL string) (*gofeed.Feed, error) {
-	// Create a new client
-	var client = http.Client{
+// authors note: this is was because the gofeed parser did not support reddit
+func parseFeed(url string) (*gofeed.Feed, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", "goread:v1.3.4 (by /u/TypicalAM)")
+
+	client := http.Client{
 		Transport: &http.Transport{
 			Proxy:        http.ProxyFromEnvironment,
 			TLSNextProto: map[string]func(authority string, c *tls.Conn) http.RoundTripper{},
 		},
 	}
 
-	// Create a new request with our user agent
-	req, err := http.NewRequest("GET", feedURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("User-Agent", "goread:v1.3.4 (by /u/TypicalAM)")
-
-	// Send the request
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err

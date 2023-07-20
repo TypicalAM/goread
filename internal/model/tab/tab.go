@@ -15,13 +15,11 @@ type Style struct {
 
 // Tab is an interface outlining the methods that a tab should implement including bubbletea's model methods
 type Tab interface {
-	// general fields
 	Title() string
 	Style() Style
 	SetSize(width, height int) Tab
 	GetKeyBinds() []key.Binding
 
-	// bubbletea methods
 	Init() tea.Cmd
 	Update(msg tea.Msg) (Tab, tea.Cmd)
 	View() string

@@ -153,7 +153,7 @@ func TestBackendGetCategories(t *testing.T) {
 	}
 
 	// Try to fetch the categories
-	result := b.FetchCategories()()
+	result := b.FetchCategories("")()
 	if msg, ok := result.(FetchSuccessMsg); ok {
 		if len(msg.Items) != 2 {
 			t.Errorf("expected 2 items, got %d", len(msg.Items))

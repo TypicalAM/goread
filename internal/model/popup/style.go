@@ -5,16 +5,16 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// choiceStyle is the style of the choice popup
-type choiceStyle struct {
+// style is the style of the choice popup
+type style struct {
 	button       lipgloss.Style
 	activeButton lipgloss.Style
 	question     lipgloss.Style
 	general      lipgloss.Style
 }
 
-// newChoiceStyle creates a new choiceStyle
-func newChoiceStyle(colors colorscheme.Colorscheme, width, height int) choiceStyle {
+// newStyle creates a new style for the choice popup
+func newStyle(colors *colorscheme.Colorscheme, width, height int) style {
 	buttonStyle := lipgloss.NewStyle().
 		Foreground(colors.TextDark).
 		Background(colors.BgDark).
@@ -39,7 +39,7 @@ func newChoiceStyle(colors colorscheme.Colorscheme, width, height int) choiceSty
 		Italic(true).
 		Align(lipgloss.Center)
 
-	return choiceStyle{
+	return style{
 		button:       buttonStyle,
 		activeButton: activeButtonStyle,
 		question:     question,

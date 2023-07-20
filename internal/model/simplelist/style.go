@@ -9,7 +9,7 @@ import (
 
 // listStyle is the style of the list.
 type listStyle struct {
-	colors       colorscheme.Colorscheme
+	colors       *colorscheme.Colorscheme
 	titleStyle   lipgloss.Style
 	noItemsStyle lipgloss.Style
 	itemStyle    lipgloss.Style
@@ -19,40 +19,35 @@ type listStyle struct {
 }
 
 // newListStyle creates a new listStyle
-func newListStyle(colors colorscheme.Colorscheme) listStyle {
-	// Create the new style
-	newStyle := listStyle{}
-
-	// Set the colors
-	newStyle.colors = colors
-
-	// titleStyle is used to style the title of the list
-	newStyle.titleStyle = lipgloss.NewStyle().
+func newListStyle(colors *colorscheme.Colorscheme) listStyle {
+	titleStyle := lipgloss.NewStyle().
 		Foreground(colors.Color1).
 		MarginLeft(3).
 		PaddingBottom(1)
 
-	// newItemsStyle is used to style the message when there are no items
-	newStyle.noItemsStyle = lipgloss.NewStyle().
+	noItemsStyle := lipgloss.NewStyle().
 		MarginLeft(3).
 		Foreground(colors.Color2).
 		Italic(true)
 
-	// newItemsStyle is used to style the items in the list
-	newStyle.itemStyle = lipgloss.NewStyle().
+	itemStyle := lipgloss.NewStyle().
 		MarginLeft(3).
 		Foreground(colors.Color2)
 
-	// bracketStyle is used to style the brackets around the index
-	newStyle.bracketStyle = lipgloss.NewStyle().
+	bracketStyle := lipgloss.NewStyle().
 		Foreground(colors.Color7)
 
-	// numberStyle is used to style the number in the index
-	newStyle.numberStyle = lipgloss.NewStyle().
+	numberStyle := lipgloss.NewStyle().
 		Foreground(colors.Color6)
 
-	// Return the new style
-	return newStyle
+	return listStyle{
+		colors:       colors,
+		titleStyle:   titleStyle,
+		noItemsStyle: noItemsStyle,
+		itemStyle:    itemStyle,
+		bracketStyle: bracketStyle,
+		numberStyle:  numberStyle,
+	}
 }
 
 // styleDescription will style the description of the item

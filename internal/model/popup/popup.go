@@ -8,20 +8,19 @@ import (
 	"github.com/muesli/ansi"
 )
 
-// Popup is the popup window interface. In can be implemented in other packages and use the `Default` popup to overlay the content
-// on top of the background.
+// Popup is the popup window interface. In can be implemented in other packages and use the `Default` popup to overlay the content on top of the background.
 type Popup interface {
 	tea.Model
 }
 
 // Default is a default popup window.
 type Default struct {
+	prefix    string
+	suffix    string
 	ogSection []string
 	section   []string
 	width     int
 	height    int
-	prefix    string
-	suffix    string
 	startCol  int
 }
 

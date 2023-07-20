@@ -12,6 +12,7 @@ import (
 	"mvdan.cc/xurls/v2"
 )
 
+// TODO: Move from this monstrosity to a custom written regex (this is gonna be fun)
 var ansiRe = regexp.MustCompile("[\u001B\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[a-zA-Z\\d]*)*)?\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PRZcf-ntqry=><~]))")
 
 // selector allows us to select links from a feed and open them in the browser
@@ -25,7 +26,7 @@ type selector struct {
 }
 
 // newSelector creates a new selector
-func newSelector(colors colorscheme.Colorscheme) *selector {
+func newSelector(colors *colorscheme.Colorscheme) *selector {
 	return &selector{
 		linkStyle: lipgloss.NewStyle().
 			Background(colors.Color1).

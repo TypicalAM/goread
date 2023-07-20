@@ -2,7 +2,7 @@ package category
 
 import (
 	"github.com/TypicalAM/goread/internal/colorscheme"
-	"github.com/TypicalAM/goread/internal/popup"
+	"github.com/TypicalAM/goread/internal/model/popup"
 	"github.com/TypicalAM/goread/internal/rss"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -29,16 +29,16 @@ const (
 
 // Popup is the category popup where a user can create a category.
 type Popup struct {
-	defaultPopup popup.Default
-	style        popupStyle
 	nameInput    textinput.Model
 	descInput    textinput.Model
-	focused      focusedField
+	style        popupStyle
 	oldName      string
+	defaultPopup popup.Default
+	focused      focusedField
 }
 
 // NewPopup creates a new popup window in which the user can choose a new category.
-func NewPopup(colors colorscheme.Colorscheme, bgRaw string, width, height int, oldName, oldDesc string) Popup {
+func NewPopup(colors *colorscheme.Colorscheme, bgRaw string, width, height int, oldName, oldDesc string) Popup {
 	defultPopup := popup.New(bgRaw, width, height)
 	style := newPopupStyle(colors, width, height)
 	nameInput := textinput.New()

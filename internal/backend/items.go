@@ -6,6 +6,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+// Fetcher is a function that fetches the items
+type Fetcher func(string) tea.Cmd
+
 // FetchSuccessMsg is a message that is sent when the fetching of the
 // categories or feeds was successful
 type FetchSuccessMsg struct {
@@ -22,16 +25,16 @@ type FetchArticleSuccessMsg struct {
 // FetchErrorMsgssage that is sent when the fetching of the
 // categories or feeds failed
 type FetchErrorMsg struct {
-	Description string
 	Err         error
+	Description string
 }
 
 // NewItemMsg is a message to tell the main model that a new item
 // needs to be added to the list
 type NewItemMsg struct {
 	Sender    tab.Tab
-	Editing   bool
 	OldFields []string
+	Editing   bool
 }
 
 // NewItem is a function to tell the main model that a new item

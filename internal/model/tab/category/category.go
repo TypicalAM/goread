@@ -3,9 +3,9 @@ package category
 import (
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/colorscheme"
+	"github.com/TypicalAM/goread/internal/model/popup"
 	"github.com/TypicalAM/goread/internal/model/simplelist"
 	"github.com/TypicalAM/goread/internal/model/tab"
-	"github.com/TypicalAM/goread/internal/popup"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -54,27 +54,24 @@ func (k Keymap) FullHelp() [][]key.Binding {
 
 // Model contains the state of this tab
 type Model struct {
-	colors colorscheme.Colorscheme
+	colors *colorscheme.Colorscheme
+	reader backend.Fetcher
+	title  string
+	keymap Keymap
+	list   simplelist.Model
 	width  int
 	height int
-	title  string
 	loaded bool
-	list   simplelist.Model
-	keymap Keymap
-
-	// reader is a function which returns a tea.Cmd which will be executed
-	// when the tab is initialized
-	reader func(string) tea.Cmd
 }
 
 // New creates a new category tab with sensible defaults
-func New(colors colorscheme.Colorscheme, width, height int, title string, reader func(string) tea.Cmd) Model {
+func New(colors *colorscheme.Colorscheme, width, height int, title string, fetcher backend.Fetcher) Model {
 	return Model{
 		colors: colors,
 		width:  width,
 		height: height,
 		title:  title,
-		reader: reader,
+		reader: fetcher,
 		keymap: DefaultKeymap,
 	}
 }
@@ -119,13 +116,11 @@ func (m Model) Init() tea.Cmd {
 func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 	switch msg := msg.(type) {
 	case backend.FetchSuccessMsg:
-		// The data fetch was successful
 		if !m.loaded {
 			m.list = simplelist.New(m.colors, m.title, m.height, false)
 			m.loaded = true
 		}
 
-		// Set the items of the list
 		m.list.SetItems(msg.Items)
 		return m, nil
 
@@ -134,7 +129,6 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			return m, nil
 		}
 
-		// Delete the selected feed
 		delItemName := m.list.SelectedItem().FilterValue()
 		itemCount := len(m.list.Items())
 
@@ -148,23 +142,19 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		return m, backend.DeleteItem(m, delItemName)
 
 	case tea.KeyMsg:
-		// If the tab is not loaded, return
 		if !m.loaded {
 			return m, nil
 		}
 
-		// Handle the key message
 		switch {
 		case key.Matches(msg, m.keymap.SelectFeed):
 			if !m.list.IsEmpty() {
 				return m, tab.NewTab(m, m.list.SelectedItem().FilterValue())
 			}
 
-			// If the list is empty, return nothing
 			return m, nil
 
 		case key.Matches(msg, m.keymap.NewFeed):
-			// Add a new feed
 			return m, backend.NewItem(m, false, make([]string, 2))
 
 		case key.Matches(msg, m.keymap.EditFeed):
@@ -173,7 +163,6 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 				return m, nil
 			}
 
-			// Edit the selected feed
 			item := m.list.SelectedItem().(simplelist.Item)
 			fields := []string{item.Title(), item.Description()}
 			return m, backend.NewItem(m, true, fields)
@@ -184,14 +173,12 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			}
 
 		default:
-			// Check if we need to open a new feed
 			if item, ok := m.list.GetItem(msg.String()); ok {
 				return m, tab.NewTab(m, item.FilterValue())
 			}
 		}
 	}
 
-	// Update the list
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 	return m, cmd
@@ -199,11 +186,9 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 // View returns the view of the tab
 func (m Model) View() string {
-	// Check if the program is loaded, if not, return a loading message
 	if !m.loaded {
 		return "Loading..."
 	}
 
-	// Return the list view
 	return m.list.View()
 }

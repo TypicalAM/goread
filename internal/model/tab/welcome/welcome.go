@@ -3,9 +3,9 @@ package welcome
 import (
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/colorscheme"
+	"github.com/TypicalAM/goread/internal/model/popup"
 	"github.com/TypicalAM/goread/internal/model/simplelist"
 	"github.com/TypicalAM/goread/internal/model/tab"
-	"github.com/TypicalAM/goread/internal/popup"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -54,28 +54,25 @@ func (k Keymap) FullHelp() [][]key.Binding {
 
 // Model contains the state of this tab
 type Model struct {
-	colors colorscheme.Colorscheme
-	width  int
-	height int
-	title  string
-	loaded bool
-	list   simplelist.Model
-	keymap Keymap
-
-	// reader is a function which returns a tea.Cmd which will be executed
-	// when the tab is initialized
-	reader func() tea.Cmd
+	colors  *colorscheme.Colorscheme
+	fetcher backend.Fetcher
+	title   string
+	keymap  Keymap
+	list    simplelist.Model
+	width   int
+	height  int
+	loaded  bool
 }
 
 // New creates a new welcome tab with sensible defaults
-func New(colors colorscheme.Colorscheme, width, height int, title string, reader func() tea.Cmd) Model {
+func New(colors *colorscheme.Colorscheme, width, height int, title string, fetcher backend.Fetcher) Model {
 	return Model{
-		colors: colors,
-		width:  width,
-		height: height,
-		title:  title,
-		reader: reader,
-		keymap: DefaultKeymap,
+		colors:  colors,
+		width:   width,
+		height:  height,
+		title:   title,
+		fetcher: fetcher,
+		keymap:  DefaultKeymap,
 	}
 }
 
@@ -112,7 +109,7 @@ func (m Model) GetKeyBinds() []key.Binding {
 
 // Init initializes the tab
 func (m Model) Init() tea.Cmd {
-	return m.reader()
+	return m.fetcher("")
 }
 
 // Update updates the variables of the tab

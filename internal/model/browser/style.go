@@ -8,7 +8,8 @@ import (
 
 // style is the internal style of the browser
 type style struct {
-	colors               colorscheme.Colorscheme
+	colors               *colorscheme.Colorscheme
+	errMsg               lipgloss.Style
 	activeTab            lipgloss.Style
 	activeTabIcon        lipgloss.Style
 	tab                  lipgloss.Style
@@ -20,7 +21,11 @@ type style struct {
 }
 
 // newStyle creates a new style
-func newStyle(colors colorscheme.Colorscheme) style {
+func newStyle(colors *colorscheme.Colorscheme) style {
+	errMsg := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#f08ca8")).
+		Italic(true)
+
 	activeTab := lipgloss.NewStyle().
 		Padding(0, 7, 0, 1).
 		Italic(true).
@@ -55,6 +60,7 @@ func newStyle(colors colorscheme.Colorscheme) style {
 
 	return style{
 		colors:               colors,
+		errMsg:               errMsg,
 		activeTab:            activeTab,
 		activeTabIcon:        activeTabIcon,
 		tab:                  tabStyle,
@@ -75,8 +81,6 @@ func (s style) attachIcon(tabToStyle tab.Tab, title string, active bool) string 
 		iconStyle, textStyle = s.tabIcon, s.tab
 	}
 
-	// Cut the text if the tab length is too much to handle
-	// TODO: Why 12 ???
 	if len(title) > 12 {
 		title = title[:12] + ""
 	}

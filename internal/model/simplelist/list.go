@@ -41,20 +41,19 @@ func (i Item) FilterValue() string {
 
 // Model contains state of the list
 type Model struct {
-	colors       colorscheme.Colorscheme
+	colors       *colorscheme.Colorscheme
+	style        listStyle
 	title        string
+	items        []list.Item
 	height       int
 	page         int
 	itemsPerPage int
-	items        []list.Item
 	selected     int
 	showDesc     bool
-	style        listStyle
 }
 
 // New creates a new list
-func New(colors colorscheme.Colorscheme, title string, height int, showDesc bool) Model {
-	// Calculate the items per page
+func New(colors *colorscheme.Colorscheme, title string, height int, showDesc bool) Model {
 	style := newListStyle(colors)
 	var itemsPerPage int
 	if showDesc {
@@ -80,11 +79,9 @@ func (m Model) Init() tea.Cmd {
 
 // Update updates the model
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
-	// Handle key presses
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch msg.String() {
 		case "up", "k":
-			// Select the previous item
 			m.selected--
 			if m.selected < 0 {
 				m.selected = len(m.items) - 1
@@ -97,56 +94,45 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			}
 
 		case "down", "j":
-			// Select the next item
 			m.selected++
 			if m.selected >= len(m.items) {
 				m.selected = 0
 				m.page = 0
 			}
 
-			// Check if the page needs to be changed
 			if m.selected >= (m.page+1)*m.itemsPerPage {
 				m.page++
 			}
 
 		case "shift+up", "K":
-			// Select the first item
 			m.selected = 0
 			m.page = 0
 
 		case "shift+down", "J":
-			// Select the last item
 			m.selected = len(m.items) - 1
 			m.page = len(m.items) / m.itemsPerPage
 		}
 	}
 
-	// Return the updated model
 	return m, nil
 }
 
 // View returns the view of the list
 func (m Model) View() string {
-	// Sections will be used to build the view
 	sections := make([]string, 1)
 
-	// Create the title
 	sections = append(sections, m.style.titleStyle.Render(m.title))
 
-	// If the list is empty show a message
 	if len(m.items) == 0 {
 		sections = append(sections, m.style.noItemsStyle.Render("<no items>"))
 		return lipgloss.JoinVertical(lipgloss.Top, sections...)
 	}
 
-	// If the list has items, style them
 	for i := m.itemsPerPage * m.page; i < m.itemsPerPage*(m.page+1); i++ {
-		// Check if the index is in the list
 		if i >= len(m.items) {
 			break
 		}
 
-		// Render the item
 		isSelected := i == m.selected
 		sections = append(sections, lipgloss.JoinHorizontal(
 			lipgloss.Left,
@@ -154,7 +140,6 @@ func (m Model) View() string {
 			m.style.itemStyle.Render(m.items[i].FilterValue()),
 		))
 
-		// If the description is shown add the description
 		if m.showDesc {
 			if item, ok := m.items[i].(list.DefaultItem); ok {
 				if ansi.PrintableRuneWidth(item.Description()) != 0 {
@@ -166,16 +151,12 @@ func (m Model) View() string {
 		}
 	}
 
-	// Append a blank line at the end
 	sections = append(sections, "")
-
-	// Join the sections and return the view
 	return lipgloss.JoinVertical(lipgloss.Top, sections...)
 }
 
 // SetHeight sets the height of the list
 func (m *Model) SetHeight(height int) {
-	// Calculate the items per page
 	if m.showDesc {
 		m.itemsPerPage = (height - lipgloss.Height(m.style.titleStyle.Render(""))) / 2
 	} else {
@@ -193,10 +174,9 @@ func (m Model) Items() []list.Item {
 // SetItems sets the items in the list
 func (m *Model) SetItems(items []list.Item) {
 	if len(items) > 36 {
-		panic("List: too many items")
+		panic("list: too many items")
 	}
 
-	// Set the items
 	m.items = items
 }
 
@@ -212,24 +192,16 @@ func (m Model) SelectedItem() list.Item {
 
 // GetItem checks if the list has an item and returns it
 func (m Model) GetItem(text string) (list.Item, bool) {
-	// Check if the string is more than one character (left, right, up, down, etc)
-	if len(text) > 1 {
+	index, err := strconv.Atoi(text)
+	if err != nil {
 		return nil, false
 	}
 
-	// Convert the text to an integer and check if the index is in the list
-	if index, err := strconv.Atoi(text); err == nil {
-		inList := index < len(m.items)
-		if !inList {
-			return nil, false
-		}
-
-		// Return the item
-		return m.items[index], true
+	if index >= len(m.items) || index < 0 {
+		return nil, false
 	}
 
-	// We cannot find the item
-	return nil, false
+	return m.items[index], true
 }
 
 // Index returns the index of the selected item

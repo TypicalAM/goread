@@ -2,7 +2,7 @@ package feed
 
 import (
 	"github.com/TypicalAM/goread/internal/colorscheme"
-	"github.com/TypicalAM/goread/internal/popup"
+	"github.com/TypicalAM/goread/internal/model/popup"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -27,18 +27,18 @@ const (
 
 // Popup is the feed popup where a user can create/edit a feed.
 type Popup struct {
-	defaultPopup   popup.Default
-	style          popupStyle
 	nameInput      textinput.Model
 	urlInput       textinput.Model
+	style          popupStyle
 	oldName        string
 	oldURL         string
 	parentCategory string
+	defaultPopup   popup.Default
 	focused        focusedField
 }
 
 // NewPopup returns a new feed popup.
-func NewPopup(colors colorscheme.Colorscheme, bgRaw string, width, height int,
+func NewPopup(colors *colorscheme.Colorscheme, bgRaw string, width, height int,
 	oldName, oldURL, parentCategory string) Popup {
 
 	style := newPopupStyle(colors, width, height)

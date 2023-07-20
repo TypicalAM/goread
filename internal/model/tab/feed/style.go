@@ -8,24 +8,22 @@ import (
 
 // style is the style of the feed tab.
 type style struct {
-	width         int
-	height        int
-	listWidth     int
-	viewportWidth int
-
+	listItems       list.DefaultItemStyles
 	link            lipgloss.Style
 	loadingMsg      lipgloss.Style
 	idleList        lipgloss.Style
 	focusedList     lipgloss.Style
 	idleViewport    lipgloss.Style
 	focusedViewport lipgloss.Style
-	listItems       list.DefaultItemStyles
-
-	errIcon string
+	errIcon         string
+	width           int
+	height          int
+	listWidth       int
+	viewportWidth   int
 }
 
 // newStyle creates a new style for the feed tab.
-func newStyle(colors colorscheme.Colorscheme, width, height int) style {
+func newStyle(colors *colorscheme.Colorscheme, width, height int) style {
 	listWidth := width/4 - 2
 	viewportWidth := width - listWidth - 4
 
@@ -103,4 +101,50 @@ func (s style) setSize(width, height int) style {
 	s.idleViewport = s.idleViewport.Width(s.viewportWidth).Height(height)
 	s.focusedViewport = s.focusedViewport.Width(s.viewportWidth).Height(height)
 	return s
+}
+
+// popupStyle is the style of the popup window.
+type popupStyle struct {
+	general   lipgloss.Style
+	heading   lipgloss.Style
+	item      lipgloss.Style
+	itemTitle lipgloss.Style
+	itemField lipgloss.Style
+}
+
+// newPopupStyle creates a new popup style.
+func newPopupStyle(colors *colorscheme.Colorscheme, width, height int) popupStyle {
+	general := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FFFFFF")).
+		Width(width - 2).
+		Height(height - 2).
+		Border(lipgloss.NormalBorder()).
+		BorderForeground(colors.Color1)
+
+	heading := lipgloss.NewStyle().
+		Margin(1, 0, 1, 0).
+		Width(width - 2).
+		Align(lipgloss.Center).
+		Italic(true)
+
+	item := lipgloss.NewStyle().
+		Margin(0, 4).
+		PaddingLeft(1).
+		Border(lipgloss.RoundedBorder(), false, false, false, true).
+		BorderForeground(colors.Color3).
+		Italic(true)
+
+	itemTitle := lipgloss.NewStyle().
+		Foreground(colors.Color3)
+
+	itemField := lipgloss.NewStyle().
+		Foreground(colors.Color2)
+
+	return popupStyle{
+		general:   general,
+		heading:   heading,
+		item:      item,
+		itemTitle: itemTitle,
+		itemField: itemField,
+	}
 }
