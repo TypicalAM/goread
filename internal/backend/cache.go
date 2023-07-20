@@ -211,6 +211,7 @@ func parseFeed(feedURL string) (*gofeed.Feed, error) {
 	// Create a new client
 	var client = http.Client{
 		Transport: &http.Transport{
+			Proxy:        http.ProxyFromEnvironment,
 			TLSNextProto: map[string]func(authority string, c *tls.Conn) http.RoundTripper{},
 		},
 	}
@@ -220,7 +221,7 @@ func parseFeed(feedURL string) (*gofeed.Feed, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "goread:v1.3.2 (by /u/TypicalAM)")
+	req.Header.Set("User-Agent", "goread:v1.3.3 (by /u/TypicalAM)")
 
 	// Send the request
 	resp, err := client.Do(req)
