@@ -19,6 +19,13 @@ archives:
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
 
+brews:
+- name: goread
+  homepage: https://github.com/TypicalAM/homebrew-goread 
+  tap:
+    owner: TypicalAM
+    name: homebrew-goread
+
 checksum:
   name_template: 'checksums.txt'
 
