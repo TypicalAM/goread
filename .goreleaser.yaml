@@ -25,6 +25,7 @@ brews:
   tap:
     owner: TypicalAM
     name: homebrew-goread
+    token: "{{ .Env.TAP_GITHUB_TOKEN }}"
 
 checksum:
   name_template: 'checksums.txt'
