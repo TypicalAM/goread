@@ -12,13 +12,27 @@
 
 ## ❤️ Getting started
 
-Installation is extremely easy with `go install`
+### Installing with `go install`
+
+Install with
 
 ```
 go install github.com/TypicalAM/goread@latest
 ```
 
-Then you can just run `goread`!
+### Installing with `homebrew`
+
+Add repository
+
+```
+brew tap TypicalAM/goread
+```
+
+Install
+
+```
+brew install goread
+```
 
 ## 📸 What does it look like?
 
