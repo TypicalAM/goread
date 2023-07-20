@@ -48,7 +48,7 @@ func NewPopup(colors colorscheme.Colorscheme, bgRaw string, width, height int,
 	nameInput.Prompt = "Name: "
 	nameInput.Width = width - 20
 	urlInput := textinput.New()
-	urlInput.CharLimit = 100
+	urlInput.CharLimit = 150
 	urlInput.Width = width - 20
 	urlInput.Prompt = "URL: "
 
@@ -81,7 +81,7 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch msg.String() {
-		case "down", "up":
+		case "down", "up", "tab":
 			switch p.focused {
 			case nameField:
 				p.focused = urlField

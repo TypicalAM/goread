@@ -48,7 +48,7 @@ func (c Choice) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			return c, c.makeChoice()
 
-		case "left", "right":
+		case "left", "right", "tab":
 			c.selected = !c.selected
 			return c, nil
 

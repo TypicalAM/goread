@@ -79,7 +79,7 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch msg.String() {
-		case "down":
+		case "down", "tab":
 			switch p.focused {
 			case allField:
 				p.focused = downloadedField
