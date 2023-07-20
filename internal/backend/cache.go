@@ -54,6 +54,10 @@ func newStore(path string) (*Cache, error) {
 
 // load reads the cache from disk
 func (c *Cache) load() error {
+	if _, err := os.Stat(c.filePath); err != nil && os.IsNotExist(err) {
+		return nil
+	}
+
 	file, err := os.ReadFile(c.filePath)
 	if err != nil {
 		return err

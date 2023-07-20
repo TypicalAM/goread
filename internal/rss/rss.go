@@ -89,6 +89,10 @@ func New(path string) (*Rss, error) {
 
 // Load will try to load the Rss structure from a file
 func (rss *Rss) Load() error {
+	if _, err := os.Stat(rss.FilePath); err != nil && os.IsNotExist(err) {
+		return nil
+	}
+
 	fileContent, err := os.ReadFile(rss.FilePath)
 	if err != nil {
 		return err
