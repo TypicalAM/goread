@@ -14,6 +14,7 @@ require (
 	github.com/muesli/reflow v0.3.0
 	github.com/spf13/cobra v1.6.1
 	gopkg.in/yaml.v3 v3.0.1
+	mvdan.cc/xurls/v2 v2.5.0
 )
 
 require (
@@ -48,5 +49,4 @@ require (
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/term v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
-	mvdan.cc/xurls/v2 v2.5.0 // indirect
 )
