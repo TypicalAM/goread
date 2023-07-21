@@ -8,7 +8,7 @@ import (
 
 // style is the internal style of the browser
 type style struct {
-	colors               *theme.Colorscheme
+	colors               *theme.Colors
 	errMsg               lipgloss.Style
 	activeTab            lipgloss.Style
 	activeTabIcon        lipgloss.Style
@@ -21,7 +21,7 @@ type style struct {
 }
 
 // newStyle creates a new style
-func newStyle(colors *theme.Colorscheme) style {
+func newStyle(colors *theme.Colors) style {
 	errMsg := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#f08ca8")).
 		Italic(true)

@@ -14,7 +14,7 @@ type style struct {
 }
 
 // newStyle creates a new style for the choice popup
-func newStyle(colors *theme.Colorscheme, width, height int) style {
+func newStyle(colors *theme.Colors, width, height int) style {
 	buttonStyle := lipgloss.NewStyle().
 		Foreground(colors.TextDark).
 		Background(colors.BgDark).

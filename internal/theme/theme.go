@@ -13,7 +13,7 @@ import (
 )
 
 // Default is the default colorscheme
-var Default = Colorscheme{
+var Default = Colors{
 	BgDark:        "#161622",
 	BgDarker:      "#11111a",
 	Text:          "#FFFFFF",
@@ -28,8 +28,8 @@ var Default = Colorscheme{
 	MarkdownStyle: glamour.DraculaStyleConfig,
 }
 
-// Colorscheme is a struct that contains all the colors for the application
-type Colorscheme struct {
+// Colors is a struct that contains all the colors for the application
+type Colors struct {
 	MarkdownStyle ansi.StyleConfig `json:"-"` // Just generate this at runtime
 	Color2        lipgloss.Color   `json:"color2"`
 	BgDarker      lipgloss.Color   `json:"bg_darker"`
@@ -46,7 +46,7 @@ type Colorscheme struct {
 }
 
 // New will create a new colorscheme and try to load it
-func New(path string) (*Colorscheme, error) {
+func New(path string) (*Colors, error) {
 	if path == "" {
 		defaultPath, err := getDefaultPath()
 		if err != nil {
@@ -63,7 +63,7 @@ func New(path string) (*Colorscheme, error) {
 }
 
 // Load will load the colorscheme from a JSON file
-func (c *Colorscheme) Load() error {
+func (c *Colors) Load() error {
 	fileContent, err := os.ReadFile(c.FilePath)
 	if err != nil {
 		return err
@@ -78,7 +78,7 @@ func (c *Colorscheme) Load() error {
 }
 
 // Save saves the colorscheme to a JSON file
-func (c Colorscheme) Save() error {
+func (c Colors) Save() error {
 	jsonData, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
 		return err
@@ -98,7 +98,7 @@ func (c Colorscheme) Save() error {
 }
 
 // Convert takes the information from a pywal file and converts it to a colorscheme
-func (c *Colorscheme) Convert(pywalFilePath string) error {
+func (c *Colors) Convert(pywalFilePath string) error {
 	if pywalFilePath == "" {
 		cacheDir, err := os.UserCacheDir()
 		if err != nil {
@@ -136,7 +136,7 @@ func (c *Colorscheme) Convert(pywalFilePath string) error {
 }
 
 // PrettyPrint displays the colorscheme in the terminal
-func (c Colorscheme) PrettyPrint() string {
+func (c Colors) PrettyPrint() string {
 	result := []string{"A table of all the colors:"}
 
 	for _, color := range []lipgloss.Color{c.BgDark, c.BgDarker, c.Text, c.TextDark, c.Color1, c.Color2, c.Color3, c.Color4, c.Color5, c.Color6, c.Color7} {
@@ -166,7 +166,7 @@ func getDefaultPath() (string, error) {
 }
 
 // generateMarkDownStyle generates the markdown style from the colorscheme
-func (c *Colorscheme) genMarkdownStyle() {
+func (c *Colors) genMarkdownStyle() {
 	c.MarkdownStyle = ansi.StyleConfig{
 		Document: ansi.StyleBlock{
 			StylePrimitive: ansi.StylePrimitive{

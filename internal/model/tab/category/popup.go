@@ -38,7 +38,7 @@ type Popup struct {
 }
 
 // NewPopup creates a new popup window in which the user can choose a new category.
-func NewPopup(colors *theme.Colorscheme, bgRaw string, width, height int, oldName, oldDesc string) Popup {
+func NewPopup(colors *theme.Colors, bgRaw string, width, height int, oldName, oldDesc string) Popup {
 	defultPopup := popup.New(bgRaw, width, height)
 	style := newPopupStyle(colors, width, height)
 	nameInput := textinput.New()

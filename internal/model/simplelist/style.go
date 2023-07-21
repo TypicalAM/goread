@@ -9,7 +9,7 @@ import (
 
 // listStyle is the style of the list.
 type listStyle struct {
-	colors       *theme.Colorscheme
+	colors       *theme.Colors
 	titleStyle   lipgloss.Style
 	noItemsStyle lipgloss.Style
 	itemStyle    lipgloss.Style
@@ -19,7 +19,7 @@ type listStyle struct {
 }
 
 // newListStyle creates a new listStyle
-func newListStyle(colors *theme.Colorscheme) listStyle {
+func newListStyle(colors *theme.Colors) listStyle {
 	titleStyle := lipgloss.NewStyle().
 		Foreground(colors.Color1).
 		MarginLeft(3).

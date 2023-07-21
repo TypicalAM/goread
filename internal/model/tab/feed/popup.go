@@ -38,7 +38,7 @@ type Popup struct {
 }
 
 // NewPopup returns a new feed popup.
-func NewPopup(colors *theme.Colorscheme, bgRaw string, width, height int,
+func NewPopup(colors *theme.Colors, bgRaw string, width, height int,
 	oldName, oldURL, parentCategory string) Popup {
 
 	style := newPopupStyle(colors, width, height)

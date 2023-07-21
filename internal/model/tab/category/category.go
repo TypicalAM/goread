@@ -54,7 +54,7 @@ func (k Keymap) FullHelp() [][]key.Binding {
 
 // Model contains the state of this tab
 type Model struct {
-	colors *theme.Colorscheme
+	colors *theme.Colors
 	reader backend.Fetcher
 	title  string
 	keymap Keymap
@@ -65,7 +65,7 @@ type Model struct {
 }
 
 // New creates a new category tab with sensible defaults
-func New(colors *theme.Colorscheme, width, height int, title string, fetcher backend.Fetcher) Model {
+func New(colors *theme.Colors, width, height int, title string, fetcher backend.Fetcher) Model {
 	return Model{
 		colors: colors,
 		width:  width,

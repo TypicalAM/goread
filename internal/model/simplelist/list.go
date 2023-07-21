@@ -41,7 +41,7 @@ func (i Item) FilterValue() string {
 
 // Model contains state of the list
 type Model struct {
-	colors       *theme.Colorscheme
+	colors       *theme.Colors
 	style        listStyle
 	title        string
 	items        []list.Item
@@ -53,7 +53,7 @@ type Model struct {
 }
 
 // New creates a new list
-func New(colors *theme.Colorscheme, title string, height int, showDesc bool) Model {
+func New(colors *theme.Colors, title string, height int, showDesc bool) Model {
 	style := newListStyle(colors)
 	var itemsPerPage int
 	if showDesc {

@@ -20,7 +20,7 @@ type Choice struct {
 }
 
 // NewChoice creates a new Choice popup.
-func NewChoice(colors *theme.Colorscheme, bgRaw string, width int, question string, defaultChoice bool) Choice {
+func NewChoice(colors *theme.Colors, bgRaw string, width int, question string, defaultChoice bool) Choice {
 	optWidth := len(question) + 16
 	if optWidth > width {
 		optWidth = width

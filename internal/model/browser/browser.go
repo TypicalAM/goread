@@ -88,7 +88,7 @@ type Model struct {
 }
 
 // New returns a new model with some sensible defaults
-func New(colors *theme.Colorscheme, backend *backend.Backend) Model {
+func New(colors *theme.Colors, backend *backend.Backend) Model {
 	help := help.New()
 	help.Styles.ShortDesc = lipgloss.NewStyle().Foreground(colors.Text)
 	help.Styles.ShortKey = lipgloss.NewStyle().Foreground(colors.Text)

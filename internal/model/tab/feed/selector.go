@@ -26,7 +26,7 @@ type selector struct {
 }
 
 // newSelector creates a new selector
-func newSelector(colors *theme.Colorscheme) *selector {
+func newSelector(colors *theme.Colors) *selector {
 	return &selector{
 		linkStyle: lipgloss.NewStyle().
 			Background(colors.Color1).

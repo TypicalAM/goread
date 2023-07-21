@@ -75,7 +75,7 @@ type Model struct {
 	list            list.Model
 	fetcher         backend.Fetcher
 	tr              *glamour.TermRenderer
-	colors          *theme.Colorscheme
+	colors          *theme.Colors
 	selector        *selector
 	title           string
 	viewport        viewport.Model
@@ -92,7 +92,7 @@ type Model struct {
 }
 
 // New creates a new feed tab with sensible defaults
-func New(colors *theme.Colorscheme, width, height int, title string, fetcher backend.Fetcher) Model {
+func New(colors *theme.Colors, width, height int, title string, fetcher backend.Fetcher) Model {
 	spin := spinner.New()
 	spin.Spinner = spinner.Points
 	spin.Style = lipgloss.NewStyle().Foreground(colors.Color1)
