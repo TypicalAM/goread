@@ -3,6 +3,8 @@ package goread
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/TypicalAM/goread/internal/backend"
@@ -12,6 +14,9 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
+
+// Version is the version of the program (set at compile time)
+var Version = "0.0.0"
 
 // options denote the flags that can be given to the program
 type options struct {
@@ -32,9 +37,9 @@ var (
 
 	opts    = options{}
 	rootCmd = &cobra.Command{
-		Use:   "goread",
-		Short: "goread is a command line tool for reading RSS and ATOM feeds",
-		Long:  `goread is a fancy TUI for reading and categorizing different RSS and ATOM feeds`,
+		Use:     "goread",
+		Short:   "goread - a fancy TUI for reading RSS/Atom feeds",
+		Version: Version,
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := Run(); err != nil {
 				fmt.Fprintf(os.Stderr, "There has been an error executing the commands: '%s'", err)
@@ -66,6 +71,15 @@ func Execute() {
 
 // Run runs the program
 func Run() error {
+	if debug, err := strconv.ParseBool(os.Getenv("DEBUG")); err == nil && debug {
+		f, err := tea.LogToFile(filepath.Join(os.TempDir(), "goread.log"), "")
+		if err != nil {
+			return err
+		}
+
+		defer f.Close()
+	}
+
 	colors, err := theme.New(opts.colorschemePath)
 	if err != nil {
 		return err
