@@ -15,9 +15,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Version is the version of the program (set at compile time)
-var Version = "0.0.0"
-
 // options denote the flags that can be given to the program
 type options struct {
 	cachePath       string
@@ -37,9 +34,8 @@ var (
 
 	opts    = options{}
 	rootCmd = &cobra.Command{
-		Use:     "goread",
-		Short:   "goread - a fancy TUI for reading RSS/Atom feeds",
-		Version: Version,
+		Use:   "goread",
+		Short: "goread - a fancy TUI for reading RSS/Atom feeds",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := Run(); err != nil {
 				fmt.Fprintf(os.Stderr, "There has been an error executing the commands: '%s'", err)
@@ -59,6 +55,11 @@ func init() {
 	rootCmd.Flags().BoolVarP(&opts.resetCache, "reset_cache", "", false, "Reset the cache")
 	rootCmd.Flags().IntVarP(&opts.cacheSize, "cache_size", "", 0, "The size of the cache")
 	rootCmd.Flags().IntVarP(&opts.cacheDuration, "cache_duration", "", 0, "The duration of the cache in hours")
+}
+
+// SetVersion sets the version of the program
+func SetVersion(version string) {
+	rootCmd.Version = version
 }
 
 // Execute executes the commands
