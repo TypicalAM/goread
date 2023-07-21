@@ -9,6 +9,8 @@ builds:
       - linux
       - windows
       - darwin
+    ldflags:
+      - -s -w -X github.com/TypicalAM/goread/cmd/goread.Version={{.Version}}
 
 archives:
   - format: binary
