@@ -6,7 +6,7 @@ import (
 )
 
 func getRss(t *testing.T) *Rss {
-	myRss, err := New("../test/data/urls.yml")
+	myRss, err := New("../../test/data/urls.yml")
 	if err != nil {
 		t.Errorf("error creating rss object: %v", err)
 	}
