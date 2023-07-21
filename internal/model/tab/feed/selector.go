@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/TypicalAM/goread/internal/colorscheme"
+	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/charmbracelet/lipgloss"
 	"mvdan.cc/xurls/v2"
 )
@@ -26,7 +26,7 @@ type selector struct {
 }
 
 // newSelector creates a new selector
-func newSelector(colors *colorscheme.Colorscheme) *selector {
+func newSelector(colors *theme.Colorscheme) *selector {
 	return &selector{
 		linkStyle: lipgloss.NewStyle().
 			Background(colors.Color1).

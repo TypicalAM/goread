@@ -1,7 +1,7 @@
 package feed
 
 import (
-	"github.com/TypicalAM/goread/internal/colorscheme"
+	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -23,7 +23,7 @@ type style struct {
 }
 
 // newStyle creates a new style for the feed tab.
-func newStyle(colors *colorscheme.Colorscheme, width, height int) style {
+func newStyle(colors *theme.Colorscheme, width, height int) style {
 	listWidth := width/4 - 2
 	viewportWidth := width - listWidth - 4
 
@@ -113,7 +113,7 @@ type popupStyle struct {
 }
 
 // newPopupStyle creates a new popup style.
-func newPopupStyle(colors *colorscheme.Colorscheme, width, height int) popupStyle {
+func newPopupStyle(colors *theme.Colorscheme, width, height int) popupStyle {
 	general := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#FFFFFF")).
 		Width(width - 2).

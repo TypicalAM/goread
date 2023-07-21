@@ -1,14 +1,14 @@
 package browser
 
 import (
-	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/TypicalAM/goread/internal/model/tab"
+	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/charmbracelet/lipgloss"
 )
 
 // style is the internal style of the browser
 type style struct {
-	colors               *colorscheme.Colorscheme
+	colors               *theme.Colorscheme
 	errMsg               lipgloss.Style
 	activeTab            lipgloss.Style
 	activeTabIcon        lipgloss.Style
@@ -21,7 +21,7 @@ type style struct {
 }
 
 // newStyle creates a new style
-func newStyle(colors *colorscheme.Colorscheme) style {
+func newStyle(colors *theme.Colorscheme) style {
 	errMsg := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#f08ca8")).
 		Italic(true)

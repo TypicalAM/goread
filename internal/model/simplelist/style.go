@@ -3,13 +3,13 @@ package simplelist
 import (
 	"fmt"
 
-	"github.com/TypicalAM/goread/internal/colorscheme"
+	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/charmbracelet/lipgloss"
 )
 
 // listStyle is the style of the list.
 type listStyle struct {
-	colors       *colorscheme.Colorscheme
+	colors       *theme.Colorscheme
 	titleStyle   lipgloss.Style
 	noItemsStyle lipgloss.Style
 	itemStyle    lipgloss.Style
@@ -19,7 +19,7 @@ type listStyle struct {
 }
 
 // newListStyle creates a new listStyle
-func newListStyle(colors *colorscheme.Colorscheme) listStyle {
+func newListStyle(colors *theme.Colorscheme) listStyle {
 	titleStyle := lipgloss.NewStyle().
 		Foreground(colors.Color1).
 		MarginLeft(3).

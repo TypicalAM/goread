@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/TypicalAM/goread/internal/backend"
-	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/TypicalAM/goread/internal/model/popup"
 	"github.com/TypicalAM/goread/internal/model/simplelist"
 	"github.com/TypicalAM/goread/internal/model/tab"
+	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -75,7 +75,7 @@ type Model struct {
 	list            list.Model
 	fetcher         backend.Fetcher
 	tr              *glamour.TermRenderer
-	colors          *colorscheme.Colorscheme
+	colors          *theme.Colorscheme
 	selector        *selector
 	title           string
 	viewport        viewport.Model
@@ -92,7 +92,7 @@ type Model struct {
 }
 
 // New creates a new feed tab with sensible defaults
-func New(colors *colorscheme.Colorscheme, width, height int, title string, fetcher backend.Fetcher) Model {
+func New(colors *theme.Colorscheme, width, height int, title string, fetcher backend.Fetcher) Model {
 	spin := spinner.New()
 	spin.Spinner = spinner.Points
 	spin.Style = lipgloss.NewStyle().Foreground(colors.Color1)

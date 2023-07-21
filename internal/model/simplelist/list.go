@@ -3,7 +3,7 @@ package simplelist
 import (
 	"strconv"
 
-	"github.com/TypicalAM/goread/internal/colorscheme"
+	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -41,7 +41,7 @@ func (i Item) FilterValue() string {
 
 // Model contains state of the list
 type Model struct {
-	colors       *colorscheme.Colorscheme
+	colors       *theme.Colorscheme
 	style        listStyle
 	title        string
 	items        []list.Item
@@ -53,7 +53,7 @@ type Model struct {
 }
 
 // New creates a new list
-func New(colors *colorscheme.Colorscheme, title string, height int, showDesc bool) Model {
+func New(colors *theme.Colorscheme, title string, height int, showDesc bool) Model {
 	style := newListStyle(colors)
 	var itemsPerPage int
 	if showDesc {

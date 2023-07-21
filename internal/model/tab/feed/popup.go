@@ -1,8 +1,8 @@
 package feed
 
 import (
-	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/TypicalAM/goread/internal/model/popup"
+	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -38,7 +38,7 @@ type Popup struct {
 }
 
 // NewPopup returns a new feed popup.
-func NewPopup(colors *colorscheme.Colorscheme, bgRaw string, width, height int,
+func NewPopup(colors *theme.Colorscheme, bgRaw string, width, height int,
 	oldName, oldURL, parentCategory string) Popup {
 
 	style := newPopupStyle(colors, width, height)

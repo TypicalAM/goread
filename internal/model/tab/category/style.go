@@ -1,7 +1,7 @@
 package category
 
 import (
-	"github.com/TypicalAM/goread/internal/colorscheme"
+	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -19,7 +19,7 @@ type popupStyle struct {
 }
 
 // newPopupStyle creates a new popup style.
-func newPopupStyle(colors *colorscheme.Colorscheme, width, height int) popupStyle {
+func newPopupStyle(colors *theme.Colorscheme, width, height int) popupStyle {
 	general := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#FFFFFF")).
 		Width(width - 2).

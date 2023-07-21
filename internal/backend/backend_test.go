@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TypicalAM/goread/internal/rss"
+	"github.com/TypicalAM/goread/internal/backend/rss"
 )
 
 // getCache returns a new cache with the fake data

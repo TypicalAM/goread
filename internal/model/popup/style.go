@@ -1,7 +1,7 @@
 package popup
 
 import (
-	"github.com/TypicalAM/goread/internal/colorscheme"
+	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -14,7 +14,7 @@ type style struct {
 }
 
 // newStyle creates a new style for the choice popup
-func newStyle(colors *colorscheme.Colorscheme, width, height int) style {
+func newStyle(colors *theme.Colorscheme, width, height int) style {
 	buttonStyle := lipgloss.NewStyle().
 		Foreground(colors.TextDark).
 		Background(colors.BgDark).

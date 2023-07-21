@@ -5,13 +5,13 @@ import (
 	"strings"
 
 	"github.com/TypicalAM/goread/internal/backend"
-	"github.com/TypicalAM/goread/internal/colorscheme"
+	"github.com/TypicalAM/goread/internal/backend/rss"
 	"github.com/TypicalAM/goread/internal/model/popup"
 	"github.com/TypicalAM/goread/internal/model/tab"
 	"github.com/TypicalAM/goread/internal/model/tab/category"
 	"github.com/TypicalAM/goread/internal/model/tab/feed"
 	"github.com/TypicalAM/goread/internal/model/tab/welcome"
-	"github.com/TypicalAM/goread/internal/rss"
+	"github.com/TypicalAM/goread/internal/theme"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
@@ -88,7 +88,7 @@ type Model struct {
 }
 
 // New returns a new model with some sensible defaults
-func New(colors *colorscheme.Colorscheme, backend *backend.Backend) Model {
+func New(colors *theme.Colorscheme, backend *backend.Backend) Model {
 	help := help.New()
 	help.Styles.ShortDesc = lipgloss.NewStyle().Foreground(colors.Text)
 	help.Styles.ShortKey = lipgloss.NewStyle().Foreground(colors.Text)

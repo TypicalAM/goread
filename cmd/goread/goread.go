@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/TypicalAM/goread/internal/backend"
-	"github.com/TypicalAM/goread/internal/colorscheme"
 	"github.com/TypicalAM/goread/internal/model/browser"
+	"github.com/TypicalAM/goread/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
@@ -66,7 +66,7 @@ func Execute() {
 
 // Run runs the program
 func Run() error {
-	colors, err := colorscheme.New(opts.colorschemePath)
+	colors, err := theme.New(opts.colorschemePath)
 	if err != nil {
 		return err
 	}

@@ -1,9 +1,9 @@
 package category
 
 import (
-	"github.com/TypicalAM/goread/internal/colorscheme"
+	"github.com/TypicalAM/goread/internal/backend/rss"
 	"github.com/TypicalAM/goread/internal/model/popup"
-	"github.com/TypicalAM/goread/internal/rss"
+	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -38,7 +38,7 @@ type Popup struct {
 }
 
 // NewPopup creates a new popup window in which the user can choose a new category.
-func NewPopup(colors *colorscheme.Colorscheme, bgRaw string, width, height int, oldName, oldDesc string) Popup {
+func NewPopup(colors *theme.Colorscheme, bgRaw string, width, height int, oldName, oldDesc string) Popup {
 	defultPopup := popup.New(bgRaw, width, height)
 	style := newPopupStyle(colors, width, height)
 	nameInput := textinput.New()

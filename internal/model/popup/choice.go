@@ -1,7 +1,7 @@
 package popup
 
 import (
-	"github.com/TypicalAM/goread/internal/colorscheme"
+	"github.com/TypicalAM/goread/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -20,7 +20,7 @@ type Choice struct {
 }
 
 // NewChoice creates a new Choice popup.
-func NewChoice(colors *colorscheme.Colorscheme, bgRaw string, width int, question string, defaultChoice bool) Choice {
+func NewChoice(colors *theme.Colorscheme, bgRaw string, width int, question string, defaultChoice bool) Choice {
 	optWidth := len(question) + 16
 	if optWidth > width {
 		optWidth = width

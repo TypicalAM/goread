@@ -1,4 +1,4 @@
-package colorscheme
+package theme
 
 import (
 	"encoding/json"
@@ -30,21 +30,19 @@ var Default = Colorscheme{
 
 // Colorscheme is a struct that contains all the colors for the application
 type Colorscheme struct {
-	FilePath string         `json:"-"`
-	BgDark   lipgloss.Color `json:"bg_dark"`
-	BgDarker lipgloss.Color `json:"bg_darker"`
-	Text     lipgloss.Color `json:"text"`
-	TextDark lipgloss.Color `json:"text_dark"`
-	Color1   lipgloss.Color `json:"color1"`
-	Color2   lipgloss.Color `json:"color2"`
-	Color3   lipgloss.Color `json:"color3"`
-	Color4   lipgloss.Color `json:"color4"`
-	Color5   lipgloss.Color `json:"color5"`
-	Color6   lipgloss.Color `json:"color6"`
-	Color7   lipgloss.Color `json:"color7"`
-
-	// TODO: For the sake of config clarity we are just generating the styles at loadtime
-	MarkdownStyle ansi.StyleConfig `json:"-"`
+	MarkdownStyle ansi.StyleConfig `json:"-"` // Just generate this at runtime
+	Color2        lipgloss.Color   `json:"color2"`
+	BgDarker      lipgloss.Color   `json:"bg_darker"`
+	Text          lipgloss.Color   `json:"text"`
+	TextDark      lipgloss.Color   `json:"text_dark"`
+	Color1        lipgloss.Color   `json:"color1"`
+	FilePath      string           `json:"-"`
+	Color3        lipgloss.Color   `json:"color3"`
+	Color4        lipgloss.Color   `json:"color4"`
+	Color5        lipgloss.Color   `json:"color5"`
+	Color6        lipgloss.Color   `json:"color6"`
+	Color7        lipgloss.Color   `json:"color7"`
+	BgDark        lipgloss.Color   `json:"bg_dark"`
 }
 
 // New will create a new colorscheme and try to load it
