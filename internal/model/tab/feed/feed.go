@@ -74,7 +74,8 @@ func (k Keymap) FullHelp() [][]key.Binding {
 type Model struct {
 	list            list.Model
 	fetcher         backend.Fetcher
-	tr              *glamour.TermRenderer
+	colorTr         *glamour.TermRenderer
+	noColorTr       *glamour.TermRenderer
 	colors          *theme.Colors
 	selector        *selector
 	title           string
@@ -263,9 +264,9 @@ func (m Model) loadTab(items []list.Item, articleContents []string) (tab.Tab, te
 	m.list.DisableQuitKeybindings()
 
 	m.viewport = viewport.New(m.style.viewportWidth, m.height)
-
 	m.articleContent = articleContents
-	termRenderer, err := glamour.NewTermRenderer(
+
+	colorTr, err := glamour.NewTermRenderer(
 		glamour.WithStyles(m.colors.MarkdownStyle),
 		glamour.WithWordWrap(m.style.viewportWidth-2),
 	)
@@ -276,8 +277,20 @@ func (m Model) loadTab(items []list.Item, articleContents []string) (tab.Tab, te
 		return m, nil
 	}
 
+	noColorTr, err := glamour.NewTermRenderer(
+		glamour.WithStyles(glamour.NoTTYStyleConfig),
+		glamour.WithWordWrap(m.style.viewportWidth-2),
+	)
+
+	if err != nil {
+		m.errShown = true
+		m.loaded = false
+		return m, nil
+	}
+
 	// Locked and loaded
-	m.tr = termRenderer
+	m.colorTr = colorTr
+	m.noColorTr = noColorTr
 	m.loaded = true
 	return m, nil
 }
@@ -293,14 +306,21 @@ func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
 		return m, nil
 	}
 
-	text, err := m.tr.Render(m.articleContent[m.list.Index()])
+	rawText := m.articleContent[m.list.Index()]
+	styledText, err := m.colorTr.Render(rawText)
 	if err != nil {
 		m.viewport.SetContent(fmt.Sprintf("We have encountered an error styling the content: %s", err))
 		return m, nil
 	}
 
-	m.selector.newArticle(text)
-	m.viewport.SetContent(text)
+	noColorText, err := m.noColorTr.Render(rawText)
+	if err != nil {
+		m.viewport.SetContent(fmt.Sprintf("We have encountered an error styling the content: %s", err))
+		return m, nil
+	}
+
+	m.selector.newArticle(&rawText, &noColorText)
+	m.viewport.SetContent(styledText)
 	m.viewport.SetYOffset(0)
 	return m, nil
 }
