@@ -84,7 +84,7 @@ func (s *selector) newArticle(rawText, styledText *string) {
 				}
 			}
 
-			s.indices = append(s.indices, []int{start, end + 1})
+			s.indices = append(s.indices, []int{start, end})
 			break
 		}
 	}
