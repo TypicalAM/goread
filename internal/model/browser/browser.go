@@ -169,7 +169,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.createNewTab(msg)
 
 	case backend.NewItemMsg:
-		bg := lipgloss.NewStyle().Width(m.width).Height((m.height)).Render(m.View())
+		bg := m.View()
 		width := m.width / 2
 		height := 17
 
@@ -194,7 +194,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.downloadItem(msg)
 
 	case backend.MakeChoiceMsg:
-		bg := lipgloss.NewStyle().Width(m.width).Height((m.height)).Render(m.View())
+		bg := m.View()
 		width := m.width / 2
 		m.popup = popup.NewChoice(m.style.colors, bg, width, msg.Question, msg.Default)
 

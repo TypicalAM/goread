@@ -7,7 +7,6 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/muesli/reflow/ansi"
 )
 
 // Item is an item in the list
@@ -142,7 +141,7 @@ func (m Model) View() string {
 
 		if m.showDesc {
 			if item, ok := m.items[i].(list.DefaultItem); ok {
-				if ansi.PrintableRuneWidth(item.Description()) != 0 {
+				if len(item.Description()) != 0 {
 					sections = append(sections, m.style.styleDescription(item.Description()))
 				} else {
 					sections = append(sections, "")
