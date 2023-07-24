@@ -112,10 +112,11 @@ Here are the things that I've not yet implemented, contributions and suggestions
 
 ### Issues
 
-If something doesn't work feel free to create an issue and include:
+If something doesn't work feel free to create an issue:
 
-- Output of `goread --version` if applicable
-- Logs are usually located at `/tmp/goread.log` on linux and `%TMP%\goread.log` on Windows
+- Update using `go install github.com/TypicalAM/goread@latest` or `homebrew upgrade`
+- Include output of `goread --version`
+- Include logs are usually located at `/tmp/goread.log` on linux and `%TMP%\goread.log` on Windows
 
 ## 💁 Credit where credit is due
 
