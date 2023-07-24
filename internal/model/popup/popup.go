@@ -35,8 +35,21 @@ func New(bgRaw string, width, height int) Default {
 	rowSuffix := make([]string, height)
 
 	for i, text := range bg[startRow : startRow+height] {
-		rowPrefix[i] = text[:findPrintableIndex(text, startCol)]
-		rowSuffix[i] = text[findPrintableIndex(text, startCol+width):]
+		popupStart := findPrintIndex(text, startCol)
+		popupEnd := findPrintIndex(text, startCol+width)
+
+		if popupStart != -1 {
+			rowPrefix[i] = text[:popupStart]
+		} else {
+			rowPrintable := ansi.PrintableRuneWidth(text)
+			rowPrefix[i] = text + strings.Repeat(" ", startCol-rowPrintable)
+		}
+
+		if popupEnd != -1 {
+			rowSuffix[i] = text[popupEnd:]
+		} else {
+			rowSuffix[i] = ""
+		}
 	}
 
 	prefix := strings.Join(bg[:startRow], "\n")
@@ -76,8 +89,8 @@ func (p Default) Height() int {
 	return p.height
 }
 
-// findPrintableIndex finds the index of the last printable rune at the given index.
-func findPrintableIndex(str string, index int) int {
+// findPrintIndex finds the print index, that is what string index corresponds to the given printable rune index.
+func findPrintIndex(str string, index int) int {
 	for i := len(str) - 1; i >= 0; i-- {
 		if ansi.PrintableRuneWidth(str[:i]) == index {
 			return i
