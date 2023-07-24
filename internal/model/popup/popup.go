@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/ansi"
 )
 
@@ -15,13 +14,12 @@ type Popup interface {
 
 // Default is a default popup window.
 type Default struct {
-	prefix    string
-	suffix    string
-	ogSection []string
-	section   []string
+	textAbove string
+	textBelow string
+	rowPrefix []string
+	rowSuffix []string
 	width     int
 	height    int
-	startCol  int
 }
 
 // New creates a new default popup window.
@@ -33,21 +31,37 @@ func New(bgRaw string, width, height int) Default {
 	startRow := (bgHeight - height) / 2
 	startCol := (bgWidth - width) / 2
 
-	ogSection := make([]string, height)
-	section := make([]string, height)
+	rowPrefix := make([]string, height)
+	rowSuffix := make([]string, height)
+
+	for i, text := range bg[startRow : startRow+height] {
+		popupStart := findPrintIndex(text, startCol)
+		popupEnd := findPrintIndex(text, startCol+width)
+
+		if popupStart != -1 {
+			rowPrefix[i] = text[:popupStart]
+		} else {
+			rowPrintable := ansi.PrintableRuneWidth(text)
+			rowPrefix[i] = text + strings.Repeat(" ", startCol-rowPrintable)
+		}
+
+		if popupEnd != -1 {
+			rowSuffix[i] = text[popupEnd:]
+		} else {
+			rowSuffix[i] = ""
+		}
+	}
 
 	prefix := strings.Join(bg[:startRow], "\n")
 	suffix := strings.Join(bg[startRow+height:], "\n")
-	copy(ogSection, bg[startRow:startRow+height])
 
 	return Default{
-		ogSection: ogSection,
-		section:   section,
+		rowPrefix: rowPrefix,
+		rowSuffix: rowSuffix,
 		width:     width,
 		height:    height,
-		prefix:    prefix,
-		suffix:    suffix,
-		startCol:  startCol,
+		textAbove: prefix,
+		textBelow: suffix,
 	}
 }
 
@@ -57,19 +71,12 @@ func (p Default) Overlay(text string) string {
 	lines := strings.Split(text, "\n")
 
 	// Overlay the background with the styled text.
-	// TODO: Use a string builder
-	for i, text := range p.ogSection {
-		p.section[i] = text[:findPrintableIndex(text, p.startCol)] +
-			lines[i] +
-			text[findPrintableIndex(text, p.startCol+p.width):]
+	output := make([]string, len(lines))
+	for i := 0; i < len(lines); i++ {
+		output[i] = p.rowPrefix[i] + lines[i] + p.rowSuffix[i]
 	}
 
-	return lipgloss.JoinVertical(
-		lipgloss.Top,
-		p.prefix,
-		strings.Join(p.section, "\n"),
-		p.suffix,
-	)
+	return p.textAbove + "\n" + strings.Join(output, "\n") + "\n" + p.textBelow
 }
 
 // Width returns the width of the popup window.
@@ -82,8 +89,8 @@ func (p Default) Height() int {
 	return p.height
 }
 
-// findPrintableIndex finds the index of the last printable rune at the given index.
-func findPrintableIndex(str string, index int) int {
+// findPrintIndex finds the print index, that is what string index corresponds to the given printable rune index.
+func findPrintIndex(str string, index int) int {
 	for i := len(str) - 1; i >= 0; i-- {
 		if ansi.PrintableRuneWidth(str[:i]) == index {
 			return i

@@ -1,6 +1,8 @@
 package main
 
-import "github.com/TypicalAM/goread/cmd/goread"
+import (
+	"github.com/TypicalAM/goread/cmd/goread"
+)
 
 var (
 	version = "dev"

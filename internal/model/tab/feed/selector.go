@@ -3,7 +3,6 @@ package feed
 import (
 	"errors"
 	"os/exec"
-	"regexp"
 	"runtime"
 	"strings"
 
@@ -12,13 +11,10 @@ import (
 	"mvdan.cc/xurls/v2"
 )
 
-// TODO: Move from this monstrosity to a custom written regex (this is gonna be fun)
-var ansiRe = regexp.MustCompile("[\u001B\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[a-zA-Z\\d]*)*)?\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PRZcf-ntqry=><~]))")
-
 // selector allows us to select links from a feed and open them in the browser
 type selector struct {
 	linkStyle lipgloss.Style
-	article   string
+	article   *string
 	urls      []string
 	indices   [][]int
 	selection int
@@ -35,31 +31,61 @@ func newSelector(colors *theme.Colors) *selector {
 }
 
 // newArticle finds the URLs for this article
-func (s *selector) newArticle(content string) {
-	rx := xurls.Relaxed()
-
-	s.article = content
+func (s *selector) newArticle(rawText, styledText *string) {
+	s.article = styledText
 	s.selection = 0
 	s.active = false
 
-	rawIndices := rx.FindAllStringIndex(content, -1)
+	rx := xurls.Strict()
+	urlsToIndex := rx.FindAllString(*rawText, -1)
 
-	// Fix the newline issues
-	s.indices = make([][]int, 0)
+	// map the url to their possible linebreak indices
+	urlsMap := make(map[string][]int)
+	for _, url := range urlsToIndex {
+		if !strings.ContainsRune(url, '-') {
+			urlsMap[url] = append(urlsMap[url], len(url)-1)
+			continue
+		}
+
+		for i := 0; i < len(url); i++ {
+			if url[i] == '-' {
+				urlsMap[url] = append(urlsMap[url], i)
+			}
+		}
+
+		urlsMap[url] = append(urlsMap[url], len(url)-1)
+	}
+
 	s.urls = make([]string, 0)
+	s.indices = make([][]int, 0)
 
-	// Link highlighting is stupid, so we have to do this
-	for i := 0; i < len(rawIndices); i++ {
-		str := s.article[rawIndices[i][0]:rawIndices[i][1]]
-		if str[len(str)-1] == '-' {
-			s.indices = append(s.indices, []int{rawIndices[i][0], rawIndices[i+1][1]})
-			urlNoAnsi := ansiRe.ReplaceAllString(s.article[rawIndices[i][0]:rawIndices[i+1][1]], "")
-			urlStripped := strings.ReplaceAll(strings.ReplaceAll(urlNoAnsi, " ", ""), "\n", "")
-			s.urls = append(s.urls, urlStripped)
-			i++
-		} else {
-			s.indices = append(s.indices, rawIndices[i])
-			s.urls = append(s.urls, s.article[rawIndices[i][0]:rawIndices[i][1]])
+	for url, indices := range urlsMap {
+		s.urls = append(s.urls, url)
+		// Check if the entire url fits in one line
+		start := strings.Index(*styledText, url[:indices[len(indices)-1]])
+		if start != -1 {
+			s.indices = append(s.indices, []int{start, start + len(url)})
+			continue
+		}
+
+		// Let's check on the - character on which the url is broken down
+		for i := len(indices) - 2; i >= 0; i-- {
+			start = strings.Index(*styledText, url[:indices[i]])
+			if start == -1 {
+				continue
+			}
+
+			// The line is broken down on index, let's search where it ends on the next line
+			end := 0
+			for j := start + indices[i]; j < len(*styledText); j++ {
+				if (*styledText)[j] == url[indices[i]+1] {
+					end = j + len(url) - indices[i] - 1
+					break
+				}
+			}
+
+			s.indices = append(s.indices, []int{start, end})
+			break
 		}
 	}
 }
@@ -75,12 +101,11 @@ func (s *selector) cycle() string {
 	}
 
 	start, end := s.indices[s.selection][0], s.indices[s.selection][1]
-	linkText := s.article[start:end]
-	b.WriteString(s.article[:start])
+	b.WriteString((*s.article)[:start])
+	linkText := (*s.article)[start:end]
 
 	// This is tricky
-	if strings.ContainsRune(s.article[start:end], '\n') {
-		linkText = ansiRe.ReplaceAllString(linkText, "")
+	if strings.ContainsRune(linkText, '\n') {
 		newLine := strings.IndexRune(linkText, '\n')
 		lastSpace := strings.LastIndex(linkText, " ")
 
@@ -91,7 +116,7 @@ func (s *selector) cycle() string {
 		b.WriteString(s.linkStyle.Render(linkText))
 	}
 
-	b.WriteString(s.article[end:])
+	b.WriteString((*s.article)[end:])
 	return b.String()
 }
 
