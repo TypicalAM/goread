@@ -1,6 +1,8 @@
 package welcome
 
 import (
+	"log"
+
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/model/popup"
 	"github.com/TypicalAM/goread/internal/model/simplelist"
@@ -66,6 +68,7 @@ type Model struct {
 
 // New creates a new welcome tab with sensible defaults
 func New(colors *theme.Colors, width, height int, title string, fetcher backend.Fetcher) Model {
+	log.Println("Creating new category tab with title", title)
 	return Model{
 		colors:  colors,
 		width:   width,

@@ -2,6 +2,7 @@ package browser
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/TypicalAM/goread/internal/backend"
@@ -89,6 +90,7 @@ type Model struct {
 
 // New returns a new model with some sensible defaults
 func New(colors *theme.Colors, backend *backend.Backend) Model {
+	log.Println("Initializing the browser")
 	help := help.New()
 	help.Styles.ShortDesc = lipgloss.NewStyle().Foreground(colors.Text)
 	help.Styles.ShortKey = lipgloss.NewStyle().Foreground(colors.Text)
@@ -121,6 +123,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case backend.FetchErrorMsg:
 		// Update the underlying tab in case it also handles error input
+		log.Printf("Error fetching data in tab %d: %v \n", m.activeTab, msg.Err)
 		m.tabs[m.activeTab], _ = m.tabs[m.activeTab].Update(msg)
 		m.msg = fmt.Sprintf("%s: %s", msg.Description, msg.Err.Error())
 		return m, nil
@@ -143,6 +146,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
+		log.Println(m.msg)
 		return m, m.backend.FetchCategories("")
 
 	case feed.ChosenFeedMsg:
@@ -163,6 +167,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
+		log.Println(m.msg)
 		return m, m.backend.FetchFeeds(msg.ParentCategory)
 
 	case tab.NewTabMessage:
@@ -363,39 +368,39 @@ func (m Model) createNewTab(msg tab.NewTabMessage) (Model, tea.Cmd) {
 
 // deleteItem deletes the focused item from the backend
 func (m Model) deleteItem(msg backend.DeleteItemMsg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
 	m.msg = fmt.Sprintf("Deleting item %s", msg.Key)
 
 	// Check the type of the item
 	switch msg.Sender.(type) {
 	case welcome.Model:
+		cmd = m.backend.FetchCategories("")
 		if err := m.backend.Rss.RemoveCategory(msg.Key); err != nil {
 			m.msg = fmt.Sprintf("Error deleting category %s: %s", msg.Key, err.Error())
 		}
 
-		return m, m.backend.FetchCategories("")
-
 	case category.Model:
+		cmd = m.backend.FetchFeeds(m.tabs[m.activeTab].Title())
 		if err := m.backend.Rss.RemoveFeed(m.tabs[m.activeTab].Title(), msg.Key); err != nil {
 			m.msg = fmt.Sprintf("Error deleting feed %s: %s", msg.Key, err.Error())
 		}
 
-		return m, m.backend.FetchFeeds(m.tabs[m.activeTab].Title())
-
 	case feed.Model:
+		cmd = m.backend.FetchDownloadedArticles("")
 		if msg.Sender.Title() == rss.DownloadedFeedsName {
 			if err := m.backend.RemoveDownload(msg.Key); err != nil {
 				m.msg = fmt.Sprintf("Error deleting download %s: %s", msg.Key, err.Error())
 			}
 		}
-
-		return m, m.backend.FetchDownloadedArticles("")
 	}
 
-	return m, nil
+	log.Println(m.msg)
+	return m, cmd
 }
 
 // downloadItem downloads an item
 func (m Model) downloadItem(msg backend.DownloadItemMsg) (tea.Model, tea.Cmd) {
+	log.Println("Downloading item", msg.Key, msg.Index)
 	m.msg = "Item saved! You can find it in the downloaded category"
 	return m, m.backend.DownloadItem(msg.Key, msg.Index)
 }
@@ -405,6 +410,7 @@ func (m Model) showHelp() (tea.Model, tea.Cmd) {
 	// Extend the bindings with the tab specific bindings
 	bindings := append(m.keymap.ShortHelp(), m.tabs[m.activeTab].GetKeyBinds()...)
 	m.msg = m.help.ShortHelpView(bindings)
+	log.Println("Showing help with n entries: ", len(bindings))
 	return m, nil
 }
 
@@ -419,6 +425,7 @@ func (m Model) toggleOffline() (tea.Model, tea.Cmd) {
 		m.msg = "Offline mode disabled"
 	}
 
+	log.Println(m.msg)
 	return m, nil
 }
 

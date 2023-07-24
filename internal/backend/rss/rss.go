@@ -2,6 +2,7 @@ package rss
 
 import (
 	"errors"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -72,6 +73,7 @@ type Feed struct {
 
 // New will create a new Rss structure
 func New(path string) (*Rss, error) {
+	log.Println("Creating new rss structure")
 	if path == "" {
 		defaultPath, err := getDefaultPath()
 		if err != nil {
@@ -89,6 +91,7 @@ func New(path string) (*Rss, error) {
 
 // Load will try to load the Rss structure from a file
 func (rss *Rss) Load() error {
+	log.Println("Loading rss from", rss.FilePath)
 	if _, err := os.Stat(rss.FilePath); err != nil && os.IsNotExist(err) {
 		return nil
 	}
@@ -98,7 +101,12 @@ func (rss *Rss) Load() error {
 		return err
 	}
 
-	return yaml.Unmarshal(fileContent, rss)
+	if err = yaml.Unmarshal(fileContent, rss); err != nil {
+		return err
+	}
+
+	log.Printf("Rss loaded with %d categories\n", len(rss.Categories))
+	return nil
 }
 
 // Save will write the Rss structure to a file

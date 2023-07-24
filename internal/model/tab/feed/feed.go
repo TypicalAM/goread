@@ -2,6 +2,7 @@ package feed
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/model/popup"
@@ -94,6 +95,7 @@ type Model struct {
 
 // New creates a new feed tab with sensible defaults
 func New(colors *theme.Colors, width, height int, title string, fetcher backend.Fetcher) Model {
+	log.Println("Creating new category tab with title", title)
 	spin := spinner.New()
 	spin.Spinner = spinner.Points
 	spin.Style = lipgloss.NewStyle().Foreground(colors.Color1)

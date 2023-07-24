@@ -2,7 +2,7 @@ package backend
 
 import (
 	"errors"
-	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/TypicalAM/goread/internal/backend/rss"
@@ -19,6 +19,7 @@ type Backend struct {
 
 // New creates a new Cache Backend
 func New(urlPath, cachePath string, resetCache bool) (*Backend, error) {
+	log.Println("Creating new backend")
 	cache, err := newStore(cachePath)
 	if err != nil {
 		return nil, err
@@ -26,7 +27,7 @@ func New(urlPath, cachePath string, resetCache bool) (*Backend, error) {
 
 	if !resetCache {
 		if err = cache.load(); err != nil {
-			fmt.Println("Cache load failed ", err)
+			log.Println("Cache load failed: ", err)
 		}
 	}
 
@@ -36,7 +37,7 @@ func New(urlPath, cachePath string, resetCache bool) (*Backend, error) {
 	}
 
 	if err = rss.Load(); err != nil {
-		fmt.Println("Rss load failed ", err)
+		log.Println("Rss load failed: ", err)
 	}
 
 	return &Backend{

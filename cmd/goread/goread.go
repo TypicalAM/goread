@@ -2,9 +2,10 @@ package goread
 
 import (
 	"fmt"
+	"io"
+	"log"
 	"os"
 	"path/filepath"
-	"strconv"
 	"time"
 
 	"github.com/TypicalAM/goread/internal/backend"
@@ -72,21 +73,23 @@ func Execute() {
 
 // Run runs the program
 func Run() error {
-	if debug, err := strconv.ParseBool(os.Getenv("DEBUG")); err == nil && debug {
-		f, err := tea.LogToFile(filepath.Join(os.TempDir(), "goread.log"), "")
-		if err != nil {
-			return err
-		}
-
+	if f, err := tea.LogToFile(filepath.Join(os.TempDir(), "goread.log"), ""); err == nil {
 		defer f.Close()
+	} else {
+		log.Println("Failed to create log file")
+		log.SetOutput(io.Discard)
 	}
+
+	log.Println("Starting goread")
 
 	colors, err := theme.New(opts.colorschemePath)
 	if err != nil {
 		return err
 	}
 
-	_ = colors.Load()
+	if err = colors.Load(); err != nil {
+		log.Println("Failed to load colorscheme: ", err)
+	}
 
 	// Pretty printing colors
 	if opts.testColors {
@@ -97,10 +100,12 @@ func Run() error {
 	// Dumping colors to file
 	if opts.dumpColors {
 		if err := colors.Save(); err != nil {
+			log.Println("Failed to save colorscheme: ", err)
 			fmt.Println(errStyle.Render("Failed to save the colorscheme"))
 			return err
 		}
 
+		log.Println("Colorscheme saved to ", colors.FilePath)
 		fmt.Println(msgStyle.Render(fmt.Sprint("The colorscheme was saved to ", colors.FilePath)))
 		return nil
 	}
@@ -108,13 +113,16 @@ func Run() error {
 	// Get colors from pywal
 	if opts.getColors != "" {
 		if err := colors.Convert(opts.getColors); err != nil {
+			log.Println("Failed to convert colorscheme: ", err)
 			return err
 		}
 
 		if err = colors.Save(); err != nil {
+			log.Println("Failed to save colorscheme: ", err)
 			return err
 		}
 
+		log.Println("Colorscheme saved to ", colors.FilePath)
 		fmt.Println(msgStyle.Render(fmt.Sprint("The colorscheme was saved to ", colors.FilePath)))
 		fmt.Println(colors.PrettyPrint())
 		return nil
@@ -122,17 +130,20 @@ func Run() error {
 
 	// Set the cache size
 	if opts.cacheSize > 0 {
+		log.Println("Setting cache size to ", opts.cacheSize)
 		backend.DefaultCacheSize = opts.cacheSize
 	}
 
 	// Set the cache duration
 	if opts.cacheDuration > 0 {
+		log.Println("Setting cache duration to ", opts.cacheDuration)
 		backend.DefaultCacheDuration = time.Hour * time.Duration(opts.cacheDuration)
 	}
 
 	// Initialize the backend
 	backend, err := backend.New(opts.urlsPath, opts.cachePath, opts.resetCache)
 	if err != nil {
+		log.Println("Failed to initialize backend: ", err)
 		return err
 	}
 
@@ -141,9 +152,11 @@ func Run() error {
 
 	// Start the program
 	if _, err = tea.NewProgram(browser).Run(); err != nil {
+		log.Println("Bubbletea program fail: ", err)
 		return err
 	}
 
 	// Clean up the backend
+	log.Println("Closing backend")
 	return backend.Close()
 }

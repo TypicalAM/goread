@@ -3,6 +3,7 @@ package theme
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -47,6 +48,7 @@ type Colors struct {
 
 // New will create a new colorscheme and try to load it
 func New(path string) (*Colors, error) {
+	log.Println("Initializing colorscheme")
 	if path == "" {
 		defaultPath, err := getDefaultPath()
 		if err != nil {

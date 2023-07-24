@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -55,6 +56,7 @@ type Entry struct {
 
 // newStore creates a new cache
 func newStore(path string) (*Cache, error) {
+	log.Println("Creating new cache store")
 	if path == "" {
 		defaultPath, err := getDefaultPath()
 		if err != nil {
@@ -73,6 +75,7 @@ func newStore(path string) (*Cache, error) {
 
 // load reads the cache from disk
 func (c *Cache) load() error {
+	log.Println("Loading cache from", c.filePath)
 	if _, err := os.Stat(c.filePath); err != nil && os.IsNotExist(err) {
 		return nil
 	}
@@ -86,6 +89,8 @@ func (c *Cache) load() error {
 		return err
 	}
 
+	log.Println("Loaded initial cache entries: ", len(c.Content))
+
 	// Iterate over the cache and remove any expired items
 	for key, value := range c.Content {
 		if value.Expire.Before(time.Now()) {
@@ -93,6 +98,7 @@ func (c *Cache) load() error {
 		}
 	}
 
+	log.Println("Loaded cache entries after cleanup: ", len(c.Content))
 	return nil
 }
 

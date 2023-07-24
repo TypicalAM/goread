@@ -99,14 +99,23 @@ the `--dump_colors` flag. The colorscheme file is usually at `~/.config/goread/c
 You can use the `--get_colors` flag to generate a colorscheme from pywal. For that you have to supply it with the
 pywal `colors.json` file which is usually located at `~/.cache/wal/colors.json`. To generate the `colors.json` file you can run `wal -stni ~/wallpapers/example.png`.
 
-## ✨ Tasks to do
+## ✨ Contributing
+
+### TODOs
 
 Here are the things that I've not yet implemented, contributions and suggestions are very welcome!
 
-- [x] URL highlighting and opening (Experimental, feel free to create an issue)
+- [x] URL highlighting and opening
+- [x] Automatically theming the glamour viewer
 - [ ] AI-Generated feed suggestions
 - [ ] Adding customizable keybinds
-- [x] Automatically theming the glamour viewer
+
+### Issues
+
+If something doesn't work feel free to create an issue and include:
+
+- Output of `goread --version` if applicable
+- Logs are usually located at `/tmp/goread.log` on linux and `%TMP%\goread.log` on Windows
 
 ## 💁 Credit where credit is due
 
