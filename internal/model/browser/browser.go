@@ -14,7 +14,6 @@ import (
 	"github.com/TypicalAM/goread/internal/model/tab/welcome"
 	"github.com/TypicalAM/goread/internal/theme"
 
-	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -75,7 +74,6 @@ func (k Keymap) FullHelp() [][]key.Binding {
 type Model struct {
 	popup          popup.Popup
 	backend        *backend.Backend
-	help           help.Model
 	style          style
 	msg            string
 	keymap         Keymap
@@ -91,18 +89,12 @@ type Model struct {
 // New returns a new model with some sensible defaults
 func New(colors *theme.Colors, backend *backend.Backend) Model {
 	log.Println("Initializing the browser")
-	help := help.New()
-	help.Styles.ShortDesc = lipgloss.NewStyle().Foreground(colors.Text)
-	help.Styles.ShortKey = lipgloss.NewStyle().Foreground(colors.Text)
-	help.Styles.ShortSeparator = lipgloss.NewStyle().Foreground(colors.TextDark)
-	help.ShortSeparator = " - "
 
 	return Model{
 		style:          newStyle(colors),
 		backend:        backend,
 		waitingForSize: true,
 		keymap:         DefaultKeymap,
-		help:           help,
 		msg:            "Pro-tip - press [ctrl-h] to view the help page",
 	}
 }
@@ -407,10 +399,14 @@ func (m Model) downloadItem(msg backend.DownloadItemMsg) (tea.Model, tea.Cmd) {
 
 // showHelp shows the help menu at the bottom of the screen
 func (m Model) showHelp() (tea.Model, tea.Cmd) {
-	// Extend the bindings with the tab specific bindings
-	bindings := append(m.keymap.ShortHelp(), m.tabs[m.activeTab].GetKeyBinds()...)
-	m.msg = m.help.ShortHelpView(bindings)
-	log.Println("Showing help with n entries: ", len(bindings))
+	binds := make([][]key.Binding, 0, 3)
+	bg := m.View()
+	width := m.width / 2
+
+	binds = append(binds, m.keymap.ShortHelp(), m.tabs[m.activeTab].GetKeyBinds())
+	m.popup = newHelp(m.style.colors, bg, width, binds)
+	m.keymap.SetEnabled(false)
+
 	return m, nil
 }
 
