@@ -9,6 +9,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// TODO: Add a keymap and help
+
 // Item is an item in the list
 type Item struct {
 	title string

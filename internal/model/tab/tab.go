@@ -18,7 +18,7 @@ type Tab interface {
 	Title() string
 	Style() Style
 	SetSize(width, height int) Tab
-	GetKeyBinds() []key.Binding
+	GetKeyBinds() (tab []key.Binding, component []key.Binding)
 
 	Init() tea.Cmd
 	Update(msg tea.Msg) (Tab, tea.Cmd)

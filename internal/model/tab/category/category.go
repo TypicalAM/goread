@@ -107,8 +107,8 @@ func (m Model) SetSize(width, height int) tab.Tab {
 }
 
 // GetKeyBinds returns the key bindings of the tab
-func (m Model) GetKeyBinds() []key.Binding {
-	return m.keymap.ShortHelp()
+func (m Model) GetKeyBinds() ([]key.Binding, []key.Binding) {
+	return m.keymap.ShortHelp(), []key.Binding{}
 }
 
 // Init initializes the tab
