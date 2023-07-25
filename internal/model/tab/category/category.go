@@ -35,16 +35,6 @@ var DefaultKeymap = Keymap{
 	),
 }
 
-// ShortHelp returns the short help for this tab
-func (k Keymap) ShortHelp() []key.Binding {
-	return []key.Binding{k.NewFeed, k.EditFeed, k.DeleteFeed}
-}
-
-// FullHelp returns the full help for this tab
-func (k Keymap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{{k.NewFeed, k.EditFeed, k.DeleteFeed}}
-}
-
 // Model contains the state of this tab
 type Model struct {
 	colors *theme.Colors
@@ -97,18 +87,13 @@ func (m Model) SetSize(width, height int) tab.Tab {
 	return m
 }
 
-// GetKeyBinds returns the key bindings of the tab
-func (m Model) GetKeyBinds() ([]key.Binding, []key.Binding) {
-	return m.keymap.ShortHelp(), m.list.Keymap.ShortHelp()
-}
-
 // Init initializes the tab
 func (m Model) Init() tea.Cmd {
 	return m.reader(m.title)
 }
 
 // Update updates the variables of the tab
-func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case backend.FetchSuccessMsg:
 		if !m.loaded {
@@ -186,4 +171,14 @@ func (m Model) View() string {
 	}
 
 	return m.list.View()
+}
+
+// ShortHelp returns the short help for this tab
+func (m Model) ShortHelp() []key.Binding {
+	return []key.Binding{m.keymap.NewFeed, m.keymap.EditFeed, m.keymap.DeleteFeed}
+}
+
+// FullHelp returns the full help for this tab
+func (m Model) FullHelp() [][]key.Binding {
+	return [][]key.Binding{m.ShortHelp(), m.list.ShortHelp()}
 }

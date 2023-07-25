@@ -10,7 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// Keymap is the keymap for the list
+// Keymap is the Keymap for the list
 type Keymap struct {
 	Open key.Binding
 	Up   key.Binding
@@ -31,16 +31,6 @@ var DefaultKeymap = Keymap{
 		key.WithKeys("down", "j"),
 		key.WithHelp("↓/j", "Move down"),
 	),
-}
-
-// ShortHelp returns the short help for the tab
-func (k Keymap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Open, k.Up, k.Down}
-}
-
-// FullHelp returns the full help for the tab
-func (k Keymap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{{k.Open, k.Up, k.Down}}
 }
 
 // Item is an item in the list
@@ -247,4 +237,14 @@ func (m Model) Index() int {
 // SetIndex sets the index of the selected item
 func (m *Model) SetIndex(index int) {
 	m.selected = index
+}
+
+// ShortHelp returns the short help for the list
+func (m Model) ShortHelp() []key.Binding {
+	return []key.Binding{m.Keymap.Open, m.Keymap.Up, m.Keymap.Down}
+}
+
+// FullHelp returns the full help for the list
+func (m Model) FullHelp() [][]key.Binding {
+	return [][]key.Binding{m.ShortHelp()}
 }

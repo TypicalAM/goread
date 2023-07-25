@@ -1,7 +1,7 @@
 package tab
 
 import (
-	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/help"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -15,14 +15,12 @@ type Style struct {
 
 // Tab is an interface outlining the methods that a tab should implement including bubbletea's model methods
 type Tab interface {
+	tea.Model
+	help.KeyMap
+
 	Title() string
 	Style() Style
 	SetSize(width, height int) Tab
-	GetKeyBinds() (tab []key.Binding, component []key.Binding)
-
-	Init() tea.Cmd
-	Update(msg tea.Msg) (Tab, tea.Cmd)
-	View() string
 }
 
 // NewTab returns a tea.Cmd which sends a message to the main model to create a new tab

@@ -116,7 +116,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case backend.FetchErrorMsg:
 		// Update the underlying tab in case it also handles error input
 		log.Printf("Error fetching data in tab %d: %v \n", m.activeTab, msg.Err)
-		m.tabs[m.activeTab], _ = m.tabs[m.activeTab].Update(msg)
+		updated, _ := m.tabs[m.activeTab].Update(msg)
+		m.tabs[m.activeTab] = updated.(tab.Tab)
 		m.msg = fmt.Sprintf("%s: %s", msg.Description, msg.Err.Error())
 		return m, nil
 
@@ -268,7 +269,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 	}
 
-	m.tabs[m.activeTab], cmd = m.tabs[m.activeTab].Update(msg)
+	updated, cmd := m.tabs[m.activeTab].Update(msg)
+	m.tabs[m.activeTab] = updated.(tab.Tab)
 	return m, cmd
 }
 
@@ -403,8 +405,8 @@ func (m Model) showHelp() (tea.Model, tea.Cmd) {
 	width := m.width * 2 / 3
 	height := 17
 
-	tabBinds, componentBinds := m.tabs[m.activeTab].GetKeyBinds()
-	binds := [][]key.Binding{m.keymap.ShortHelp(), tabBinds, componentBinds}
+	binds := [][]key.Binding{m.keymap.ShortHelp()}
+	binds = append(binds, m.tabs[m.activeTab].FullHelp()...)
 	m.popup = newHelp(m.style.colors, bg, width, height, binds)
 	m.keymap.SetEnabled(false)
 
