@@ -4,12 +4,44 @@ import (
 	"strconv"
 
 	"github.com/TypicalAM/goread/internal/theme"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
-// TODO: Add a keymap and help
+// Keymap is the keymap for the list
+type Keymap struct {
+	Open key.Binding
+	Up   key.Binding
+	Down key.Binding
+}
+
+// DefaultKeymap is the default keymap for the list
+var DefaultKeymap = Keymap{
+	Open: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("Enter", "Open"),
+	),
+	Up: key.NewBinding(
+		key.WithKeys("up", "k"),
+		key.WithHelp("↑/k", "Move up"),
+	),
+	Down: key.NewBinding(
+		key.WithKeys("down", "j"),
+		key.WithHelp("↓/j", "Move down"),
+	),
+}
+
+// ShortHelp returns the short help for the tab
+func (k Keymap) ShortHelp() []key.Binding {
+	return []key.Binding{k.Open, k.Up, k.Down}
+}
+
+// FullHelp returns the full help for the tab
+func (k Keymap) FullHelp() [][]key.Binding {
+	return [][]key.Binding{{k.Open, k.Up, k.Down}}
+}
 
 // Item is an item in the list
 type Item struct {
@@ -42,6 +74,7 @@ func (i Item) FilterValue() string {
 
 // Model contains state of the list
 type Model struct {
+	Keymap       Keymap
 	colors       *theme.Colors
 	style        listStyle
 	title        string
@@ -64,6 +97,7 @@ func New(colors *theme.Colors, title string, height int, showDesc bool) Model {
 	}
 
 	return Model{
+		Keymap:       DefaultKeymap,
 		colors:       colors,
 		title:        title,
 		height:       height,

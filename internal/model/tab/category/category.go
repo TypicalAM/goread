@@ -14,7 +14,6 @@ import (
 
 // Keymap contains the key bindings for this tab
 type Keymap struct {
-	SelectFeed key.Binding
 	NewFeed    key.Binding
 	EditFeed   key.Binding
 	DeleteFeed key.Binding
@@ -22,10 +21,6 @@ type Keymap struct {
 
 // DefaultKeymap contains the default key bindings for this tab
 var DefaultKeymap = Keymap{
-	SelectFeed: key.NewBinding(
-		key.WithKeys("enter"),
-		key.WithHelp("Enter", "Open"),
-	),
 	NewFeed: key.NewBinding(
 		key.WithKeys("n", "ctrl+n"),
 		key.WithHelp("n/C-n", "New"),
@@ -42,16 +37,12 @@ var DefaultKeymap = Keymap{
 
 // ShortHelp returns the short help for this tab
 func (k Keymap) ShortHelp() []key.Binding {
-	return []key.Binding{
-		k.SelectFeed, k.NewFeed, k.EditFeed, k.DeleteFeed,
-	}
+	return []key.Binding{k.NewFeed, k.EditFeed, k.DeleteFeed}
 }
 
 // FullHelp returns the full help for this tab
 func (k Keymap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.SelectFeed, k.NewFeed, k.EditFeed, k.DeleteFeed},
-	}
+	return [][]key.Binding{{k.NewFeed, k.EditFeed, k.DeleteFeed}}
 }
 
 // Model contains the state of this tab
@@ -108,7 +99,7 @@ func (m Model) SetSize(width, height int) tab.Tab {
 
 // GetKeyBinds returns the key bindings of the tab
 func (m Model) GetKeyBinds() ([]key.Binding, []key.Binding) {
-	return m.keymap.ShortHelp(), []key.Binding{}
+	return m.keymap.ShortHelp(), m.list.Keymap.ShortHelp()
 }
 
 // Init initializes the tab
@@ -151,7 +142,7 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		}
 
 		switch {
-		case key.Matches(msg, m.keymap.SelectFeed):
+		case key.Matches(msg, m.list.Keymap.Open):
 			if !m.list.IsEmpty() {
 				return m, tab.NewTab(m, m.list.SelectedItem().FilterValue())
 			}

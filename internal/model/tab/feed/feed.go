@@ -59,16 +59,12 @@ var DefaultKeymap = Keymap{
 
 // ShortHelp returns the short help for the tab
 func (k Keymap) ShortHelp() []key.Binding {
-	return []key.Binding{
-		k.Open, k.ToggleFocus, k.RefreshArticles, k.SaveArticle, k.DeleteFromSaved, k.CycleSelection,
-	}
+	return []key.Binding{k.Open, k.ToggleFocus, k.RefreshArticles, k.SaveArticle, k.DeleteFromSaved, k.CycleSelection}
 }
 
 // FullHelp returns the full help for the tab
 func (k Keymap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.Open, k.ToggleFocus, k.RefreshArticles, k.SaveArticle, k.DeleteFromSaved, k.CycleSelection},
-	}
+	return [][]key.Binding{{k.Open, k.ToggleFocus, k.RefreshArticles, k.SaveArticle, k.DeleteFromSaved, k.CycleSelection}}
 }
 
 // Model contains the state of this tab
