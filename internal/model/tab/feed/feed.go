@@ -148,10 +148,12 @@ func (m Model) SetSize(width, height int) tab.Tab {
 func (m Model) GetKeyBinds() ([]key.Binding, []key.Binding) {
 	if m.viewportOpen {
 		return m.keymap.ShortHelp(), []key.Binding{
+			m.viewport.KeyMap.PageDown,
+			m.viewport.KeyMap.PageUp,
+			m.viewport.KeyMap.HalfPageDown,
+			m.viewport.KeyMap.HalfPageUp,
 			m.viewport.KeyMap.Down,
 			m.viewport.KeyMap.Up,
-			m.viewport.KeyMap.PageUp,
-			m.viewport.KeyMap.PageDown,
 		}
 	}
 

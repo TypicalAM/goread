@@ -41,7 +41,7 @@ func (h Help) Init() tea.Cmd {
 	return nil
 }
 
-// Update updates the popup, in this case it's just static text
+// Update updates the popup, in this case it's just static text.
 func (h Help) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return h, nil
 }
