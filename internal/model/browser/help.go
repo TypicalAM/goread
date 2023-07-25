@@ -18,20 +18,11 @@ type Help struct {
 }
 
 // newHelp returns a new Help popup.
-func newHelp(colors *theme.Colors, bgRaw string, width int, binds [][]key.Binding) *Help {
+func newHelp(colors *theme.Colors, bgRaw string, width, height int, binds [][]key.Binding) *Help {
 	help := help.New()
 	help.Styles.FullDesc = lipgloss.NewStyle().Foreground(colors.Text)
 	help.Styles.FullKey = lipgloss.NewStyle().Foreground(colors.Text)
 	help.Styles.FullSeparator = lipgloss.NewStyle().Foreground(colors.TextDark)
-
-	height := 0
-	for _, bind := range binds {
-		if len(bind) > height {
-			height = len(bind)
-		}
-	}
-
-	height += 10
 
 	return &Help{
 		help: help,

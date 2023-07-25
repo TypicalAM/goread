@@ -402,9 +402,10 @@ func (m Model) showHelp() (tea.Model, tea.Cmd) {
 	binds := make([][]key.Binding, 0, 3)
 	bg := m.View()
 	width := m.width / 2
+	height := 17
 
 	binds = append(binds, m.keymap.ShortHelp(), m.tabs[m.activeTab].GetKeyBinds())
-	m.popup = newHelp(m.style.colors, bg, width, binds)
+	m.popup = newHelp(m.style.colors, bg, width, height, binds)
 	m.keymap.SetEnabled(false)
 
 	return m, nil
