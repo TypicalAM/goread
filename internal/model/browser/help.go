@@ -31,13 +31,13 @@ func newHelp(colors *theme.Colors, bgRaw string, width, height int, binds [][]ke
 	}
 }
 
-// Init initalizes the popup.
+// Init initializes the popup.
 func (h Help) Init() tea.Cmd {
 	return nil
 }
 
 // Update updates the popup, in this case it's just static text.
-func (h Help) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (h Help) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
 	return h, nil
 }
 

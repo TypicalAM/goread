@@ -126,7 +126,7 @@ func (m Model) SetSize(width, height int) tab.Tab {
 	m.viewport.Height = height
 	m.width = width
 	m.height = height
-	newTab, _ := m.updateViewport()
+	newTab := m.updateViewport()
 	return newTab
 }
 
@@ -143,7 +143,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case backend.FetchArticleSuccessMsg:
-		return m.loadTab(msg.Items, msg.ArticleContents)
+		return m.loadTab(msg.Items, msg.ArticleContents), nil
 
 	case popup.ChoiceResultMsg:
 		if !msg.Result {
@@ -172,7 +172,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.viewportOpen = true
 			}
 
-			return m.updateViewport()
+			return m.updateViewport(), nil
 
 		case key.Matches(msg, m.keymap.ToggleFocus):
 			if !m.viewportOpen {
@@ -227,7 +227,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // loadTab is fired when the items are retrieved from the backend
-func (m Model) loadTab(items []list.Item, articleContents []string) (tab.Tab, tea.Cmd) {
+func (m Model) loadTab(items []list.Item, articleContents []string) tab.Tab {
 	itemDelegate := list.NewDefaultDelegate()
 	itemDelegate.ShowDescription = true
 	itemDelegate.Styles = m.style.listItems
@@ -260,7 +260,7 @@ func (m Model) loadTab(items []list.Item, articleContents []string) (tab.Tab, te
 	if err != nil {
 		m.errShown = true
 		m.loaded = false
-		return m, nil
+		return m
 	}
 
 	noColorTr, err := glamour.NewTermRenderer(
@@ -271,44 +271,44 @@ func (m Model) loadTab(items []list.Item, articleContents []string) (tab.Tab, te
 	if err != nil {
 		m.errShown = true
 		m.loaded = false
-		return m, nil
+		return m
 	}
 
 	// Locked and loaded
 	m.colorTr = colorTr
 	m.noColorTr = noColorTr
 	m.loaded = true
-	return m, nil
+	return m
 }
 
 // updateViewport is fired when the user presses enter, it updates the
 // viewport with the selected item
-func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
+func (m Model) updateViewport() tab.Tab {
 	if !m.viewportOpen {
-		return m, nil
+		return m
 	}
 
 	if m.list.SelectedItem() == nil {
-		return m, nil
+		return m
 	}
 
 	rawText := m.articleContent[m.list.Index()]
 	styledText, err := m.colorTr.Render(rawText)
 	if err != nil {
 		m.viewport.SetContent(fmt.Sprintf("We have encountered an error styling the content: %s", err))
-		return m, nil
+		return m
 	}
 
 	noColorText, err := m.noColorTr.Render(rawText)
 	if err != nil {
 		m.viewport.SetContent(fmt.Sprintf("We have encountered an error styling the content: %s", err))
-		return m, nil
+		return m
 	}
 
 	m.selector.newArticle(&rawText, &noColorText)
 	m.viewport.SetContent(styledText)
 	m.viewport.SetYOffset(0)
-	return m, nil
+	return m
 }
 
 // View the tab
