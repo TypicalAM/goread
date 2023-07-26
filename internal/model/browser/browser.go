@@ -58,16 +58,12 @@ var DefaultKeymap = Keymap{
 
 // ShortHelp returns the short help for this tab
 func (k Keymap) ShortHelp() []key.Binding {
-	return []key.Binding{
-		k.CloseTab, k.CycleTabs, k.ToggleOfflineMode,
-	}
+	return []key.Binding{k.CloseTab, k.CycleTabs, k.ToggleOfflineMode}
 }
 
 // FullHelp returns the full help for this tab
 func (k Keymap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.CloseTab, k.CycleTabs, k.ToggleOfflineMode},
-	}
+	return [][]key.Binding{{k.CloseTab, k.CycleTabs, k.ToggleOfflineMode}}
 }
 
 // Model is used to store the state of the application
@@ -399,7 +395,7 @@ func (m Model) downloadItem(msg backend.DownloadItemMsg) (tea.Model, tea.Cmd) {
 	return m, m.backend.DownloadItem(msg.Key, msg.Index)
 }
 
-// showHelp shows the help menu at the bottom of the screen
+// showHelp shows the help menu as a popup.
 func (m Model) showHelp() (tea.Model, tea.Cmd) {
 	bg := m.View()
 	width := m.width * 2 / 3
