@@ -41,34 +41,20 @@ var DefaultKeymap = Keymap{
 	),
 	RefreshArticles: key.NewBinding(
 		key.WithKeys("r", "ctrl+r"),
-		key.WithHelp("r/C-r", "Refresh"),
+		key.WithHelp("r/ctrl+r", "Refresh"),
 	),
 	SaveArticle: key.NewBinding(
 		key.WithKeys("s", "ctrl+s"),
-		key.WithHelp("s/C-s", "Save"),
+		key.WithHelp("s/ctrl+s", "Save"),
 	),
 	DeleteFromSaved: key.NewBinding(
 		key.WithKeys("d", "ctrl+d"),
-		key.WithHelp("d/C-d", "Delete from saved"),
+		key.WithHelp("d/ctrl+d", "Delete from saved"),
 	),
 	CycleSelection: key.NewBinding(
 		key.WithKeys("g"),
 		key.WithHelp("g", "Cycle selection"),
 	),
-}
-
-// ShortHelp returns the short help for the tab
-func (k Keymap) ShortHelp() []key.Binding {
-	return []key.Binding{
-		k.Open, k.ToggleFocus, k.RefreshArticles, k.SaveArticle, k.DeleteFromSaved, k.CycleSelection,
-	}
-}
-
-// FullHelp returns the full help for the tab
-func (k Keymap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.Open, k.ToggleFocus, k.RefreshArticles, k.SaveArticle, k.DeleteFromSaved, k.CycleSelection},
-	}
 }
 
 // Model contains the state of this tab
@@ -144,18 +130,13 @@ func (m Model) SetSize(width, height int) tab.Tab {
 	return newTab
 }
 
-// GetKeyBinds returns the key bindings of the tab
-func (m Model) GetKeyBinds() []key.Binding {
-	return m.keymap.ShortHelp()
-}
-
 // Init initializes the tab
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(m.fetcher(m.title), m.spinner.Tick)
 }
 
 // Update the variables of the tab
-func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case backend.FetchErrorMsg:
 		m.errShown = true
@@ -264,6 +245,9 @@ func (m Model) loadTab(items []list.Item, articleContents []string) (tab.Tab, te
 	m.list.SetShowTitle(false)
 	m.list.SetShowStatusBar(false)
 	m.list.DisableQuitKeybindings()
+	m.list.KeyMap.NextPage.SetEnabled(false)
+	m.list.KeyMap.PrevPage.SetEnabled(false)
+	m.list.KeyMap.CloseFullHelp.SetEnabled(false)
 
 	m.viewport = viewport.New(m.style.viewportWidth, m.height)
 	m.articleContent = articleContents
@@ -362,6 +346,32 @@ func (m Model) DisableSaving() Model {
 func (m Model) DisableDeleting() Model {
 	m.keymap.DeleteFromSaved.SetEnabled(false)
 	return m
+}
+
+// ShortHelp returns the short help for the tab
+func (m Model) ShortHelp() []key.Binding {
+	return []key.Binding{
+		m.keymap.Open, m.keymap.ToggleFocus, m.keymap.RefreshArticles,
+		m.keymap.SaveArticle, m.keymap.DeleteFromSaved, m.keymap.CycleSelection,
+	}
+}
+
+// FullHelp returns the full help for the tab
+func (m Model) FullHelp() [][]key.Binding {
+	if !m.viewportOpen && m.viewportFocused {
+		result := [][]key.Binding{m.ShortHelp()}
+		result = append(result, m.list.FullHelp()...)
+		return result
+	}
+
+	return [][]key.Binding{m.ShortHelp(), {
+		m.viewport.KeyMap.PageDown,
+		m.viewport.KeyMap.PageUp,
+		m.viewport.KeyMap.HalfPageDown,
+		m.viewport.KeyMap.HalfPageUp,
+		m.viewport.KeyMap.Down,
+		m.viewport.KeyMap.Up,
+	}}
 }
 
 // showLoading shows the loading message or the error message

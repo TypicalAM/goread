@@ -1,0 +1,50 @@
+package browser
+
+import (
+	"github.com/TypicalAM/goread/internal/model/popup"
+	"github.com/TypicalAM/goread/internal/theme"
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+)
+
+// Help is a popup that displays the help page.
+type Help struct {
+	help         help.Model
+	style        helpStyle
+	keyBinds     [][]key.Binding
+	defaultPopup popup.Default
+}
+
+// newHelp returns a new Help popup.
+func newHelp(colors *theme.Colors, bgRaw string, width, height int, binds [][]key.Binding) *Help {
+	style := newHelpStyle(colors, width, height)
+	help := help.New()
+	help.Styles = style.help
+
+	return &Help{
+		help:         help,
+		style:        style,
+		keyBinds:     binds,
+		defaultPopup: popup.New(bgRaw, width, height),
+	}
+}
+
+// Init initalizes the popup.
+func (h Help) Init() tea.Cmd {
+	return nil
+}
+
+// Update updates the popup, in this case it's just static text.
+func (h Help) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	return h, nil
+}
+
+// View renders the popup.
+func (h Help) View() string {
+	return h.defaultPopup.Overlay(h.style.box.Render(lipgloss.JoinVertical(lipgloss.Center,
+		h.style.title.Render("Help"),
+		h.help.FullHelpView(h.keyBinds),
+	)))
+}

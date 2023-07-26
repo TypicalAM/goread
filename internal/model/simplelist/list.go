@@ -4,10 +4,34 @@ import (
 	"strconv"
 
 	"github.com/TypicalAM/goread/internal/theme"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
+
+// Keymap is the Keymap for the list
+type Keymap struct {
+	Open key.Binding
+	Up   key.Binding
+	Down key.Binding
+}
+
+// DefaultKeymap is the default keymap for the list
+var DefaultKeymap = Keymap{
+	Open: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("Enter", "Open"),
+	),
+	Up: key.NewBinding(
+		key.WithKeys("up", "k"),
+		key.WithHelp("↑/k", "Move up"),
+	),
+	Down: key.NewBinding(
+		key.WithKeys("down", "j"),
+		key.WithHelp("↓/j", "Move down"),
+	),
+}
 
 // Item is an item in the list
 type Item struct {
@@ -40,6 +64,7 @@ func (i Item) FilterValue() string {
 
 // Model contains state of the list
 type Model struct {
+	Keymap       Keymap
 	colors       *theme.Colors
 	style        listStyle
 	title        string
@@ -62,6 +87,7 @@ func New(colors *theme.Colors, title string, height int, showDesc bool) Model {
 	}
 
 	return Model{
+		Keymap:       DefaultKeymap,
 		colors:       colors,
 		title:        title,
 		height:       height,
@@ -211,4 +237,14 @@ func (m Model) Index() int {
 // SetIndex sets the index of the selected item
 func (m *Model) SetIndex(index int) {
 	m.selected = index
+}
+
+// ShortHelp returns the short help for the list
+func (m Model) ShortHelp() []key.Binding {
+	return []key.Binding{m.Keymap.Open, m.Keymap.Up, m.Keymap.Down}
+}
+
+// FullHelp returns the full help for the list
+func (m Model) FullHelp() [][]key.Binding {
+	return [][]key.Binding{m.ShortHelp()}
 }

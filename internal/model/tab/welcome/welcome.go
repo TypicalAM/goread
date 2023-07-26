@@ -14,7 +14,6 @@ import (
 
 // Keymap contains the key bindings for this tab
 type Keymap struct {
-	SelectCategory key.Binding
 	NewCategory    key.Binding
 	EditCategory   key.Binding
 	DeleteCategory key.Binding
@@ -22,36 +21,18 @@ type Keymap struct {
 
 // DefaultKeymap contains the default key bindings for this tab
 var DefaultKeymap = Keymap{
-	SelectCategory: key.NewBinding(
-		key.WithKeys("enter"),
-		key.WithHelp("Enter", "Open"),
-	),
 	NewCategory: key.NewBinding(
 		key.WithKeys("n", "ctrl+n"),
-		key.WithHelp("n/C-n", "New"),
+		key.WithHelp("n/ctrl+n", "New"),
 	),
 	EditCategory: key.NewBinding(
 		key.WithKeys("e", "ctrl+e"),
-		key.WithHelp("e/C-e", "Edit"),
+		key.WithHelp("e/ctrl+e", "Edit"),
 	),
 	DeleteCategory: key.NewBinding(
 		key.WithKeys("d", "ctrl+d"),
-		key.WithHelp("d/C-d", "Delete"),
+		key.WithHelp("d/ctrl+d", "Delete"),
 	),
-}
-
-// ShortHelp returns the short help for this tab
-func (k Keymap) ShortHelp() []key.Binding {
-	return []key.Binding{
-		k.SelectCategory, k.NewCategory, k.EditCategory, k.DeleteCategory,
-	}
-}
-
-// FullHelp returns the full help for this tab
-func (k Keymap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{k.SelectCategory, k.NewCategory, k.EditCategory, k.DeleteCategory},
-	}
 }
 
 // Model contains the state of this tab
@@ -69,6 +50,7 @@ type Model struct {
 // New creates a new welcome tab with sensible defaults
 func New(colors *theme.Colors, width, height int, title string, fetcher backend.Fetcher) Model {
 	log.Println("Creating new category tab with title", title)
+
 	return Model{
 		colors:  colors,
 		width:   width,
@@ -105,35 +87,25 @@ func (m Model) SetSize(width, height int) tab.Tab {
 	return m
 }
 
-// GetKeyBinds returns the key bindings of the tab
-func (m Model) GetKeyBinds() []key.Binding {
-	return m.keymap.ShortHelp()
-}
-
 // Init initializes the tab
 func (m Model) Init() tea.Cmd {
 	return m.fetcher("")
 }
 
 // Update updates the variables of the tab
-func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
-	// Wait for items to be loaded
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if !m.loaded {
 		_, ok := msg.(backend.FetchSuccessMsg)
 		if !ok {
 			return m, nil
 		}
 
-		// Initialize the list of categories, items will be set later
 		m.list = simplelist.New(m.colors, "Categories", m.height, true)
-
-		// Add the categories
 		m.loaded = true
 	}
 
 	switch msg := msg.(type) {
 	case backend.FetchSuccessMsg:
-		// Update the list of categories
 		m.list.SetItems(msg.Items)
 
 	case popup.ChoiceResultMsg:
@@ -141,7 +113,6 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 			return m, nil
 		}
 
-		// Delete the selected category
 		delItemName := m.list.SelectedItem().FilterValue()
 		itemCount := len(m.list.Items())
 
@@ -156,21 +127,17 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.keymap.SelectCategory):
-			// Add a new tab with the selected category
+		case key.Matches(msg, m.list.Keymap.Open):
 			if !m.list.IsEmpty() {
 				return m, tab.NewTab(m, m.list.SelectedItem().FilterValue())
 			}
 
-			// If the list is empty, return nothing
 			return m, nil
 
 		case key.Matches(msg, m.keymap.NewCategory):
-			// Add a new category
 			return m, backend.NewItem(m, false, make([]string, 2))
 
 		case key.Matches(msg, m.keymap.EditCategory):
-			// Edit the selected category
 			if !m.list.IsEmpty() {
 				item := m.list.SelectedItem().(simplelist.Item)
 				fields := []string{item.Title(), item.Description()}
@@ -190,7 +157,6 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 		}
 	}
 
-	// Update the list
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 	return m, cmd
@@ -198,11 +164,19 @@ func (m Model) Update(msg tea.Msg) (tab.Tab, tea.Cmd) {
 
 // View returns the view for the tab
 func (m Model) View() string {
-	// Check if the program is loaded, if not, return a loading message
 	if !m.loaded {
 		return "Loading..."
 	}
 
-	// Return the view
 	return m.list.View()
+}
+
+// ShortHelp returns the short help for this tab
+func (m Model) ShortHelp() []key.Binding {
+	return []key.Binding{m.keymap.NewCategory, m.keymap.EditCategory, m.keymap.DeleteCategory}
+}
+
+// FullHelp returns the full help for this tab
+func (m Model) FullHelp() [][]key.Binding {
+	return [][]key.Binding{m.ShortHelp(), m.list.ShortHelp()}
 }
