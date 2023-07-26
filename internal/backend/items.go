@@ -1,7 +1,7 @@
 package backend
 
 import (
-	"github.com/TypicalAM/goread/internal/model/tab"
+	"github.com/TypicalAM/goread/internal/ui/tab"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 )

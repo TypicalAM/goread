@@ -1,7 +1,7 @@
 package browser
 
 import (
-	"github.com/TypicalAM/goread/internal/model/tab"
+	"github.com/TypicalAM/goread/internal/ui/tab"
 	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/charmbracelet/lipgloss"
 )

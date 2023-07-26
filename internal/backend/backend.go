@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/TypicalAM/goread/internal/backend/rss"
-	"github.com/TypicalAM/goread/internal/model/simplelist"
+	"github.com/TypicalAM/goread/internal/ui/simplelist"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 )

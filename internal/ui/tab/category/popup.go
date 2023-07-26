@@ -2,7 +2,7 @@ package category
 
 import (
 	"github.com/TypicalAM/goread/internal/backend/rss"
-	"github.com/TypicalAM/goread/internal/model/popup"
+	"github.com/TypicalAM/goread/internal/ui/popup"
 	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"

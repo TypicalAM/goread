@@ -1,7 +1,7 @@
 package browser
 
 import (
-	"github.com/TypicalAM/goread/internal/model/popup"
+	"github.com/TypicalAM/goread/internal/ui/popup"
 	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"

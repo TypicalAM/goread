@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/TypicalAM/goread/internal/backend"
-	"github.com/TypicalAM/goread/internal/model/browser"
+	"github.com/TypicalAM/goread/internal/ui/browser"
 	"github.com/TypicalAM/goread/internal/theme"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"

@@ -7,11 +7,11 @@ import (
 
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/backend/rss"
-	"github.com/TypicalAM/goread/internal/model/popup"
-	"github.com/TypicalAM/goread/internal/model/tab"
-	"github.com/TypicalAM/goread/internal/model/tab/category"
-	"github.com/TypicalAM/goread/internal/model/tab/feed"
-	"github.com/TypicalAM/goread/internal/model/tab/welcome"
+	"github.com/TypicalAM/goread/internal/ui/popup"
+	"github.com/TypicalAM/goread/internal/ui/tab"
+	"github.com/TypicalAM/goread/internal/ui/tab/category"
+	"github.com/TypicalAM/goread/internal/ui/tab/feed"
+	"github.com/TypicalAM/goread/internal/ui/tab/welcome"
 	"github.com/TypicalAM/goread/internal/theme"
 
 	"github.com/charmbracelet/bubbles/key"
