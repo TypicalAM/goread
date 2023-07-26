@@ -16,9 +16,12 @@ type helpStyle struct {
 // newHelpStyle creates a new style for the help popup title and the help model.
 func newHelpStyle(colors *theme.Colors, width, height int) helpStyle {
 	styles := help.Styles{}
-	styles.FullDesc = lipgloss.NewStyle().Foreground(colors.Text)
-	styles.FullKey = lipgloss.NewStyle().Foreground(colors.Text)
-	styles.FullSeparator = lipgloss.NewStyle().Foreground(colors.TextDark)
+	styles.FullDesc = lipgloss.NewStyle().
+		Foreground(colors.Text)
+	styles.FullKey = lipgloss.NewStyle().
+		Foreground(colors.Color2)
+	styles.FullSeparator = lipgloss.NewStyle().
+		Foreground(colors.TextDark)
 
 	return helpStyle{
 		help: styles,

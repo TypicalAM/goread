@@ -67,7 +67,7 @@ func New(bgRaw string, width, height int) Default {
 
 // Overlay overlays the given text on top of the background.
 func (p Default) Overlay(text string) string {
-	// TODO: Add a padding guardrail
+	// TODO: Add a padding guardrail and make sure the popup doesn't crash the program when the size is too small
 	lines := strings.Split(text, "\n")
 
 	// Overlay the background with the styled text.

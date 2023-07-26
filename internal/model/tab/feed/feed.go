@@ -41,15 +41,15 @@ var DefaultKeymap = Keymap{
 	),
 	RefreshArticles: key.NewBinding(
 		key.WithKeys("r", "ctrl+r"),
-		key.WithHelp("r/C-r", "Refresh"),
+		key.WithHelp("r/ctrl+r", "Refresh"),
 	),
 	SaveArticle: key.NewBinding(
 		key.WithKeys("s", "ctrl+s"),
-		key.WithHelp("s/C-s", "Save"),
+		key.WithHelp("s/ctrl+s", "Save"),
 	),
 	DeleteFromSaved: key.NewBinding(
 		key.WithKeys("d", "ctrl+d"),
-		key.WithHelp("d/C-d", "Delete from saved"),
+		key.WithHelp("d/ctrl+d", "Delete from saved"),
 	),
 	CycleSelection: key.NewBinding(
 		key.WithKeys("g"),

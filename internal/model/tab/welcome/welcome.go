@@ -23,15 +23,15 @@ type Keymap struct {
 var DefaultKeymap = Keymap{
 	NewCategory: key.NewBinding(
 		key.WithKeys("n", "ctrl+n"),
-		key.WithHelp("n/C-n", "New"),
+		key.WithHelp("n/ctrl+n", "New"),
 	),
 	EditCategory: key.NewBinding(
 		key.WithKeys("e", "ctrl+e"),
-		key.WithHelp("e/C-e", "Edit"),
+		key.WithHelp("e/ctrl+e", "Edit"),
 	),
 	DeleteCategory: key.NewBinding(
 		key.WithKeys("d", "ctrl+d"),
-		key.WithHelp("d/C-d", "Delete"),
+		key.WithHelp("d/ctrl+d", "Delete"),
 	),
 }
 

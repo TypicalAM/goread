@@ -91,7 +91,7 @@ func New(colors *theme.Colors, backend *backend.Backend) Model {
 		backend:        backend,
 		waitingForSize: true,
 		keymap:         DefaultKeymap,
-		msg:            "Pro-tip - press [ctrl-h] to view the help page",
+		msg:            "Pro-tip - press [ctrl+h] to view the help page",
 	}
 }
 
