@@ -7,12 +7,12 @@ import (
 
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/backend/rss"
+	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/TypicalAM/goread/internal/ui/popup"
 	"github.com/TypicalAM/goread/internal/ui/tab"
 	"github.com/TypicalAM/goread/internal/ui/tab/category"
 	"github.com/TypicalAM/goread/internal/ui/tab/feed"
 	"github.com/TypicalAM/goread/internal/ui/tab/welcome"
-	"github.com/TypicalAM/goread/internal/theme"
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -25,15 +25,6 @@ type Keymap struct {
 	CycleTabs         key.Binding
 	ShowHelp          key.Binding
 	ToggleOfflineMode key.Binding
-}
-
-// SetEnabled allows to disable/enable shortcuts
-func (k Keymap) SetEnabled(enabled bool) Keymap {
-	k.CloseTab.SetEnabled(enabled)
-	k.CycleTabs.SetEnabled(enabled)
-	k.ShowHelp.SetEnabled(enabled)
-	k.ToggleOfflineMode.SetEnabled(enabled)
-	return k
 }
 
 // DefaultKeymap contains the default key bindings for the browser
@@ -56,14 +47,12 @@ var DefaultKeymap = Keymap{
 	),
 }
 
-// ShortHelp returns the short help for this tab
-func (k Keymap) ShortHelp() []key.Binding {
-	return []key.Binding{k.CloseTab, k.CycleTabs, k.ToggleOfflineMode}
-}
-
-// FullHelp returns the full help for this tab
-func (k Keymap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{{k.CloseTab, k.CycleTabs, k.ToggleOfflineMode}}
+// SetEnabled allows to disable/enable shortcuts
+func (k *Keymap) SetEnabled(enabled bool) {
+	k.CloseTab.SetEnabled(enabled)
+	k.CycleTabs.SetEnabled(enabled)
+	k.ShowHelp.SetEnabled(enabled)
+	k.ToggleOfflineMode.SetEnabled(enabled)
 }
 
 // Model is used to store the state of the application
@@ -119,7 +108,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case category.ChosenCategoryMsg:
 		m.popup = nil
-		m.keymap = m.keymap.SetEnabled(true)
+		m.keymap.SetEnabled(true)
 
 		if msg.IsEdit {
 			if err := m.backend.Rss.UpdateCategory(msg.OldName, msg.Name, msg.Desc); err != nil {
@@ -140,7 +129,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case feed.ChosenFeedMsg:
 		m.popup = nil
-		m.keymap = m.keymap.SetEnabled(true)
+		m.keymap.SetEnabled(true)
 
 		if msg.IsEdit {
 			if err := m.backend.Rss.UpdateFeed(msg.ParentCategory, msg.OldName, msg.Name, msg.URL); err != nil {
@@ -178,7 +167,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case feed.Model:
 		}
 
-		m.keymap = m.keymap.SetEnabled(false)
+		m.keymap.SetEnabled(false)
 		return m, m.popup.Init()
 
 	case backend.DeleteItemMsg:
@@ -192,11 +181,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		width := m.width / 2
 		m.popup = popup.NewChoice(m.style.colors, bg, width, msg.Question, msg.Default)
 
-		m.keymap = m.keymap.SetEnabled(false)
+		m.keymap.SetEnabled(false)
 		return m, m.popup.Init()
 
 	case popup.ChoiceResultMsg:
-		m.keymap = m.keymap.SetEnabled(true)
+		m.keymap.SetEnabled(true)
 		m.popup = nil
 
 	case tea.WindowSizeMsg:
@@ -217,7 +206,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case msg.String() == "esc":
 			// If we are showing a popup, close it
 			if m.popup != nil {
-				m.keymap = m.keymap.SetEnabled(true)
+				m.keymap.SetEnabled(true)
 				m.popup = nil
 				return m, nil
 			}
@@ -298,6 +287,18 @@ func (m Model) View() string {
 	}
 
 	return strings.Join(sections, "\n")
+}
+
+// ShortHelp returns the short help for the browser.
+func (m Model) ShortHelp() []key.Binding {
+	return []key.Binding{m.keymap.CloseTab, m.keymap.CycleTabs, m.keymap.ToggleOfflineMode}
+}
+
+// FullHelp returns the full help for the browser.
+func (m Model) FullHelp() [][]key.Binding {
+	result := [][]key.Binding{m.ShortHelp()}
+	result = append(result, m.tabs[m.activeTab].FullHelp()...)
+	return result
 }
 
 // waitForSize waits for the window size to be set and loads the tab
@@ -401,11 +402,8 @@ func (m Model) showHelp() (tea.Model, tea.Cmd) {
 	width := m.width * 2 / 3
 	height := 17
 
-	binds := [][]key.Binding{m.keymap.ShortHelp()}
-	binds = append(binds, m.tabs[m.activeTab].FullHelp()...)
-	m.popup = newHelp(m.style.colors, bg, width, height, binds)
+	m.popup = newHelp(m.style.colors, bg, width, height, m.FullHelp())
 	m.keymap.SetEnabled(false)
-
 	return m, nil
 }
 
