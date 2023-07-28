@@ -1,4 +1,4 @@
-package backend
+package cache
 
 import (
 	"crypto/tls"
@@ -45,7 +45,7 @@ type Cache struct {
 	Content     map[string]Entry `json:"content"`
 	filePath    string
 	Downloaded  SortableArticles `json:"downloaded"`
-	offlineMode bool
+	OfflineMode bool             `json:"-"`
 }
 
 // Entry is a cache entry
@@ -54,8 +54,8 @@ type Entry struct {
 	Articles SortableArticles `json:"articles"`
 }
 
-// newStore creates a new cache
-func newStore(path string) (*Cache, error) {
+// New creates a new cache store.
+func New(path string) (*Cache, error) {
 	log.Println("Creating new cache store")
 	if path == "" {
 		defaultPath, err := getDefaultPath()
@@ -73,8 +73,8 @@ func newStore(path string) (*Cache, error) {
 	}, nil
 }
 
-// load reads the cache from disk
-func (c *Cache) load() error {
+// Load reads the cache from disk
+func (c *Cache) Load() error {
 	log.Println("Loading cache from", c.filePath)
 	if _, err := os.Stat(c.filePath); err != nil && os.IsNotExist(err) {
 		return nil
@@ -102,8 +102,8 @@ func (c *Cache) load() error {
 	return nil
 }
 
-// save writes the cache to disk
-func (c *Cache) save() error {
+// Save writes the cache to disk
+func (c *Cache) Save() error {
 	cacheData, err := json.Marshal(c)
 	if err != nil {
 		return err
@@ -123,8 +123,8 @@ func (c *Cache) save() error {
 	return nil
 }
 
-// getArticles returns an article list using the cache if possible
-func (c *Cache) getArticles(url string) (SortableArticles, error) {
+// GetArticles returns an article list using the cache if possible
+func (c *Cache) GetArticles(url string) (SortableArticles, error) {
 	// Delete entry if expired
 	if item, ok := c.Content[url]; ok {
 		if item.Expire.After(time.Now()) {
@@ -134,7 +134,7 @@ func (c *Cache) getArticles(url string) (SortableArticles, error) {
 		delete(c.Content, url)
 	}
 
-	if c.offlineMode {
+	if c.OfflineMode {
 		return nil, fmt.Errorf("offline mode")
 	}
 
@@ -166,12 +166,12 @@ func (c *Cache) getArticles(url string) (SortableArticles, error) {
 	return entry.Articles, nil
 }
 
-// getArticlesBulk returns a sorted list of articles from all the given urls, ignoring any errors
-func (c *Cache) getArticlesBulk(urls []string) SortableArticles {
+// GetArticlesBulk returns a sorted list of articles from all the given urls, ignoring any errors
+func (c *Cache) GetArticlesBulk(urls []string) SortableArticles {
 	var result SortableArticles
 
 	for _, url := range urls {
-		if items, err := c.getArticles(url); err == nil {
+		if items, err := c.GetArticles(url); err == nil {
 			result = append(result, items...)
 		}
 	}
@@ -180,15 +180,15 @@ func (c *Cache) getArticlesBulk(urls []string) SortableArticles {
 	return result
 }
 
-// getDownloaded returns a list of downloaded items
-func (c *Cache) getDownloaded() SortableArticles {
+// GetDownloaded returns a list of downloaded items
+func (c *Cache) GetDownloaded() SortableArticles {
 	sort.Sort(c.Downloaded)
 	return c.Downloaded
 }
 
-// addToDownloaded adds an item to the downloaded list
-func (c *Cache) addToDownloaded(url string, index int) error {
-	articles, err := c.getArticles(url)
+// AddToDownloaded adds an item to the downloaded list
+func (c *Cache) AddToDownloaded(url string, index int) error {
+	articles, err := c.GetArticles(url)
 	if err != nil {
 		return err
 	}
@@ -201,8 +201,8 @@ func (c *Cache) addToDownloaded(url string, index int) error {
 	return nil
 }
 
-// removeFromDownloaded removes an item from the downloaded list
-func (c *Cache) removeFromDownloaded(index int) error {
+// RemoveFromDownloaded removes an item from the downloaded list
+func (c *Cache) RemoveFromDownloaded(index int) error {
 	if index < 0 || index >= len(c.Downloaded) {
 		return fmt.Errorf("index out of range")
 	}

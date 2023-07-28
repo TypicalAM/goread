@@ -5,6 +5,7 @@ import (
 	"log"
 	"strconv"
 
+	"github.com/TypicalAM/goread/internal/backend/cache"
 	"github.com/TypicalAM/goread/internal/backend/rss"
 	"github.com/TypicalAM/goread/internal/ui/simplelist"
 	"github.com/charmbracelet/bubbles/list"
@@ -14,19 +15,19 @@ import (
 // Backend uses a local cache to get all the feeds and their articles
 type Backend struct {
 	Rss   *rss.Rss
-	Cache *Cache
+	Cache *cache.Cache
 }
 
 // New creates a new Cache Backend
 func New(urlPath, cachePath string, resetCache bool) (*Backend, error) {
 	log.Println("Creating new backend")
-	cache, err := newStore(cachePath)
+	cache, err := cache.New(cachePath)
 	if err != nil {
 		return nil, err
 	}
 
 	if !resetCache {
-		if err = cache.load(); err != nil {
+		if err = cache.Load(); err != nil {
 			log.Println("Cache load failed: ", err)
 		}
 	}
@@ -91,7 +92,7 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 			}
 		}
 
-		items, err := b.Cache.getArticles(url)
+		items, err := b.Cache.GetArticles(url)
 		if err != nil {
 			return FetchErrorMsg{
 				Description: "Error while fetching the article",
@@ -117,7 +118,7 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 // FetchAllArticles returns a tea.Cmd which gets all the articles
 func (b Backend) FetchAllArticles(_ string) tea.Cmd {
 	return func() tea.Msg {
-		items := b.Cache.getArticlesBulk(b.Rss.GetAllURLs())
+		items := b.Cache.GetArticlesBulk(b.Rss.GetAllURLs())
 
 		result := make([]list.Item, len(items))
 		contents := make([]string, len(items))
@@ -137,7 +138,7 @@ func (b Backend) FetchAllArticles(_ string) tea.Cmd {
 // FetchDownloaded returns a tea.Cmd which gets the downloaded articles
 func (b Backend) FetchDownloadedArticles(_ string) tea.Cmd {
 	return func() tea.Msg {
-		items := b.Cache.getDownloaded()
+		items := b.Cache.GetDownloaded()
 
 		result := make([]list.Item, len(items))
 		contents := make([]string, len(items))
@@ -165,7 +166,7 @@ func (b Backend) DownloadItem(key string, index int) tea.Cmd {
 			}
 		}
 
-		if err = b.Cache.addToDownloaded(url, index); err != nil {
+		if err = b.Cache.AddToDownloaded(url, index); err != nil {
 			return FetchErrorMsg{
 				Description: "Error while downloading the article",
 				Err:         err,
@@ -183,12 +184,12 @@ func (b Backend) RemoveDownload(key string) error {
 		return errors.New("invalid key")
 	}
 
-	return b.Cache.removeFromDownloaded(index)
+	return b.Cache.RemoveFromDownloaded(index)
 }
 
 // SetOfflineMode sets the offline mode of the backend
 func (b *Backend) SetOfflineMode(mode bool) {
-	b.Cache.offlineMode = mode
+	b.Cache.OfflineMode = mode
 }
 
 // Close closes the backend
@@ -197,7 +198,7 @@ func (b Backend) Close() error {
 		return err
 	}
 
-	return b.Cache.save()
+	return b.Cache.Save()
 }
 
 // betterDesc returns a styled description

@@ -9,8 +9,9 @@ import (
 	"time"
 
 	"github.com/TypicalAM/goread/internal/backend"
-	"github.com/TypicalAM/goread/internal/ui/browser"
+	"github.com/TypicalAM/goread/internal/backend/cache"
 	"github.com/TypicalAM/goread/internal/theme"
+	"github.com/TypicalAM/goread/internal/ui/browser"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
@@ -131,13 +132,13 @@ func Run() error {
 	// Set the cache size
 	if opts.cacheSize > 0 {
 		log.Println("Setting cache size to ", opts.cacheSize)
-		backend.DefaultCacheSize = opts.cacheSize
+		cache.DefaultCacheSize = opts.cacheSize
 	}
 
 	// Set the cache duration
 	if opts.cacheDuration > 0 {
 		log.Println("Setting cache duration to ", opts.cacheDuration)
-		backend.DefaultCacheDuration = time.Hour * time.Duration(opts.cacheDuration)
+		cache.DefaultCacheDuration = time.Hour * time.Duration(opts.cacheDuration)
 	}
 
 	// Initialize the backend
