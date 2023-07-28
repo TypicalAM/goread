@@ -18,7 +18,7 @@ var Default = Colors{
 	BgDark:        "#161622",
 	BgDarker:      "#11111a",
 	Text:          "#FFFFFF",
-	TextDark:      "#47485b",
+	TextDark:      "#676985",
 	Color1:        "#c29fec",
 	Color2:        "#ddbec0",
 	Color3:        "#89b4fa",
