@@ -159,7 +159,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		log.Println(m.msg)
 		return m, m.backend.FetchFeeds(msg.ParentCategory)
 
-	case tab.NewTabMessage:
+	case tab.NewTabMsg:
 		return m.createNewTab(msg)
 
 	case backend.NewItemMsg:
@@ -323,7 +323,7 @@ func (m Model) waitForSize(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // createNewTab bootstraps the new tab and adds it to the model
-func (m Model) createNewTab(msg tab.NewTabMessage) (Model, tea.Cmd) {
+func (m Model) createNewTab(msg tab.NewTabMsg) (Model, tea.Cmd) {
 	var newTab tab.Tab
 	height := m.height - 5
 
