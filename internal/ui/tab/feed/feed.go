@@ -28,6 +28,7 @@ type Keymap struct {
 	SaveArticle     key.Binding
 	DeleteFromSaved key.Binding
 	CycleSelection  key.Binding
+	MarkAsUnread    key.Binding
 }
 
 // DefaultKeymap contains the default key bindings for this tab
@@ -55,6 +56,10 @@ var DefaultKeymap = Keymap{
 	CycleSelection: key.NewBinding(
 		key.WithKeys("g"),
 		key.WithHelp("g", "Cycle selection"),
+	),
+	MarkAsUnread: key.NewBinding(
+		key.WithKeys("u"),
+		key.WithHelp("u", "Mark as unread"),
 	),
 }
 
@@ -195,6 +200,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case key.Matches(msg, m.keymap.DeleteFromSaved):
 			return m, backend.DeleteItem(m, fmt.Sprintf("%d", m.list.Index()))
+
+		case key.Matches(msg, m.keymap.MarkAsUnread):
+			prevItem := m.list.SelectedItem().(list.DefaultItem)
+			title, _ := strings.CutPrefix(prevItem.Title(), "✓ ")
+			m.list.SetItem(m.list.Index(), simplelist.NewItem(title, prevItem.Description()))
+			return m, backend.MarkAsUnread(m.title, title)
 
 		case key.Matches(msg, m.keymap.CycleSelection):
 			if !m.viewportFocused {
@@ -360,6 +371,7 @@ func (m Model) ShortHelp() []key.Binding {
 	return []key.Binding{
 		m.keymap.Open, m.keymap.ToggleFocus, m.keymap.RefreshArticles,
 		m.keymap.SaveArticle, m.keymap.DeleteFromSaved, m.keymap.CycleSelection,
+		m.keymap.MarkAsUnread,
 	}
 }
 

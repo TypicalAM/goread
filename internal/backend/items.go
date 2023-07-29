@@ -118,3 +118,19 @@ func MarkAsRead(feedName, title string) tea.Cmd {
 		}
 	}
 }
+
+// MarkAsUnread is a message to tell the main model that a new item needs to be marked as unread
+type MarkAsUnreadMsg struct {
+	FeedName string
+	Title    string
+}
+
+// MarkAsUnread is a function to tell the main model that a new item needs to be marked as unread
+func MarkAsUnread(feedName, title string) tea.Cmd {
+	return func() tea.Msg {
+		return MarkAsUnreadMsg{
+			FeedName: feedName,
+			Title:    title,
+		}
+	}
+}

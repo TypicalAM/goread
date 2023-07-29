@@ -218,6 +218,22 @@ func (b Backend) MarkAsRead(feedName, title string) tea.Cmd {
 	}
 }
 
+// MarkAsUnread marks an article as unread
+func (b Backend) MarkAsUnread(feedName, title string) tea.Cmd {
+	return func() tea.Msg {
+		url, err := b.Rss.GetFeedURL(feedName)
+		if err != nil {
+			return FetchErrorMsg{
+				Description: "Error while getting the article url",
+				Err:         err,
+			}
+		}
+
+		b.ReadStatus.MarkAsUnread(url, title)
+		return nil
+	}
+}
+
 // SetOfflineMode sets the offline mode of the backend
 func (b *Backend) SetOfflineMode(mode bool) {
 	b.Cache.OfflineMode = mode
