@@ -76,8 +76,12 @@ func New(path string) (*Cache, error) {
 // Load reads the cache from disk
 func (c *Cache) Load() error {
 	log.Println("Loading cache from", c.filePath)
-	if _, err := os.Stat(c.filePath); err != nil && os.IsNotExist(err) {
-		return nil
+	if _, err := os.Stat(c.filePath); err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+
+		return err
 	}
 
 	file, err := os.ReadFile(c.filePath)

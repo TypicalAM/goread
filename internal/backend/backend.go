@@ -14,21 +14,31 @@ import (
 
 // Backend uses a local cache to get all the feeds and their articles
 type Backend struct {
-	Rss   *rss.Rss
-	Cache *cache.Cache
+	Rss        *rss.Rss
+	Cache      *cache.Cache
+	ReadStatus *cache.ReadStatus
 }
 
 // New creates a new Cache Backend
 func New(urlPath, cachePath string, resetCache bool) (*Backend, error) {
 	log.Println("Creating new backend")
-	cache, err := cache.New(cachePath)
+	store, err := cache.New(cachePath)
+	if err != nil {
+		return nil, err
+	}
+
+	readStatus, err := cache.NewReadStatus("") // TODO: Make this configurable
 	if err != nil {
 		return nil, err
 	}
 
 	if !resetCache {
-		if err = cache.Load(); err != nil {
+		if err = store.Load(); err != nil {
 			log.Println("Cache load failed: ", err)
+		}
+
+		if err = readStatus.Load(); err != nil {
+			log.Println("Read status load failed: ", err)
 		}
 	}
 
@@ -42,8 +52,9 @@ func New(urlPath, cachePath string, resetCache bool) (*Backend, error) {
 	}
 
 	return &Backend{
-		Cache: cache,
-		Rss:   rss,
+		Cache:      store,
+		Rss:        rss,
+		ReadStatus: readStatus,
 	}, nil
 }
 
@@ -198,7 +209,11 @@ func (b Backend) Close() error {
 		return err
 	}
 
-	return b.Cache.Save()
+	if err := b.Cache.Save(); err != nil {
+		return err
+	}
+
+	return b.ReadStatus.Save()
 }
 
 // betterDesc returns a styled description
