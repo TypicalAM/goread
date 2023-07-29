@@ -115,6 +115,10 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 		contents := make([]string, len(items))
 
 		for i, item := range items {
+			if b.ReadStatus.IsRead(url, item.Title) {
+				item.Title = "✓ " + item.Title
+			}
+
 			result[i] = simplelist.NewItem(item.Title, betterDesc(item.Description))
 			contents[i] = rss.YassifyItem(&items[i])
 		}
@@ -196,6 +200,22 @@ func (b Backend) RemoveDownload(key string) error {
 	}
 
 	return b.Cache.RemoveFromDownloaded(index)
+}
+
+// MarkAsRead marks an article as read
+func (b Backend) MarkAsRead(feedName, title string) tea.Cmd {
+	return func() tea.Msg {
+		url, err := b.Rss.GetFeedURL(feedName)
+		if err != nil {
+			return FetchErrorMsg{
+				Description: "Error while getting the article url",
+				Err:         err,
+			}
+		}
+
+		b.ReadStatus.MarkAsRead(url, title)
+		return nil
+	}
 }
 
 // SetOfflineMode sets the offline mode of the backend

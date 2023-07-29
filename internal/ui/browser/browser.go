@@ -176,6 +176,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case backend.DownloadItemMsg:
 		return m.downloadItem(msg)
 
+	case backend.MarkAsReadMsg:
+		log.Println("Marking item as read: ", msg.FeedName, msg.Title)
+		return m, m.backend.MarkAsRead(msg.FeedName, msg.Title)
+
 	case backend.MakeChoiceMsg:
 		bg := m.View()
 		width := m.width / 2

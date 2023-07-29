@@ -14,8 +14,8 @@ import (
 // because it takes up no space in memory. To hash the article, we use the URL of the feed and the title
 // of the article.
 type ReadStatus struct {
-	articleSet map[uint32]struct{}
-	filePath   string
+	set      map[uint32]struct{}
+	filePath string
 }
 
 // New creates a new ReadStatus set.
@@ -31,8 +31,8 @@ func NewReadStatus(path string) (*ReadStatus, error) {
 	}
 
 	return &ReadStatus{
-		filePath:   path,
-		articleSet: make(map[uint32]struct{}),
+		filePath: path,
+		set:      make(map[uint32]struct{}),
 	}, nil
 }
 
@@ -57,14 +57,15 @@ func (rs *ReadStatus) Load() error {
 		return err
 	}
 
-	rs.articleSet = set
-	log.Println("Loaded read status entries: ", len(rs.articleSet))
+	rs.set = set
+	log.Println("Loaded read status entries: ", len(rs.set))
 	return nil
 }
 
 // Save writes the cache to disk
 func (rs ReadStatus) Save() error {
-	data := marshall(rs.articleSet)
+	data := marshall(rs.set)
+	log.Println("Marshalling the data yielded a size of", len(data))
 
 	// Try to write the data to the file
 	if err := os.WriteFile(rs.filePath, data, 0600); err != nil {
@@ -77,23 +78,24 @@ func (rs ReadStatus) Save() error {
 		}
 	}
 
+	log.Println("Written succesffully")
 	return nil
 }
 
 // MarkAsRead adds an article to the set.
 func (rs *ReadStatus) MarkAsRead(url, title string) {
-	rs.articleSet[hashString(url, title)] = struct{}{}
+	rs.set[hashString(url, title)] = struct{}{}
 }
 
 // IsRead checks if an article is already in the set.
 func (m ReadStatus) IsRead(url, title string) bool {
-	_, ok := m.articleSet[hashString(url, title)]
+	_, ok := m.set[hashString(url, title)]
 	return ok
 }
 
 // MarkAsUnread removes an article from the set.
 func (rs *ReadStatus) MarkAsUnread(url, title string) {
-	delete(rs.articleSet, hashString(url, title))
+	delete(rs.set, hashString(url, title))
 }
 
 // marshall converts the set to bytes.

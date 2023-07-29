@@ -102,3 +102,19 @@ func MakeChoice(question string, defaultChoice bool) tea.Cmd {
 		}
 	}
 }
+
+// MarkAsRead is a message to tell the main model that a new item needs to be marked as read
+type MarkAsReadMsg struct {
+	FeedName string
+	Title    string
+}
+
+// MarkAsRead is a function to tell the main model that a new item needs to be marked as read
+func MarkAsRead(feedName, title string) tea.Cmd {
+	return func() tea.Msg {
+		return MarkAsReadMsg{
+			FeedName: feedName,
+			Title:    title,
+		}
+	}
+}
