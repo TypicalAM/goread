@@ -49,7 +49,7 @@ type Model struct {
 
 // New creates a new welcome tab with sensible defaults
 func New(colors *theme.Colors, width, height int, title string, fetcher backend.Fetcher) Model {
-	log.Println("Creating new category tab with title", title)
+	log.Println("Creating new welcome tab with title", title)
 
 	return Model{
 		colors:  colors,

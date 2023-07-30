@@ -53,7 +53,7 @@ var Default = Rss{
 
 // Rss will be used to structurize the rss feeds and categories
 type Rss struct {
-	FilePath   string     `yaml:"-"`
+	filePath   string
 	Categories []Category `yaml:"categories"`
 }
 
@@ -85,23 +85,27 @@ func New(path string) (*Rss, error) {
 	}
 
 	rss := Default
-	rss.FilePath = path
+	rss.filePath = path
 	return &rss, nil
 }
 
 // Load will try to load the Rss structure from a file
 func (rss *Rss) Load() error {
-	log.Println("Loading rss from", rss.FilePath)
-	if _, err := os.Stat(rss.FilePath); err != nil && os.IsNotExist(err) {
-		return nil
+	log.Println("Loading rss from", rss.filePath)
+	if _, err := os.Stat(rss.filePath); err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+
+		return err
 	}
 
-	fileContent, err := os.ReadFile(rss.FilePath)
+	data, err := os.ReadFile(rss.filePath)
 	if err != nil {
 		return err
 	}
 
-	if err = yaml.Unmarshal(fileContent, rss); err != nil {
+	if err = yaml.Unmarshal(data, rss); err != nil {
 		return err
 	}
 
@@ -116,12 +120,12 @@ func (rss Rss) Save() error {
 		return err
 	}
 
-	if err = os.WriteFile(rss.FilePath, yamlData, 0600); err != nil {
-		if err = os.MkdirAll(filepath.Dir(rss.FilePath), 0755); err != nil {
+	if err = os.WriteFile(rss.filePath, yamlData, 0600); err != nil {
+		if err = os.MkdirAll(filepath.Dir(rss.filePath), 0755); err != nil {
 			return err
 		}
 
-		if err = os.WriteFile(rss.FilePath, yamlData, 0600); err != nil {
+		if err = os.WriteFile(rss.filePath, yamlData, 0600); err != nil {
 			return err
 		}
 	}

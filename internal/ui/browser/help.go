@@ -1,8 +1,8 @@
 package browser
 
 import (
-	"github.com/TypicalAM/goread/internal/ui/popup"
 	"github.com/TypicalAM/goread/internal/theme"
+	"github.com/TypicalAM/goread/internal/ui/popup"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"

@@ -84,12 +84,12 @@ func (c *Cache) Load() error {
 		return err
 	}
 
-	file, err := os.ReadFile(c.filePath)
+	data, err := os.ReadFile(c.filePath)
 	if err != nil {
 		return err
 	}
 
-	if err = json.Unmarshal(file, &c); err != nil {
+	if err = json.Unmarshal(data, &c); err != nil {
 		return err
 	}
 

@@ -83,8 +83,8 @@ func (rs *ReadStatus) MarkAsRead(item gofeed.Item) {
 }
 
 // IsRead checks if an article is already in the set.
-func (m ReadStatus) IsRead(item gofeed.Item) bool {
-	_, ok := m.set[hashArticle(item)]
+func (rs ReadStatus) IsRead(item gofeed.Item) bool {
+	_, ok := rs.set[hashArticle(item)]
 	return ok
 }
 

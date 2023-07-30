@@ -1,8 +1,8 @@
 package browser
 
 import (
-	"github.com/TypicalAM/goread/internal/ui/tab"
 	"github.com/TypicalAM/goread/internal/theme"
+	"github.com/TypicalAM/goread/internal/ui/tab"
 	"github.com/charmbracelet/lipgloss"
 )
 

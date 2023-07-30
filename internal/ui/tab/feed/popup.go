@@ -1,8 +1,8 @@
 package feed
 
 import (
-	"github.com/TypicalAM/goread/internal/ui/popup"
 	"github.com/TypicalAM/goread/internal/theme"
+	"github.com/TypicalAM/goread/internal/ui/popup"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
