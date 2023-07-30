@@ -10,6 +10,7 @@ import (
 	"github.com/TypicalAM/goread/internal/ui/simplelist"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/mmcdole/gofeed"
 )
 
 // Backend uses a local cache to get all the feeds and their articles
@@ -115,7 +116,7 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 		contents := make([]string, len(items))
 
 		for i, item := range items {
-			if b.ReadStatus.IsRead(url, item.Title) {
+			if b.ReadStatus.IsRead(item) {
 				item.Title = "✓ " + item.Title
 			}
 
@@ -139,6 +140,10 @@ func (b Backend) FetchAllArticles(_ string) tea.Cmd {
 		contents := make([]string, len(items))
 
 		for i, item := range items {
+			if b.ReadStatus.IsRead(item) {
+				item.Title = "✓ " + item.Title
+			}
+
 			result[i] = simplelist.NewItem(item.Title, betterDesc(item.Description))
 			contents[i] = rss.YassifyItem(&items[i])
 		}
@@ -159,6 +164,10 @@ func (b Backend) FetchDownloadedArticles(_ string) tea.Cmd {
 		contents := make([]string, len(items))
 
 		for i, item := range items {
+			if b.ReadStatus.IsRead(item) {
+				item.Title = "✓ " + item.Title
+			}
+
 			result[i] = simplelist.NewItem(item.Title, betterDesc(item.Description))
 			contents[i] = rss.YassifyItem(&items[i])
 		}
@@ -203,33 +212,73 @@ func (b Backend) RemoveDownload(key string) error {
 }
 
 // MarkAsRead marks an article as read
-func (b Backend) MarkAsRead(feedName, title string) tea.Cmd {
+func (b Backend) MarkAsRead(key string, index int) tea.Cmd {
 	return func() tea.Msg {
-		url, err := b.Rss.GetFeedURL(feedName)
-		if err != nil {
-			return FetchErrorMsg{
-				Description: "Error while getting the article url",
-				Err:         err,
+		var item gofeed.Item
+
+		switch key {
+		case rss.AllFeedsName:
+			item = b.Cache.GetArticlesBulk(rss.Default.GetAllURLs())[index]
+		case rss.DownloadedFeedsName:
+			item = b.Cache.GetDownloaded()[index]
+		default:
+			url, err := b.Rss.GetFeedURL(key)
+			if err != nil {
+				return FetchErrorMsg{
+					Description: "Error while getting the article url",
+					Err:         err,
+				}
 			}
+
+			items, err := b.Cache.GetArticles(url)
+			if err != nil {
+				return FetchErrorMsg{
+					Description: "Error while fetching the article",
+					Err:         err,
+				}
+			}
+
+			item = items[index]
 		}
 
-		b.ReadStatus.MarkAsRead(url, title)
+		log.Println("Marking as read:", item.Title)
+		b.ReadStatus.MarkAsRead(item)
 		return nil
 	}
 }
 
 // MarkAsUnread marks an article as unread
-func (b Backend) MarkAsUnread(feedName, title string) tea.Cmd {
+func (b Backend) MarkAsUnread(key string, index int) tea.Cmd {
 	return func() tea.Msg {
-		url, err := b.Rss.GetFeedURL(feedName)
-		if err != nil {
-			return FetchErrorMsg{
-				Description: "Error while getting the article url",
-				Err:         err,
+		var item gofeed.Item
+
+		switch key {
+		case rss.AllFeedsName:
+			item = b.Cache.GetArticlesBulk(rss.Default.GetAllURLs())[index]
+		case rss.DownloadedFeedsName:
+			item = b.Cache.GetDownloaded()[index]
+		default:
+			url, err := b.Rss.GetFeedURL(key)
+			if err != nil {
+				return FetchErrorMsg{
+					Description: "Error while getting the article url",
+					Err:         err,
+				}
 			}
+
+			items, err := b.Cache.GetArticles(url)
+			if err != nil {
+				return FetchErrorMsg{
+					Description: "Error while fetching the article",
+					Err:         err,
+				}
+			}
+
+			item = items[index]
 		}
 
-		b.ReadStatus.MarkAsUnread(url, title)
+		log.Println("Marking as unread:", item.Title)
+		b.ReadStatus.MarkAsUnread(item)
 		return nil
 	}
 }

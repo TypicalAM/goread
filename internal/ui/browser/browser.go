@@ -177,12 +177,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.downloadItem(msg)
 
 	case backend.MarkAsReadMsg:
-		log.Println("Marking item as read: ", msg.FeedName, msg.Title)
-		return m, m.backend.MarkAsRead(msg.FeedName, msg.Title)
+		return m, m.backend.MarkAsRead(msg.Key, msg.Index)
 
 	case backend.MarkAsUnreadMsg:
-		log.Println("Marking item as unread: ", msg.FeedName, msg.Title)
-		return m, m.backend.MarkAsUnread(msg.FeedName, msg.Title)
+		return m, m.backend.MarkAsUnread(msg.Key, msg.Index)
 
 	case backend.MakeChoiceMsg:
 		bg := m.View()

@@ -202,10 +202,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, backend.DeleteItem(m, fmt.Sprintf("%d", m.list.Index()))
 
 		case key.Matches(msg, m.keymap.MarkAsUnread):
-			prevItem := m.list.SelectedItem().(list.DefaultItem)
-			title, _ := strings.CutPrefix(prevItem.Title(), "✓ ")
-			m.list.SetItem(m.list.Index(), simplelist.NewItem(title, prevItem.Description()))
-			return m, backend.MarkAsUnread(m.title, title)
+			item := m.list.SelectedItem().(list.DefaultItem)
+			if strings.HasPrefix(item.Title(), "✓ ") {
+				title := strings.Join(strings.Split(item.Title(), " ")[1:], " ")
+				m.list.SetItem(m.list.Index(), simplelist.NewItem(title, item.Description()))
+			}
+
+			return m, backend.MarkAsUnread(m.title, m.list.Index())
 
 		case key.Matches(msg, m.keymap.CycleSelection):
 			if !m.viewportFocused {
@@ -322,11 +325,12 @@ func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
 	m.viewport.SetYOffset(0)
 
 	// Mark this item as read and prepend a ✓
-	prevItem := m.list.SelectedItem().(list.DefaultItem)
-	if !strings.HasPrefix("✓", prevItem.Title()) {
-		m.list.SetItem(m.list.Index(), simplelist.NewItem("✓ "+prevItem.Title(), prevItem.Description()))
+	item := m.list.SelectedItem().(list.DefaultItem)
+	if !strings.HasPrefix("✓ ", item.Title()) {
+		m.list.SetItem(m.list.Index(), simplelist.NewItem("✓ "+item.Title(), item.Description()))
 	}
-	return m, backend.MarkAsRead(m.title, prevItem.Title())
+
+	return m, backend.MarkAsRead(m.title, m.list.Index())
 }
 
 // View the tab
