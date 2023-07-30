@@ -3,12 +3,13 @@ package feed
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/TypicalAM/goread/internal/backend"
+	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/TypicalAM/goread/internal/ui/popup"
 	"github.com/TypicalAM/goread/internal/ui/simplelist"
 	"github.com/TypicalAM/goread/internal/ui/tab"
-	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/spinner"
@@ -27,6 +28,7 @@ type Keymap struct {
 	SaveArticle     key.Binding
 	DeleteFromSaved key.Binding
 	CycleSelection  key.Binding
+	MarkAsUnread    key.Binding
 }
 
 // DefaultKeymap contains the default key bindings for this tab
@@ -54,6 +56,10 @@ var DefaultKeymap = Keymap{
 	CycleSelection: key.NewBinding(
 		key.WithKeys("g"),
 		key.WithHelp("g", "Cycle selection"),
+	),
+	MarkAsUnread: key.NewBinding(
+		key.WithKeys("u"),
+		key.WithHelp("u", "Mark as unread"),
 	),
 }
 
@@ -126,7 +132,7 @@ func (m Model) SetSize(width, height int) tab.Tab {
 	m.viewport.Height = height
 	m.width = width
 	m.height = height
-	newTab := m.updateViewport()
+	newTab, _ := m.updateViewport()
 	return newTab
 }
 
@@ -172,7 +178,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.viewportOpen = true
 			}
 
-			return m.updateViewport(), nil
+			return m.updateViewport()
 
 		case key.Matches(msg, m.keymap.ToggleFocus):
 			if !m.viewportOpen {
@@ -194,6 +200,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case key.Matches(msg, m.keymap.DeleteFromSaved):
 			return m, backend.DeleteItem(m, fmt.Sprintf("%d", m.list.Index()))
+
+		case key.Matches(msg, m.keymap.MarkAsUnread):
+			item := m.list.SelectedItem().(list.DefaultItem)
+			if strings.HasPrefix(item.Title(), "✓ ") {
+				title := strings.Join(strings.Split(item.Title(), " ")[1:], " ")
+				m.list.SetItem(m.list.Index(), simplelist.NewItem(title, item.Description()))
+			}
+
+			return m, backend.MarkAsUnread(m.title, m.list.Index())
 
 		case key.Matches(msg, m.keymap.CycleSelection):
 			if !m.viewportFocused {
@@ -283,32 +298,39 @@ func (m Model) loadTab(items []list.Item, articleContents []string) tab.Tab {
 
 // updateViewport is fired when the user presses enter, it updates the
 // viewport with the selected item
-func (m Model) updateViewport() tab.Tab {
+func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
 	if !m.viewportOpen {
-		return m
+		return m, nil
 	}
 
 	if m.list.SelectedItem() == nil {
-		return m
+		return m, nil
 	}
 
 	rawText := m.articleContent[m.list.Index()]
 	styledText, err := m.colorTr.Render(rawText)
 	if err != nil {
 		m.viewport.SetContent(fmt.Sprintf("We have encountered an error styling the content: %s", err))
-		return m
+		return m, nil
 	}
 
 	noColorText, err := m.noColorTr.Render(rawText)
 	if err != nil {
 		m.viewport.SetContent(fmt.Sprintf("We have encountered an error styling the content: %s", err))
-		return m
+		return m, nil
 	}
 
 	m.selector.newArticle(&rawText, &noColorText)
 	m.viewport.SetContent(styledText)
 	m.viewport.SetYOffset(0)
-	return m
+
+	// Mark this item as read and prepend a ✓
+	item := m.list.SelectedItem().(list.DefaultItem)
+	if !strings.HasPrefix(item.Title(), "✓ ") {
+		m.list.SetItem(m.list.Index(), simplelist.NewItem("✓ "+item.Title(), item.Description()))
+	}
+
+	return m, backend.MarkAsRead(m.title, m.list.Index())
 }
 
 // View the tab
@@ -353,6 +375,7 @@ func (m Model) ShortHelp() []key.Binding {
 	return []key.Binding{
 		m.keymap.Open, m.keymap.ToggleFocus, m.keymap.RefreshArticles,
 		m.keymap.SaveArticle, m.keymap.DeleteFromSaved, m.keymap.CycleSelection,
+		m.keymap.MarkAsUnread,
 	}
 }
 

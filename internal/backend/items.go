@@ -102,3 +102,35 @@ func MakeChoice(question string, defaultChoice bool) tea.Cmd {
 		}
 	}
 }
+
+// MarkAsRead is a message to tell the main model that a new item needs to be marked as read
+type MarkAsReadMsg struct {
+	Key   string
+	Index int
+}
+
+// MarkAsRead is a function to tell the main model that a new item needs to be marked as read
+func MarkAsRead(key string, index int) tea.Cmd {
+	return func() tea.Msg {
+		return MarkAsReadMsg{
+			Key:   key,
+			Index: index,
+		}
+	}
+}
+
+// MarkAsUnread is a message to tell the main model that a new item needs to be marked as unread
+type MarkAsUnreadMsg struct {
+	Key   string
+	Index int
+}
+
+// MarkAsUnread is a function to tell the main model that a new item needs to be marked as unread
+func MarkAsUnread(key string, index int) tea.Cmd {
+	return func() tea.Msg {
+		return MarkAsUnreadMsg{
+			Key:   key,
+			Index: index,
+		}
+	}
+}
