@@ -52,19 +52,13 @@ func (rs *ReadStatus) Load() error {
 		return err
 	}
 
-	set, err := unmarshall(data)
-	if err != nil {
-		return err
-	}
-
-	rs.set = set
-	log.Println("Loaded read status entries: ", len(rs.set))
-	return nil
+	rs.set, err = unmarshal(data)
+	return err
 }
 
 // Save writes the cache to disk
 func (rs ReadStatus) Save() error {
-	data := marshall(rs.set)
+	data := marshal(rs.set)
 	log.Println("Marshalling the data yielded a size of", len(data))
 
 	// Try to write the data to the file
@@ -98,27 +92,27 @@ func (rs *ReadStatus) MarkAsUnread(url, title string) {
 	delete(rs.set, hashString(url, title))
 }
 
-// marshall converts the set to bytes.
-func marshall(articleSet map[uint32]struct{}) []byte {
-	result := make([]byte, 4*len(articleSet))
-	for k := range articleSet {
-		binary.LittleEndian.PutUint32(result, k)
+// marshal converts the set to bytes.
+func marshal(set map[uint32]struct{}) []byte {
+	result := make([]byte, 0, len(set)*4)
+	for k := range set {
+		result = binary.LittleEndian.AppendUint32(result, k)
 	}
 	return result
 }
 
-// unmarshall converts bytes to a set.
-func unmarshall(data []byte) (map[uint32]struct{}, error) {
-	articleSet := make(map[uint32]struct{})
+// unmarshal converts bytes to a set.
+func unmarshal(data []byte) (map[uint32]struct{}, error) {
+	set := make(map[uint32]struct{})
 	if len(data)%4 != 0 {
 		return nil, errors.New("invalid data")
 	}
 
 	for i := 0; i < len(data); i += 4 {
-		articleSet[binary.LittleEndian.Uint32(data[i:i+4])] = struct{}{}
+		set[binary.LittleEndian.Uint32(data[i:i+4])] = struct{}{}
 	}
 
-	return articleSet, nil
+	return set, nil
 }
 
 // hashString strings using the murmur3 hash.
