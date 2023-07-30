@@ -326,7 +326,7 @@ func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
 
 	// Mark this item as read and prepend a ✓
 	item := m.list.SelectedItem().(list.DefaultItem)
-	if !strings.HasPrefix("✓ ", item.Title()) {
+	if !strings.HasPrefix(item.Title(), "✓ ") {
 		m.list.SetItem(m.list.Index(), simplelist.NewItem("✓ "+item.Title(), item.Description()))
 	}
 
