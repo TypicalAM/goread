@@ -4,10 +4,10 @@ import (
 	"log"
 
 	"github.com/TypicalAM/goread/internal/backend"
+	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/TypicalAM/goread/internal/ui/popup"
 	"github.com/TypicalAM/goread/internal/ui/simplelist"
 	"github.com/TypicalAM/goread/internal/ui/tab"
-	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -135,7 +135,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		case key.Matches(msg, m.keymap.NewFeed):
-			return m, backend.NewItem(m, false, make([]string, 2))
+			return m, backend.NewItem(m)
 
 		case key.Matches(msg, m.keymap.EditFeed):
 			// If the list is empty, return nothing
@@ -145,7 +145,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			item := m.list.SelectedItem().(simplelist.Item)
 			fields := []string{item.Title(), item.Description()}
-			return m, backend.NewItem(m, true, fields)
+			return m, backend.EditItem(m, fields)
 
 		case key.Matches(msg, m.keymap.DeleteFeed):
 			if !m.list.IsEmpty() {

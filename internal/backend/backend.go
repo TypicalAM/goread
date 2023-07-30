@@ -3,7 +3,6 @@ package backend
 import (
 	"errors"
 	"log"
-	"strconv"
 
 	"github.com/TypicalAM/goread/internal/backend/cache"
 	"github.com/TypicalAM/goread/internal/backend/rss"
@@ -13,14 +12,14 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
-// Backend uses a local cache to get all the feeds and their articles
+// Backend provides a way of fetching data from the cache and the RSS feed.
 type Backend struct {
 	Rss        *rss.Rss
 	Cache      *cache.Cache
 	ReadStatus *cache.ReadStatus
 }
 
-// New creates a new Cache Backend
+// New creates a new backend and its components.
 func New(urlPath, cachePath string, resetCache bool) (*Backend, error) {
 	log.Println("Creating new backend")
 	store, err := cache.New(cachePath)
@@ -52,14 +51,10 @@ func New(urlPath, cachePath string, resetCache bool) (*Backend, error) {
 		log.Println("Rss load failed: ", err)
 	}
 
-	return &Backend{
-		Cache:      store,
-		Rss:        rss,
-		ReadStatus: readStatus,
-	}, nil
+	return &Backend{rss, store, readStatus}, nil
 }
 
-// FetchCategories returns a tea.Cmd which gets the category list
+// FetchCategories gets the categories.
 func (b Backend) FetchCategories(_ string) tea.Cmd {
 	return func() tea.Msg {
 		names, descs := b.Rss.GetCategories()
@@ -73,15 +68,12 @@ func (b Backend) FetchCategories(_ string) tea.Cmd {
 	}
 }
 
-// FetchFeeds returns a tea.Cmd which gets the feeds for a category
-func (b Backend) FetchFeeds(catName string) tea.Cmd {
+// FetchFeeds gets the feeds from a category.
+func (b Backend) FetchFeeds(catname string) tea.Cmd {
 	return func() tea.Msg {
-		names, urls, err := b.Rss.GetFeeds(catName)
+		names, urls, err := b.Rss.GetFeeds(catname)
 		if err != nil {
-			return FetchErrorMsg{
-				Description: "Error while trying to get feeds",
-				Err:         err,
-			}
+			return FetchErrorMsg{err, "Error while trying to get feeds"}
 		}
 
 		items := make([]list.Item, len(names))
@@ -89,206 +81,93 @@ func (b Backend) FetchFeeds(catName string) tea.Cmd {
 			items[i] = simplelist.NewItem(names[i], urls[i])
 		}
 
-		return FetchSuccessMsg{Items: items}
+		return FetchSuccessMsg{items}
 	}
 }
 
-// FetchArticles returns a tea.Cmd which gets the articles
+// FetchArticles gets the articles from a feed.
 func (b Backend) FetchArticles(feedName string) tea.Cmd {
 	return func() tea.Msg {
 		url, err := b.Rss.GetFeedURL(feedName)
 		if err != nil {
-			return FetchErrorMsg{
-				Description: "Error while trying to get the article url",
-				Err:         err,
-			}
+			return FetchErrorMsg{err, "Error while trying to get the article url"}
 		}
 
 		items, err := b.Cache.GetArticles(url)
 		if err != nil {
-			return FetchErrorMsg{
-				Description: "Error while fetching the article",
-				Err:         err,
-			}
+			return FetchErrorMsg{err, "Error while fetching the article"}
 		}
 
-		result := make([]list.Item, len(items))
-		contents := make([]string, len(items))
-
-		for i, item := range items {
-			if b.ReadStatus.IsRead(item) {
-				item.Title = "✓ " + item.Title
-			}
-
-			result[i] = simplelist.NewItem(item.Title, betterDesc(item.Description))
-			contents[i] = rss.YassifyItem(&items[i])
-		}
-
-		return FetchArticleSuccessMsg{
-			Items:           result,
-			ArticleContents: contents,
-		}
+		return b.articlesToSuccessMsg(items)
 	}
 }
 
-// FetchAllArticles returns a tea.Cmd which gets all the articles
+// FetchAllArticles gets all the articles from all the feeds.
 func (b Backend) FetchAllArticles(_ string) tea.Cmd {
 	return func() tea.Msg {
-		items := b.Cache.GetArticlesBulk(b.Rss.GetAllURLs())
-
-		result := make([]list.Item, len(items))
-		contents := make([]string, len(items))
-
-		for i, item := range items {
-			if b.ReadStatus.IsRead(item) {
-				item.Title = "✓ " + item.Title
-			}
-
-			result[i] = simplelist.NewItem(item.Title, betterDesc(item.Description))
-			contents[i] = rss.YassifyItem(&items[i])
-		}
-
-		return FetchArticleSuccessMsg{
-			Items:           result,
-			ArticleContents: contents,
-		}
+		return b.articlesToSuccessMsg(b.Cache.GetArticlesBulk(b.Rss.GetAllURLs()))
 	}
 }
 
-// FetchDownloaded returns a tea.Cmd which gets the downloaded articles
+// FetchDownloaded gets the downloaded articles.
 func (b Backend) FetchDownloadedArticles(_ string) tea.Cmd {
 	return func() tea.Msg {
-		items := b.Cache.GetDownloaded()
-
-		result := make([]list.Item, len(items))
-		contents := make([]string, len(items))
-
-		for i, item := range items {
-			if b.ReadStatus.IsRead(item) {
-				item.Title = "✓ " + item.Title
-			}
-
-			result[i] = simplelist.NewItem(item.Title, betterDesc(item.Description))
-			contents[i] = rss.YassifyItem(&items[i])
-		}
-
-		return FetchArticleSuccessMsg{
-			Items:           result,
-			ArticleContents: contents,
-		}
+		return b.articlesToSuccessMsg(b.Cache.GetDownloaded())
 	}
 }
 
-// DownloadItem returns a tea.Cmd which downloads an item
-func (b Backend) DownloadItem(key string, index int) tea.Cmd {
+// DownloadItem downloads an article.
+func (b Backend) DownloadItem(feedName string, index int) tea.Cmd {
 	return func() tea.Msg {
-		url, err := b.Rss.GetFeedURL(key)
+		item, err := b.indexToItem(feedName, index)
 		if err != nil {
-			return FetchErrorMsg{
-				Description: "Error while getting the article url",
-				Err:         err,
-			}
+			return FetchErrorMsg{err, "Error while getting the article"}
 		}
 
-		if err = b.Cache.AddToDownloaded(url, index); err != nil {
-			return FetchErrorMsg{
-				Description: "Error while downloading the article",
-				Err:         err,
-			}
-		}
-
+		b.Cache.AddToDownloaded(*item)
 		return nil
 	}
 }
 
-// RemoveDownload tries to remove a download from the backend
-func (b Backend) RemoveDownload(key string) error {
-	index, err := strconv.Atoi(key)
-	if err != nil {
-		return errors.New("invalid key")
-	}
-
+// RemoveDownload removes a downloaded article.
+func (b Backend) RemoveDownload(index int) error {
 	return b.Cache.RemoveFromDownloaded(index)
 }
 
-// MarkAsRead marks an article as read
-func (b Backend) MarkAsRead(key string, index int) tea.Cmd {
+// MarkAsRead marks an article as read.
+func (b Backend) MarkAsRead(feedName string, index int) tea.Cmd {
 	return func() tea.Msg {
-		var item gofeed.Item
-
-		switch key {
-		case rss.AllFeedsName:
-			item = b.Cache.GetArticlesBulk(rss.Default.GetAllURLs())[index]
-		case rss.DownloadedFeedsName:
-			item = b.Cache.GetDownloaded()[index]
-		default:
-			url, err := b.Rss.GetFeedURL(key)
-			if err != nil {
-				return FetchErrorMsg{
-					Description: "Error while getting the article url",
-					Err:         err,
-				}
-			}
-
-			items, err := b.Cache.GetArticles(url)
-			if err != nil {
-				return FetchErrorMsg{
-					Description: "Error while fetching the article",
-					Err:         err,
-				}
-			}
-
-			item = items[index]
+		item, err := b.indexToItem(feedName, index)
+		if err != nil {
+			return FetchErrorMsg{err, "Error while getting the article"}
 		}
 
 		log.Println("Marking as read:", item.Title)
-		b.ReadStatus.MarkAsRead(item)
+		b.ReadStatus.MarkAsRead(*item)
 		return nil
 	}
 }
 
-// MarkAsUnread marks an article as unread
-func (b Backend) MarkAsUnread(key string, index int) tea.Cmd {
+// MarkAsUnread marks an article as unread.
+func (b Backend) MarkAsUnread(feedName string, index int) tea.Cmd {
 	return func() tea.Msg {
-		var item gofeed.Item
-
-		switch key {
-		case rss.AllFeedsName:
-			item = b.Cache.GetArticlesBulk(rss.Default.GetAllURLs())[index]
-		case rss.DownloadedFeedsName:
-			item = b.Cache.GetDownloaded()[index]
-		default:
-			url, err := b.Rss.GetFeedURL(key)
-			if err != nil {
-				return FetchErrorMsg{
-					Description: "Error while getting the article url",
-					Err:         err,
-				}
-			}
-
-			items, err := b.Cache.GetArticles(url)
-			if err != nil {
-				return FetchErrorMsg{
-					Description: "Error while fetching the article",
-					Err:         err,
-				}
-			}
-
-			item = items[index]
+		item, err := b.indexToItem(feedName, index)
+		if err != nil {
+			return FetchErrorMsg{err, "Error while getting the article"}
 		}
 
 		log.Println("Marking as unread:", item.Title)
-		b.ReadStatus.MarkAsUnread(item)
+		b.ReadStatus.MarkAsUnread(*item)
 		return nil
 	}
 }
 
-// SetOfflineMode sets the offline mode of the backend
+// SetOfflineMode sets the offline mode of the backend.
 func (b *Backend) SetOfflineMode(mode bool) {
 	b.Cache.OfflineMode = mode
 }
 
-// Close closes the backend
+// Close closes the backend and saves its components.
 func (b Backend) Close() error {
 	if err := b.Rss.Save(); err != nil {
 		return err
@@ -301,7 +180,46 @@ func (b Backend) Close() error {
 	return b.ReadStatus.Save()
 }
 
-// betterDesc returns a styled description
+// articlesToSuccessMsg converts a list of items to a FetchArticleSuccessMsg.
+func (b Backend) articlesToSuccessMsg(items cache.SortableArticles) FetchArticleSuccessMsg {
+	result := make([]list.Item, len(items))
+	contents := make([]string, len(items))
+
+	for i, item := range items {
+		if b.ReadStatus.IsRead(item) {
+			item.Title = "✓ " + item.Title
+		}
+
+		result[i] = simplelist.NewItem(item.Title, betterDesc(item.Description))
+		contents[i] = rss.YassifyItem(&items[i])
+	}
+
+	return FetchArticleSuccessMsg{result, contents}
+}
+
+// indexToItem resolves an index to an item.
+func (b Backend) indexToItem(feedName string, index int) (*gofeed.Item, error) {
+	switch feedName {
+	case rss.AllFeedsName:
+		return &b.Cache.GetArticlesBulk(rss.Default.GetAllURLs())[index], nil
+	case rss.DownloadedFeedsName:
+		return &b.Cache.GetDownloaded()[index], nil
+	default:
+		url, err := b.Rss.GetFeedURL(feedName)
+		if err != nil {
+			return nil, errors.New("getting the article url")
+		}
+
+		items, err := b.Cache.GetArticles(url)
+		if err != nil {
+			return nil, errors.New("fetching the article")
+		}
+
+		return &items[index], nil
+	}
+}
+
+// betterDesc returns a styled item description.
 func betterDesc(rawDesc string) string {
 	desc := rawDesc
 	text, err := rss.HTMLToText(rawDesc)

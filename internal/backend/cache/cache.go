@@ -191,18 +191,8 @@ func (c *Cache) GetDownloaded() SortableArticles {
 }
 
 // AddToDownloaded adds an item to the downloaded list
-func (c *Cache) AddToDownloaded(url string, index int) error {
-	articles, err := c.GetArticles(url)
-	if err != nil {
-		return err
-	}
-
-	if index < 0 || index >= len(articles) {
-		return fmt.Errorf("index out of range")
-	}
-
-	c.Downloaded = append(c.Downloaded, articles[index])
-	return nil
+func (c *Cache) AddToDownloaded(item gofeed.Item) {
+	c.Downloaded = append(c.Downloaded, item)
 }
 
 // RemoveFromDownloaded removes an item from the downloaded list

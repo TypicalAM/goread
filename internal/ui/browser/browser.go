@@ -3,6 +3,7 @@ package browser
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/TypicalAM/goread/internal/backend"
@@ -156,9 +157,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		width := m.width / 2
 		height := 17
 
+		switch msg.Sender.(type) {
+		case welcome.Model:
+			m.popup = category.NewPopup(m.style.colors, bg, width, height, "", "")
+		case category.Model:
+			m.popup = feed.NewPopup(m.style.colors, bg, width, height, "", "", msg.Sender.Title())
+		case feed.Model:
+		}
+
+		m.keymap.SetEnabled(false)
+		return m, m.popup.Init()
+
+	case backend.EditItemMsg:
+		bg := m.View()
+		width := m.width / 2
+		height := 17
 		oldName, oldDesc := msg.OldFields[0], msg.OldFields[1]
 
-		// Open a new popup
 		switch msg.Sender.(type) {
 		case welcome.Model:
 			m.popup = category.NewPopup(m.style.colors, bg, width, height, oldName, oldDesc)
@@ -177,10 +192,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.downloadItem(msg)
 
 	case backend.MarkAsReadMsg:
-		return m, m.backend.MarkAsRead(msg.Key, msg.Index)
+		return m, m.backend.MarkAsRead(msg.FeedName, msg.Index)
 
 	case backend.MarkAsUnreadMsg:
-		return m, m.backend.MarkAsUnread(msg.Key, msg.Index)
+		return m, m.backend.MarkAsUnread(msg.FeedName, msg.Index)
 
 	case backend.MakeChoiceMsg:
 		bg := m.View()
@@ -339,7 +354,6 @@ func (m Model) createNewTab(msg tab.NewTabMsg) (Model, tea.Cmd) {
 		switch msg.Title {
 		case rss.AllFeedsName:
 			newTab = feed.New(m.style.colors, m.width, height, msg.Title, m.backend.FetchAllArticles).
-				DisableSaving().
 				DisableDeleting()
 
 		case rss.DownloadedFeedsName:
@@ -366,27 +380,32 @@ func (m Model) createNewTab(msg tab.NewTabMsg) (Model, tea.Cmd) {
 // deleteItem deletes the focused item from the backend
 func (m Model) deleteItem(msg backend.DeleteItemMsg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
-	m.msg = fmt.Sprintf("Deleting item %s", msg.Key)
+	m.msg = fmt.Sprintf("Deleting item %s", msg.ItemName)
 
 	// Check the type of the item
 	switch msg.Sender.(type) {
 	case welcome.Model:
 		cmd = m.backend.FetchCategories("")
-		if err := m.backend.Rss.RemoveCategory(msg.Key); err != nil {
-			m.msg = fmt.Sprintf("Error deleting category %s: %s", msg.Key, err.Error())
+		if err := m.backend.Rss.RemoveCategory(msg.ItemName); err != nil {
+			m.msg = fmt.Sprintf("Error deleting category %s: %s", msg.ItemName, err.Error())
 		}
 
 	case category.Model:
 		cmd = m.backend.FetchFeeds(m.tabs[m.activeTab].Title())
-		if err := m.backend.Rss.RemoveFeed(m.tabs[m.activeTab].Title(), msg.Key); err != nil {
-			m.msg = fmt.Sprintf("Error deleting feed %s: %s", msg.Key, err.Error())
+		if err := m.backend.Rss.RemoveFeed(m.tabs[m.activeTab].Title(), msg.ItemName); err != nil {
+			m.msg = fmt.Sprintf("Error deleting feed %s: %s", msg.ItemName, err.Error())
 		}
 
 	case feed.Model:
 		cmd = m.backend.FetchDownloadedArticles("")
 		if msg.Sender.Title() == rss.DownloadedFeedsName {
-			if err := m.backend.RemoveDownload(msg.Key); err != nil {
-				m.msg = fmt.Sprintf("Error deleting download %s: %s", msg.Key, err.Error())
+			index, err := strconv.Atoi(msg.ItemName)
+			if err != nil {
+				m.msg = fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, err.Error())
+			}
+
+			if err := m.backend.RemoveDownload(index); err != nil {
+				m.msg = fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, err.Error())
 			}
 		}
 	}
@@ -397,9 +416,9 @@ func (m Model) deleteItem(msg backend.DeleteItemMsg) (tea.Model, tea.Cmd) {
 
 // downloadItem downloads an item
 func (m Model) downloadItem(msg backend.DownloadItemMsg) (tea.Model, tea.Cmd) {
-	log.Println("Downloading item", msg.Key, msg.Index)
+	log.Println("Downloading item", msg.FeedName, msg.Index)
 	m.msg = "Item saved! You can find it in the downloaded category"
-	return m, m.backend.DownloadItem(msg.Key, msg.Index)
+	return m, m.backend.DownloadItem(msg.FeedName, msg.Index)
 }
 
 // showHelp shows the help menu as a popup.
