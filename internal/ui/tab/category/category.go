@@ -12,29 +12,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-// Keymap contains the key bindings for this tab
-type Keymap struct {
-	NewFeed    key.Binding
-	EditFeed   key.Binding
-	DeleteFeed key.Binding
-}
-
-// DefaultKeymap contains the default key bindings for this tab
-var DefaultKeymap = Keymap{
-	NewFeed: key.NewBinding(
-		key.WithKeys("n", "ctrl+n"),
-		key.WithHelp("n/ctrl+n", "New"),
-	),
-	EditFeed: key.NewBinding(
-		key.WithKeys("e", "ctrl+e"),
-		key.WithHelp("e/ctrl+e", "Edit"),
-	),
-	DeleteFeed: key.NewBinding(
-		key.WithKeys("d", "ctrl+d"),
-		key.WithHelp("d/ctrl+d", "Delete"),
-	),
-}
-
 // Model contains the state of this tab
 type Model struct {
 	colors *theme.Colors

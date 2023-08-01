@@ -20,49 +20,6 @@ import (
 	"github.com/muesli/reflow/wrap"
 )
 
-// Keymap contains the key bindings for this tab
-type Keymap struct {
-	Open            key.Binding
-	ToggleFocus     key.Binding
-	RefreshArticles key.Binding
-	SaveArticle     key.Binding
-	DeleteFromSaved key.Binding
-	CycleSelection  key.Binding
-	MarkAsUnread    key.Binding
-}
-
-// DefaultKeymap contains the default key bindings for this tab
-var DefaultKeymap = Keymap{
-	Open: key.NewBinding(
-		key.WithKeys("enter"),
-		key.WithHelp("Enter", "Open"),
-	),
-	ToggleFocus: key.NewBinding(
-		key.WithKeys("left", "right", "h", "l"),
-		key.WithHelp("←/→", "Move left/right"),
-	),
-	RefreshArticles: key.NewBinding(
-		key.WithKeys("r", "ctrl+r"),
-		key.WithHelp("r/ctrl+r", "Refresh"),
-	),
-	SaveArticle: key.NewBinding(
-		key.WithKeys("s", "ctrl+s"),
-		key.WithHelp("s/ctrl+s", "Save"),
-	),
-	DeleteFromSaved: key.NewBinding(
-		key.WithKeys("d", "ctrl+d"),
-		key.WithHelp("d/ctrl+d", "Delete from saved"),
-	),
-	CycleSelection: key.NewBinding(
-		key.WithKeys("g"),
-		key.WithHelp("g", "Cycle selection"),
-	),
-	MarkAsUnread: key.NewBinding(
-		key.WithKeys("u"),
-		key.WithHelp("u", "Mark as unread"),
-	),
-}
-
 // Model contains the state of this tab
 type Model struct {
 	list            list.Model

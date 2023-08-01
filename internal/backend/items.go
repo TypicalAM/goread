@@ -98,3 +98,11 @@ type MarkAsUnreadMsg struct {
 func MarkAsUnread(feedName string, index int) tea.Cmd {
 	return func() tea.Msg { return MarkAsUnreadMsg{feedName, index} }
 }
+
+// SetEnableKeybindMsg contains the desired state of the keybinds.
+type SetEnableKeybindMsg bool
+
+// SetEnableKeybind is called from a tab to tell the broswer that keybinds should be enabled/disabled.
+func SetEnableKeybind(enable bool) tea.Cmd {
+	return func() tea.Msg { return SetEnableKeybindMsg(enable) }
+}
