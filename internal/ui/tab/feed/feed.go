@@ -40,6 +40,7 @@ type Model struct {
 	loaded          bool
 	viewportOpen    bool
 	viewportFocused bool
+	lastFilterState list.FilterState
 }
 
 // New creates a new feed tab with sensible defaults
@@ -107,6 +108,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case backend.FetchArticleSuccessMsg:
 		return m.loadTab(msg.Items, msg.ArticleContents), nil
+
+	case backend.SetEnableKeybindMsg:
+		m.keymap.SetEnabled(bool(msg))
+		return m, nil
 
 	case popup.ChoiceResultMsg:
 		if !msg.Result {
@@ -184,18 +189,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	if !m.loaded {
+		return m, nil
+	}
+
 	var cmd tea.Cmd
 	if m.viewportFocused {
 		m.viewport, cmd = m.viewport.Update(msg)
 		return m, cmd
 	}
 
-	if m.loaded {
-		m.list, cmd = m.list.Update(msg)
+	m.list, cmd = m.list.Update(msg)
+	if m.list.FilterState() == m.lastFilterState {
 		return m, cmd
 	}
 
-	return m, nil
+	keysEnabled := m.list.FilterState() != list.Filtering
+	m.lastFilterState = m.list.FilterState()
+	return m, tea.Sequence(cmd, backend.SetEnableKeybind(keysEnabled))
 }
 
 // loadTab is fired when the items are retrieved from the backend

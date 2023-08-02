@@ -86,6 +86,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case backend.FetchSuccessMsg:
 		m.list.SetItems(msg.Items)
 
+	case backend.SetEnableKeybindMsg:
+		m.keymap.SetEnabled(bool(msg))
+		return m, nil
+
 	case popup.ChoiceResultMsg:
 		if !msg.Result {
 			return m, nil

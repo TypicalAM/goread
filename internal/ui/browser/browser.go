@@ -218,6 +218,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.tabs[i] = m.tabs[i].SetSize(m.width, m.height-5)
 		}
 
+	case backend.SetEnableKeybindMsg:
+		m.keymap.SetEnabled(bool(msg))
+		log.Println("Disabling keybinds, propagating")
+
 	case tea.KeyMsg:
 		switch {
 		case msg.String() == "ctrl+c":
