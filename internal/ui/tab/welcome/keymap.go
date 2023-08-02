@@ -2,6 +2,7 @@ package welcome
 
 import "github.com/charmbracelet/bubbles/key"
 
+// Keymap contains the key bindings for this tab
 type Keymap struct {
 	NewCategory    key.Binding
 	EditCategory   key.Binding

@@ -106,3 +106,9 @@ type SetEnableKeybindMsg bool
 func SetEnableKeybind(enable bool) tea.Cmd {
 	return func() tea.Msg { return SetEnableKeybindMsg(enable) }
 }
+
+// StartQuittingMsg prompts the browser to start quitting (and perform a last browser redraw).
+type StartQuittingMsg struct{}
+
+// StartQuitting is called from a tab to tell the browser to start quitting.
+func StartQuitting() tea.Cmd { return func() tea.Msg { return StartQuittingMsg{} } }

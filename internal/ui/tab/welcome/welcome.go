@@ -12,7 +12,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-// Keymap contains the key bindings for this tab
 // Model contains the state of this tab
 type Model struct {
 	colors  *theme.Colors
@@ -108,7 +107,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, backend.DeleteItem(m, delItemName)
 
 	case tea.KeyMsg:
+		if !m.loaded {
+			return m, nil
+		}
+
 		switch {
+		case msg.String() == "esc":
+			return m, backend.StartQuitting()
+
 		case key.Matches(msg, m.list.Keymap.Open):
 			if !m.list.IsEmpty() {
 				return m, tab.NewTab(m, m.list.SelectedItem().FilterValue())

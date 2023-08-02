@@ -99,6 +99,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
+	case backend.StartQuittingMsg:
+		m.quitting = true
+		return m, tea.Quit
+
 	case backend.FetchErrorMsg:
 		// Update the underlying tab in case it also handles error input
 		log.Printf("Error fetching data in tab %d: %v \n", m.activeTab, msg.Err)
@@ -229,15 +233,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case msg.String() == "esc":
-			// If we are showing a popup, close it
+			// If we are showing a popup, close it. We leave esc handling to the model.
 			if m.popup != nil {
 				m.keymap.SetEnabled(true)
 				m.popup = nil
 				return m, nil
 			}
-
-			m.quitting = true
-			return m, tea.Quit
 
 		case key.Matches(msg, m.keymap.CloseTab):
 			if len(m.tabs) == 1 {

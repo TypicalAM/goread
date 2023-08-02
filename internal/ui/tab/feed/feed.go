@@ -127,6 +127,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		switch {
+		case msg.String() == "esc":
+			if m.list.FilterState() == list.Unfiltered {
+				return m, backend.StartQuitting()
+			}
+
+			// There is no way to call `list.resetFiltering` since it's not exported
+			m.list.SetFilteringEnabled(false)
+			m.list.SetFilteringEnabled(true)
+			return m, nil
+
 		case key.Matches(msg, m.keymap.Open):
 			if m.viewportFocused && m.selector.active {
 				return m, backend.MakeChoice("Open in browser?", true)

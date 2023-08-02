@@ -108,6 +108,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		switch {
+		case msg.String() == "esc":
+			return m, backend.StartQuitting()
+
 		case key.Matches(msg, m.list.Keymap.Open):
 			if !m.list.IsEmpty() {
 				return m, tab.NewTab(m, m.list.SelectedItem().FilterValue())
