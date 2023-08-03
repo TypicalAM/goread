@@ -9,6 +9,7 @@ import (
 
 	md "github.com/JohannesKaufmann/html-to-markdown"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/gilliek/go-opml/opml"
 	"github.com/mmcdole/gofeed"
 	"gopkg.in/yaml.v3"
 )
@@ -255,6 +256,17 @@ func HTMLToMarkdown(content string) (string, error) {
 
 	// Return the markdown
 	return markdown, nil
+}
+
+// LoadOPML will load the urls from an opml file.
+func (r *Rss) LoadOPML(path string) error {
+	data, err := opml.NewOPMLFromFile(path)
+	if err != nil {
+		return err
+	}
+
+	log.Println(data)
+	return nil
 }
 
 // HTMLToText converts html to text using the goquery library

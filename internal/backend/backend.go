@@ -167,6 +167,11 @@ func (b *Backend) SetOfflineMode(mode bool) {
 	b.Cache.OfflineMode = mode
 }
 
+// LoadOPML loads an OPML file.
+func (b *Backend) LoadOPML(path string) error {
+	return b.Rss.LoadOPML(path)
+}
+
 // Close closes the backend and saves its components.
 func (b Backend) Close() error {
 	if err := b.Rss.Save(); err != nil {

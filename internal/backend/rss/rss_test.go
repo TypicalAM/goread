@@ -370,3 +370,11 @@ func TestRssFeedRemove(t *testing.T) {
 		t.Errorf("expected ErrNotFound got %s", err)
 	}
 }
+
+// TestOPMLImport if we get an error importing an OPML file doesn't work
+func TestRssOPMLImport(t *testing.T) {
+	rss := getRss(t)
+	if err := rss.LoadOPML("../../test/data/opml.xml"); err != nil {
+		t.Errorf("failed to import OPML, %s", err)
+	}
+}
