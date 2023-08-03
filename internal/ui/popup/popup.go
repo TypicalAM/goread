@@ -60,17 +60,22 @@ func NewOverlay(bgRaw string, width, height int) Overlay {
 }
 
 // WrapView overlays the given text on top of the background.
+// TODO: Maybe handle the box here. It's a bit weird to have to do it in the view.
 func (p Overlay) WrapView(view string) string {
-	// TODO: Add a padding guardrail and make sure the popup doesn't crash the program when the size is too small
-	lines := strings.Split(view, "\n")
+	var b strings.Builder
+	b.WriteString(p.textAbove)
+	b.WriteRune('\n')
 
-	// Overlay the background with the styled text.
-	output := make([]string, len(lines))
+	lines := strings.Split(view, "\n")
 	for i := 0; i < len(lines); i++ {
-		output[i] = p.rowPrefix[i] + lines[i] + p.rowSuffix[i]
+		b.WriteString(p.rowPrefix[i])
+		b.WriteString(lines[i])
+		b.WriteString(p.rowSuffix[i])
+		b.WriteRune('\n')
 	}
 
-	return p.textAbove + "\n" + strings.Join(output, "\n") + "\n" + p.textBelow
+	b.WriteString(p.textBelow)
+	return b.String()
 }
 
 // Width returns the width of the popup window.
