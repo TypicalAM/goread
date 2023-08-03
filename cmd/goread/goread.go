@@ -23,11 +23,13 @@ type options struct {
 	colorschemePath string
 	urlsPath        string
 	getColors       string
+	loadOPMLFrom    string
+	exportOPMLTo    string
+	cacheSize       int
+	cacheDuration   int
 	dumpColors      bool
 	testColors      bool
 	resetCache      bool
-	cacheSize       int
-	cacheDuration   int
 }
 
 var (
@@ -57,6 +59,8 @@ func init() {
 	rootCmd.Flags().BoolVarP(&opts.resetCache, "reset_cache", "", false, "Reset the cache")
 	rootCmd.Flags().IntVarP(&opts.cacheSize, "cache_size", "", 0, "The size of the cache")
 	rootCmd.Flags().IntVarP(&opts.cacheDuration, "cache_duration", "", 0, "The duration of the cache in hours")
+	rootCmd.Flags().StringVarP(&opts.loadOPMLFrom, "load_opml", "i", "", "Import the feeds from an OPML file")
+	rootCmd.Flags().StringVarP(&opts.exportOPMLTo, "export_opml", "e", "", "Export the feeds to an OPML file")
 }
 
 // SetVersion sets the version of the program
