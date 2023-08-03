@@ -58,7 +58,7 @@ func (k *Keymap) SetEnabled(enabled bool) {
 
 // Model is used to store the state of the application
 type Model struct {
-	popup          popup.Popup
+	popup          tea.Model
 	backend        *backend.Backend
 	style          style
 	msg            string
@@ -137,13 +137,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.keymap.SetEnabled(true)
 
 		if msg.IsEdit {
-			if err := m.backend.Rss.UpdateFeed(msg.ParentCategory, msg.OldName, msg.Name, msg.URL); err != nil {
+			if err := m.backend.Rss.UpdateFeed(msg.Parent, msg.OldName, msg.Name, msg.URL); err != nil {
 				m.msg = fmt.Sprintf("Error updating feed: %s", err.Error())
 			} else {
 				m.msg = fmt.Sprintf("Updated feed %s", msg.Name)
 			}
 		} else {
-			if err := m.backend.Rss.AddFeed(msg.ParentCategory, msg.Name, msg.URL); err != nil {
+			if err := m.backend.Rss.AddFeed(msg.Parent, msg.Name, msg.URL); err != nil {
 				m.msg = fmt.Sprintf("Error adding feed: %s", err.Error())
 			} else {
 				m.msg = fmt.Sprintf("Added feed %s", msg.Name)
@@ -151,7 +151,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		log.Println(m.msg)
-		return m, m.backend.FetchFeeds(msg.ParentCategory)
+		return m, m.backend.FetchFeeds(msg.Parent)
 
 	case tab.NewTabMsg:
 		return m.createNewTab(msg)

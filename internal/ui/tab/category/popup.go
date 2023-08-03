@@ -29,17 +29,17 @@ const (
 
 // Popup is the category popup where a user can create a category.
 type Popup struct {
-	nameInput    textinput.Model
-	descInput    textinput.Model
-	style        popupStyle
-	oldName      string
-	defaultPopup popup.Default
-	focused      focusedField
+	nameInput textinput.Model
+	descInput textinput.Model
+	style     popupStyle
+	oldName   string
+	overlay   popup.Overlay
+	focused   focusedField
 }
 
 // NewPopup creates a new popup window in which the user can choose a new category.
 func NewPopup(colors *theme.Colors, bgRaw string, width, height int, oldName, oldDesc string) Popup {
-	defultPopup := popup.New(bgRaw, width, height)
+	overlay := popup.NewOverlay(bgRaw, width, height)
 	style := newPopupStyle(colors, width, height)
 	nameInput := textinput.New()
 	nameInput.CharLimit = 30
@@ -59,12 +59,12 @@ func NewPopup(colors *theme.Colors, bgRaw string, width, height int, oldName, ol
 	}
 
 	return Popup{
-		defaultPopup: defultPopup,
-		style:        style,
-		nameInput:    nameInput,
-		descInput:    descInput,
-		oldName:      oldName,
-		focused:      focusedField,
+		overlay:   overlay,
+		style:     style,
+		nameInput: nameInput,
+		descInput: descInput,
+		oldName:   oldName,
+		focused:   focusedField,
 	}
 }
 
@@ -114,13 +114,13 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			switch p.focused {
 			case allField:
-				return p, confirmCategory(rss.AllFeedsName, "", "", false)
+				return p, confirm(rss.AllFeedsName, "", "", false)
 
 			case downloadedField:
-				return p, confirmCategory(rss.DownloadedFeedsName, "", "", false)
+				return p, confirm(rss.DownloadedFeedsName, "", "", false)
 
 			case nameField, descField:
-				return p, confirmCategory(p.nameInput.Value(), p.descInput.Value(), p.oldName, p.oldName != "")
+				return p, confirm(p.nameInput.Value(), p.descInput.Value(), p.oldName, p.oldName != "")
 			}
 		}
 	}
@@ -174,19 +174,12 @@ func (p Popup) View() string {
 		}
 	}
 
-	toBox := p.style.list.Render(lipgloss.JoinVertical(lipgloss.Top, renderedChoices...))
-	popup := lipgloss.JoinVertical(lipgloss.Top, question, toBox)
-	return p.defaultPopup.Overlay(p.style.general.Render(popup))
+	toList := p.style.list.Render(lipgloss.JoinVertical(lipgloss.Top, renderedChoices...))
+	popup := lipgloss.JoinVertical(lipgloss.Top, question, toList)
+	return p.overlay.WrapView(p.style.general.Render(popup))
 }
 
-// confirmCategory returns a tea.Cmd which relays the message to the browser.
-func confirmCategory(name, desc, oldName string, isEdit bool) tea.Cmd {
-	return func() tea.Msg {
-		return ChosenCategoryMsg{
-			Name:    name,
-			Desc:    desc,
-			OldName: oldName,
-			IsEdit:  isEdit,
-		}
-	}
+// confirm creates a message that confirms the user's choice.
+func confirm(name, desc, oldName string, edit bool) tea.Cmd {
+	return func() tea.Msg { return ChosenCategoryMsg{name, desc, oldName, edit} }
 }

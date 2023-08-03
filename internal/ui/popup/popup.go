@@ -3,17 +3,11 @@ package popup
 import (
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/muesli/ansi"
 )
 
-// Popup is the popup window interface. In can be implemented in other packages and use the `Default` popup to overlay the content on top of the background.
-type Popup interface {
-	tea.Model
-}
-
-// Default is a default popup window.
-type Default struct {
+// Overlay allows you to overlay text on top of a background and achieve a popup.
+type Overlay struct {
 	textAbove string
 	textBelow string
 	rowPrefix []string
@@ -22,8 +16,8 @@ type Default struct {
 	height    int
 }
 
-// New creates a new default popup window.
-func New(bgRaw string, width, height int) Default {
+// NewOverlay creates a new overlay and computes the necessary indices.
+func NewOverlay(bgRaw string, width, height int) Overlay {
 	bg := strings.Split(bgRaw, "\n")
 	bgWidth := ansi.PrintableRuneWidth(bg[0])
 	bgHeight := len(bg)
@@ -55,7 +49,7 @@ func New(bgRaw string, width, height int) Default {
 	prefix := strings.Join(bg[:startRow], "\n")
 	suffix := strings.Join(bg[startRow+height:], "\n")
 
-	return Default{
+	return Overlay{
 		rowPrefix: rowPrefix,
 		rowSuffix: rowSuffix,
 		width:     width,
@@ -65,10 +59,10 @@ func New(bgRaw string, width, height int) Default {
 	}
 }
 
-// Overlay overlays the given text on top of the background.
-func (p Default) Overlay(text string) string {
+// WrapView overlays the given text on top of the background.
+func (p Overlay) WrapView(view string) string {
 	// TODO: Add a padding guardrail and make sure the popup doesn't crash the program when the size is too small
-	lines := strings.Split(text, "\n")
+	lines := strings.Split(view, "\n")
 
 	// Overlay the background with the styled text.
 	output := make([]string, len(lines))
@@ -80,12 +74,12 @@ func (p Default) Overlay(text string) string {
 }
 
 // Width returns the width of the popup window.
-func (p Default) Width() int {
+func (p Overlay) Width() int {
 	return p.width
 }
 
 // Height returns the height of the popup window.
-func (p Default) Height() int {
+func (p Overlay) Height() int {
 	return p.height
 }
 

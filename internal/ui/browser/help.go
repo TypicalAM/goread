@@ -11,10 +11,10 @@ import (
 
 // Help is a popup that displays the help page.
 type Help struct {
-	help         help.Model
-	style        helpStyle
-	keyBinds     [][]key.Binding
-	defaultPopup popup.Default
+	help     help.Model
+	style    helpStyle
+	keyBinds [][]key.Binding
+	overlay  popup.Overlay
 }
 
 // newHelp returns a new Help popup.
@@ -24,10 +24,10 @@ func newHelp(colors *theme.Colors, bgRaw string, width, height int, binds [][]ke
 	help.Styles = style.help
 
 	return &Help{
-		help:         help,
-		style:        style,
-		keyBinds:     binds,
-		defaultPopup: popup.New(bgRaw, width, height),
+		help:     help,
+		style:    style,
+		keyBinds: binds,
+		overlay:  popup.NewOverlay(bgRaw, width, height),
 	}
 }
 
@@ -43,7 +43,7 @@ func (h Help) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders the popup.
 func (h Help) View() string {
-	return h.defaultPopup.Overlay(h.style.box.Render(lipgloss.JoinVertical(lipgloss.Center,
+	return h.overlay.WrapView(h.style.box.Render(lipgloss.JoinVertical(lipgloss.Center,
 		h.style.title.Render("Help"),
 		h.help.FullHelpView(h.keyBinds),
 	)))

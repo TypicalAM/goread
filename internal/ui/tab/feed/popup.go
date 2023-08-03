@@ -10,11 +10,11 @@ import (
 
 // ChosenFeedMsg is the message displayed when a category is successfully chosen.
 type ChosenFeedMsg struct {
-	Name           string
-	URL            string
-	OldName        string
-	ParentCategory string
-	IsEdit         bool
+	Name    string
+	URL     string
+	OldName string
+	Parent  string
+	IsEdit  bool
 }
 
 // focusedField is the field that is currently focused.
@@ -27,22 +27,22 @@ const (
 
 // Popup is the feed popup where a user can create/edit a feed.
 type Popup struct {
-	nameInput      textinput.Model
-	urlInput       textinput.Model
-	style          popupStyle
-	oldName        string
-	oldURL         string
-	parentCategory string
-	defaultPopup   popup.Default
-	focused        focusedField
+	nameInput textinput.Model
+	urlInput  textinput.Model
+	style     popupStyle
+	oldName   string
+	oldURL    string
+	parent    string
+	overlay   popup.Overlay
+	focused   focusedField
 }
 
 // NewPopup returns a new feed popup.
 func NewPopup(colors *theme.Colors, bgRaw string, width, height int,
-	oldName, oldURL, parentCategory string) Popup {
+	oldName, oldURL, parent string) Popup {
 
 	style := newPopupStyle(colors, width, height)
-	defaultPopup := popup.New(bgRaw, width, height)
+	overlay := popup.NewOverlay(bgRaw, width, height)
 	nameInput := textinput.New()
 	nameInput.CharLimit = 30
 	nameInput.Prompt = "Name: "
@@ -60,13 +60,13 @@ func NewPopup(colors *theme.Colors, bgRaw string, width, height int,
 	nameInput.Focus()
 
 	return Popup{
-		defaultPopup:   defaultPopup,
-		style:          style,
-		nameInput:      nameInput,
-		urlInput:       urlInput,
-		oldName:        oldName,
-		oldURL:         oldURL,
-		parentCategory: parentCategory,
+		overlay:   overlay,
+		style:     style,
+		nameInput: nameInput,
+		urlInput:  urlInput,
+		oldName:   oldName,
+		oldURL:    oldURL,
+		parent:    parent,
 	}
 }
 
@@ -95,11 +95,11 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "enter":
-			return p, confirmFeed(
+			return p, confirm(
 				p.nameInput.Value(),
 				p.urlInput.Value(),
 				p.oldName,
-				p.parentCategory,
+				p.parent,
 				p.oldName != "",
 			)
 		}
@@ -128,18 +128,10 @@ func (p Popup) View() string {
 	url := p.style.itemField.Render(p.urlInput.View())
 	item := p.style.item.Render(lipgloss.JoinVertical(lipgloss.Left, title, name, url))
 	popup := lipgloss.JoinVertical(lipgloss.Left, question, item)
-	return p.defaultPopup.Overlay(p.style.general.Render(popup))
+	return p.overlay.WrapView(p.style.general.Render(popup))
 }
 
-// confirmFeed returns a tea.Cmd which relays the message to the browser.
-func confirmFeed(name, url, oldName, parentCategory string, isEdit bool) tea.Cmd {
-	return func() tea.Msg {
-		return ChosenFeedMsg{
-			Name:           name,
-			URL:            url,
-			OldName:        oldName,
-			ParentCategory: parentCategory,
-			IsEdit:         isEdit,
-		}
-	}
+// confirm creates a message that confirms the user's choice.
+func confirm(name, url, oldName, parent string, edit bool) tea.Cmd {
+	return func() tea.Msg { return ChosenFeedMsg{name, url, oldName, parent, edit} }
 }

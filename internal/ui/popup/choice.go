@@ -13,10 +13,10 @@ type ChoiceResultMsg struct {
 
 // Choice is a popup that presents a yes/no choice to the user.
 type Choice struct {
-	style        style
-	question     string
-	defaultPopup Default
-	selected     bool
+	style    style
+	question string
+	overlay  Overlay
+	selected bool
 }
 
 // NewChoice creates a new Choice popup.
@@ -29,10 +29,10 @@ func NewChoice(colors *theme.Colors, bgRaw string, width int, question string, d
 	height := 7
 
 	return Choice{
-		style:        newStyle(colors, optWidth, height),
-		defaultPopup: New(bgRaw, optWidth, height),
-		question:     question,
-		selected:     defaultChoice,
+		style:    newStyle(colors, optWidth, height),
+		overlay:  NewOverlay(bgRaw, optWidth, height),
+		question: question,
+		selected: defaultChoice,
 	}
 }
 
@@ -79,14 +79,12 @@ func (c Choice) View() string {
 	question := c.style.question.Render(c.question)
 	buttons := lipgloss.JoinHorizontal(lipgloss.Top, okButton, cancelButton)
 	ui := lipgloss.JoinVertical(lipgloss.Center, question, buttons)
-	dialog := lipgloss.Place(c.defaultPopup.width-2, c.defaultPopup.height-2, lipgloss.Center, lipgloss.Center, ui)
+	dialog := lipgloss.Place(c.overlay.width-2, c.overlay.height-2, lipgloss.Center, lipgloss.Center, ui)
 
-	return c.defaultPopup.Overlay(c.style.general.Render(dialog))
+	return c.overlay.WrapView(c.style.general.Render(dialog))
 }
 
 // makeChoice returns a tea.Cmd that tells the parent model about the choice.
 func (c Choice) makeChoice() tea.Cmd {
-	return func() tea.Msg {
-		return ChoiceResultMsg{c.selected}
-	}
+	return func() tea.Msg { return ChoiceResultMsg{c.selected} }
 }
