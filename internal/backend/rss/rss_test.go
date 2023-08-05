@@ -2,8 +2,11 @@ package rss
 
 import (
 	"log"
+	"os"
 	"strconv"
 	"testing"
+
+	"github.com/gilliek/go-opml/opml"
 )
 
 func getRss(t *testing.T) *Rss {
@@ -408,4 +411,26 @@ func TestRssOPMLImport(t *testing.T) {
 }
 
 // TestOPMLExport if we get an error exporting an OPML file doesn't work
-func TestOPMLExport(t *testing.T) {}
+func TestOPMLExport(t *testing.T) {
+	rss := getRss(t)
+	if err := rss.ExportOPML("test.xml"); err != nil {
+		t.Errorf("failed to export OPML, %s", err)
+	}
+
+	parsed, err := opml.NewOPMLFromFile("test.xml")
+	if err != nil {
+		t.Errorf("failed to parse the exported xml into a struct, %s", err)
+	}
+
+	if len(parsed.Body.Outlines) != 2 {
+		t.Errorf("")
+	}
+
+	if len(parsed.Body.Outlines[0].Outlines) != 1 {
+		t.Errorf("incorrect number of feeds, expected 1, got %d", len(parsed.Body.Outlines[0].Outlines))
+	}
+
+	if err := os.Remove("test.xml"); err != nil {
+		t.Errorf("cannot remove the fake file, %s", err)
+	}
+}

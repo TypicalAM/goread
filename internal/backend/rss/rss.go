@@ -321,7 +321,7 @@ func (rss *Rss) ExportOPML(path string) error {
 		for _, feed := range cat.Subscriptions {
 			elem.Outlines = append(elem.Outlines, opml.Outline{
 				Type:   "rss",
-				Text:   feed.Description,
+				Text:   feed.Name,
 				Title:  feed.Name,
 				XMLURL: feed.URL,
 			})
