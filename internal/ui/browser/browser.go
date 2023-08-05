@@ -404,7 +404,7 @@ func (m Model) deleteItem(msg backend.DeleteItemMsg) (tea.Model, tea.Cmd) {
 		}
 
 	case feed.Model:
-		cmd = m.backend.FetchDownloadedArticles("")
+		cmd = m.backend.FetchDownloadedArticles("", false)
 		if msg.Sender.Title() == rss.DownloadedFeedsName {
 			index, err := strconv.Atoi(msg.ItemName)
 			if err != nil {

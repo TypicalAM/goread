@@ -128,9 +128,11 @@ func (c *Cache) Save() error {
 }
 
 // GetArticles returns an article list using the cache if possible
-func (c *Cache) GetArticles(url string) (SortableArticles, error) {
+func (c *Cache) GetArticles(url string, ignoreCache bool) (SortableArticles, error) {
+	log.Println("Getting articles for", url, " from cache: ", !ignoreCache)
+
 	// Delete entry if expired
-	if item, ok := c.Content[url]; ok {
+	if item, ok := c.Content[url]; ok && !ignoreCache {
 		if item.Expire.After(time.Now()) {
 			return item.Articles, nil
 		}
@@ -171,11 +173,11 @@ func (c *Cache) GetArticles(url string) (SortableArticles, error) {
 }
 
 // GetArticlesBulk returns a sorted list of articles from all the given urls, ignoring any errors
-func (c *Cache) GetArticlesBulk(urls []string) SortableArticles {
+func (c *Cache) GetArticlesBulk(urls []string, ignoreCache bool) SortableArticles {
 	var result SortableArticles
 
 	for _, url := range urls {
-		if items, err := c.GetArticles(url); err == nil {
+		if items, err := c.GetArticles(url, ignoreCache); err == nil {
 			result = append(result, items...)
 		}
 	}
@@ -207,6 +209,7 @@ func (c *Cache) RemoveFromDownloaded(index int) error {
 
 // fetchArticles fetches articles from the internet and returns them
 func fetchArticles(url string) (SortableArticles, error) {
+	log.Println("Fetching articles from", url)
 	feed, err := parseFeed(url)
 	if err != nil {
 		return nil, err

@@ -23,7 +23,7 @@ import (
 // Model contains the state of this tab
 type Model struct {
 	list            list.Model
-	fetcher         backend.Fetcher
+	fetcher         backend.ArticleFetcher
 	colorTr         *glamour.TermRenderer
 	noColorTr       *glamour.TermRenderer
 	colors          *theme.Colors
@@ -44,7 +44,7 @@ type Model struct {
 }
 
 // New creates a new feed tab with sensible defaults
-func New(colors *theme.Colors, width, height int, title string, fetcher backend.Fetcher) Model {
+func New(colors *theme.Colors, width, height int, title string, fetcher backend.ArticleFetcher) Model {
 	log.Println("Creating new feed tab with title", title)
 	spin := spinner.New()
 	spin.Spinner = spinner.Points
@@ -96,7 +96,7 @@ func (m Model) SetSize(width, height int) tab.Tab {
 
 // Init initializes the tab
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(m.fetcher(m.title), m.spinner.Tick)
+	return tea.Batch(m.spinner.Tick, m.fetcher(m.title, false))
 }
 
 // Update the variables of the tab
@@ -165,7 +165,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.loaded = false
 			m.viewportFocused = false
 
-			return m, tea.Batch(m.fetcher(m.title), m.spinner.Tick)
+			return m, tea.Batch(m.spinner.Tick, m.fetcher(m.title, true))
 
 		case key.Matches(msg, m.keymap.SaveArticle):
 			return m, backend.DownloadItem(m.title, m.list.Index())

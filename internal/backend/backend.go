@@ -84,14 +84,14 @@ func (b Backend) FetchFeeds(catname string) tea.Cmd {
 }
 
 // FetchArticles gets the articles from a feed.
-func (b Backend) FetchArticles(feedName string) tea.Cmd {
+func (b Backend) FetchArticles(feedname string, refresh bool) tea.Cmd {
 	return func() tea.Msg {
-		url, err := b.Rss.GetFeedURL(feedName)
+		url, err := b.Rss.GetFeedURL(feedname)
 		if err != nil {
 			return FetchErrorMsg{err, "Error while trying to get the article url"}
 		}
 
-		items, err := b.Cache.GetArticles(url)
+		items, err := b.Cache.GetArticles(url, refresh)
 		if err != nil {
 			return FetchErrorMsg{err, "Error while fetching the article"}
 		}
@@ -101,14 +101,14 @@ func (b Backend) FetchArticles(feedName string) tea.Cmd {
 }
 
 // FetchAllArticles gets all the articles from all the feeds.
-func (b Backend) FetchAllArticles(_ string) tea.Cmd {
+func (b Backend) FetchAllArticles(_ string, refresh bool) tea.Cmd {
 	return func() tea.Msg {
-		return b.articlesToSuccessMsg(b.Cache.GetArticlesBulk(b.Rss.GetAllURLs()))
+		return b.articlesToSuccessMsg(b.Cache.GetArticlesBulk(b.Rss.GetAllURLs(), refresh))
 	}
 }
 
 // FetchDownloaded gets the downloaded articles.
-func (b Backend) FetchDownloadedArticles(_ string) tea.Cmd {
+func (b Backend) FetchDownloadedArticles(_ string, _ bool) tea.Cmd {
 	return func() tea.Msg {
 		return b.articlesToSuccessMsg(b.Cache.GetDownloaded())
 	}
@@ -189,7 +189,7 @@ func (b Backend) articlesToSuccessMsg(items cache.SortableArticles) FetchArticle
 func (b Backend) indexToItem(feedName string, index int) (*gofeed.Item, error) {
 	switch feedName {
 	case rss.AllFeedsName:
-		return &b.Cache.GetArticlesBulk(rss.Default.GetAllURLs())[index], nil
+		return &b.Cache.GetArticlesBulk(rss.Default.GetAllURLs(), false)[index], nil
 	case rss.DownloadedFeedsName:
 		return &b.Cache.GetDownloaded()[index], nil
 	default:
@@ -198,7 +198,7 @@ func (b Backend) indexToItem(feedName string, index int) (*gofeed.Item, error) {
 			return nil, errors.New("getting the article url")
 		}
 
-		items, err := b.Cache.GetArticles(url)
+		items, err := b.Cache.GetArticles(url, false)
 		if err != nil {
 			return nil, errors.New("fetching the article")
 		}

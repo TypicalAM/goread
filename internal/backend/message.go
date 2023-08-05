@@ -7,7 +7,10 @@ import (
 )
 
 // Fetcher fetches the data, it is used by tabs to query data.
-type Fetcher func(string) tea.Cmd
+type Fetcher func(feedname string) tea.Cmd
+
+// ArticleFetcher fetches the article data, it is used by tabs to query data.
+type ArticleFetcher func(feedname string, refresh bool) tea.Cmd
 
 // FetchSuccessMsg is sent on fetch success.
 type FetchSuccessMsg struct{ Items []list.Item }
