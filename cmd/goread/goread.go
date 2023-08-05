@@ -156,7 +156,7 @@ func Run() error {
 	if opts.loadOPMLFrom != "" {
 		log.Println("Loading OPML file: ", opts.loadOPMLFrom)
 
-		if err := backend.LoadOPML(opts.loadOPMLFrom); err != nil {
+		if err := backend.Rss.LoadOPML(opts.loadOPMLFrom); err != nil {
 			fmt.Println(errStyle.Render("Loaded OPML file failed"))
 			return err
 		}
