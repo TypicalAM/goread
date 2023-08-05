@@ -49,21 +49,16 @@ func TestRssLoadFile(t *testing.T) {
 // TestRssGetCategories if we get an error then the rss categories are not retrieved correctly
 func TestRssGetCategories(t *testing.T) {
 	myRss := getRss(t)
-	names, descs := myRss.GetCategories()
-	if len(names) != len(descs) {
-		t.Errorf("incorrect number of descriptions, expected %d, got %d", len(names), len(descs))
+	if len(myRss.Categories) != 2 {
+		t.Errorf("incorrect number of categories, expected 2, got %d", len(myRss.Categories))
 	}
 
-	if len(names) != 2 {
-		t.Errorf("incorrect number of categories, expected 2, got %d", len(names))
+	if myRss.Categories[0].Name != "News" {
+		t.Errorf("incorrect category, expected News, got %s", myRss.Categories[0].Name)
 	}
 
-	if names[0] != "News" {
-		t.Errorf("incorrect category, expected News, got %s", names[0])
-	}
-
-	if descs[1] != "Discover a new use for your spare transistors!" {
-		t.Errorf("incorrect description, expected Discover a new use for your spare transistors!, got %s", descs[1])
+	if myRss.Categories[1].Description != "Discover a new use for your spare transistors!" {
+		t.Errorf("incorrect description, expected Discover a new use for your spare transistors!, got %s", myRss.Categories[1].Description)
 	}
 }
 
@@ -71,24 +66,20 @@ func TestRssGetCategories(t *testing.T) {
 func TestRssGetFeeds(t *testing.T) {
 	myRss := getRss(t)
 
-	names, urls, err := myRss.GetFeeds(myRss.Categories[0].Name)
+	feeds, err := myRss.GetFeeds(myRss.Categories[0].Name)
 	if err != nil {
 		t.Errorf("failed to get feeds, %s", err)
 	}
 
-	if len(names) != len(urls) {
-		t.Errorf("incorrect number of urls, expected %d, got %d", len(names), len(urls))
+	if len(feeds) != 1 {
+		t.Errorf("incorrect number of urls, expected 1, got %d", len(feeds))
 	}
 
-	if len(names) != 1 {
-		t.Errorf("incorrect number of feeds, expected 1, got %d", len(names))
+	if feeds[0].Name != "Primordial soup" {
+		t.Errorf("incorrect feed, expected Primordial soup, got %s", feeds[0].Name)
 	}
 
-	if names[0] != "Primordial soup" {
-		t.Errorf("incorrect feed, expected Primordial soup, got %s", names[0])
-	}
-
-	if _, _, err = myRss.GetFeeds("Non-existent"); err == nil || err != ErrNotFound {
+	if _, err = myRss.GetFeeds("Non-existent"); err == nil || err != ErrNotFound {
 		t.Errorf("expected ErrNotFound, got %s", err)
 	}
 }
@@ -131,17 +122,16 @@ func TestRssCategoryAdd(t *testing.T) {
 		t.Errorf("failed to add category, %s", err)
 	}
 
-	names, descs := myRss.GetCategories()
-	if len(names) != 3 {
-		t.Errorf("incorrect number of categories, expected 3, got %d", len(names))
+	if len(myRss.Categories) != 3 {
+		t.Errorf("incorrect number of categories, expected 3, got %d", len(myRss.Categories))
 	}
 
-	if names[2] != "New" {
-		t.Errorf("incorrect category, expected New, got %s", names[2])
+	if myRss.Categories[2].Name != "New" {
+		t.Errorf("incorrect category, expected New, got %s", myRss.Categories[2].Name)
 	}
 
-	if descs[2] != "New category" {
-		t.Errorf("incorrect description, expected New category, got %s", descs[2])
+	if myRss.Categories[2].Description != "New category" {
+		t.Errorf("incorrect description, expected New category, got %s", myRss.Categories[2].Description)
 	}
 
 	if err := myRss.AddCategory("New", "Some other new category"); err == nil || err != ErrAlreadyExists {
@@ -165,17 +155,16 @@ func TestRssCategoryUpdate(t *testing.T) {
 		t.Errorf("failed to update category, %s", err)
 	}
 
-	names, descs := myRss.GetCategories()
-	if len(names) != 2 {
-		t.Errorf("incorrect number of categories, expected 2, got %d", len(names))
+	if len(myRss.Categories) != 2 {
+		t.Errorf("incorrect number of categories, expected 2, got %d", len(myRss.Categories))
 	}
 
-	if names[0] != "New" {
-		t.Errorf("incorrect category, expected New, got %s", names[0])
+	if myRss.Categories[0].Name != "New" {
+		t.Errorf("incorrect category, expected New, got %s", myRss.Categories[0].Name)
 	}
 
-	if descs[0] != "New category" {
-		t.Errorf("incorrect description, expected New category, got %s", descs[0])
+	if myRss.Categories[0].Description != "New category" {
+		t.Errorf("incorrect description, expected New category, got %s", myRss.Categories[0].Description)
 	}
 
 	if err := myRss.UpdateCategory("New", AllFeedsName, "New category"); err == nil || err != ErrReservedName {
@@ -195,17 +184,16 @@ func TestRssCategoryUpdate(t *testing.T) {
 		t.Errorf("failed to update category, %s", err)
 	}
 
-	names, descs = myRss.GetCategories()
-	if len(names) != 2 {
-		t.Errorf("incorrect number of categories, expected 2, got %d", len(names))
+	if len(myRss.Categories) != 2 {
+		t.Errorf("incorrect number of categories, expected 2, got %d", len(myRss.Categories))
 	}
 
-	if names[0] != "New" {
-		t.Errorf("incorrect category, expected New, got %s", names[0])
+	if myRss.Categories[0].Name != "New" {
+		t.Errorf("incorrect category, expected New, got %s", myRss.Categories[0].Name)
 	}
 
-	if descs[0] != "Some other new category" {
-		t.Errorf("incorrect description, expected Some other new category, got %s", descs[0])
+	if myRss.Categories[0].Description != "Some other new category" {
+		t.Errorf("incorrect description, expected Some other new category, got %s", myRss.Categories[0].Description)
 	}
 
 	// Check if we can update a category with the same name as an existing category
@@ -221,17 +209,16 @@ func TestRssCategoryRemove(t *testing.T) {
 		t.Errorf("failed to remove category, %s", err)
 	}
 
-	names, descs := myRss.GetCategories()
-	if len(names) != 1 {
-		t.Errorf("incorrect number of categories, expected 1, got %d", len(names))
+	if len(myRss.Categories) != 1 {
+		t.Errorf("incorrect number of categories, expected 1, got %d", len(myRss.Categories))
 	}
 
-	if names[0] != "Technology" {
-		t.Errorf("incorrect category, expected Technology, got %s", names[0])
+	if myRss.Categories[0].Name != "Technology" {
+		t.Errorf("incorrect category, expected Technology, got %s", myRss.Categories[0].Name)
 	}
 
-	if descs[0] != "Discover a new use for your spare transistors!" {
-		t.Errorf("incorrect description, expected Discover a new use for your spare transistors!, got %s", descs[0])
+	if myRss.Categories[0].Description != "Discover a new use for your spare transistors!" {
+		t.Errorf("incorrect description, expected Discover a new use for your spare transistors!, got %s", myRss.Categories[0].Description)
 	}
 
 	if err := myRss.RemoveCategory("Non-existent"); err == nil || err != ErrNotFound {
@@ -246,21 +233,21 @@ func TestRssFeedAdd(t *testing.T) {
 		t.Errorf("failed to add feed, %s", err)
 	}
 
-	names, urls, err := myRss.GetFeeds("News")
+	feeds, err := myRss.GetFeeds("News")
 	if err != nil {
 		t.Errorf("failed to get feeds, %s", err)
 	}
 
-	if len(names) != 2 {
-		t.Errorf("incorrect number of feeds, expected 2, got %d", len(names))
+	if len(feeds) != 2 {
+		t.Errorf("incorrect number of feeds, expected 2, got %d", len(feeds))
 	}
 
-	if names[1] != "New feed" {
-		t.Errorf("incorrect feed, expected New feed, got %s", names[1])
+	if feeds[1].Name != "New feed" {
+		t.Errorf("incorrect feed, expected New feed, got %s", feeds[1].Name)
 	}
 
-	if urls[1] != "https://new.feed" {
-		t.Errorf("incorrect url, expected https://new.feed, got %s", urls[1])
+	if feeds[1].URL != "https://new.feed" {
+		t.Errorf("incorrect url, expected https://new.feed, got %s", feeds[1].URL)
 	}
 
 	if err = myRss.AddFeed("News", "New feed", "https://new.feed"); err == nil || err != ErrAlreadyExists {
@@ -292,21 +279,21 @@ func TestRssFeedUpdate(t *testing.T) {
 		t.Errorf("failed to update feed, %s", err)
 	}
 
-	names, urls, err := myRss.GetFeeds("News")
+	feeds, err := myRss.GetFeeds("News")
 	if err != nil {
 		t.Errorf("failed to get feeds, %s", err)
 	}
 
-	if len(names) != 1 {
-		t.Errorf("incorrect number of feeds, expected 1, got %d", len(names))
+	if len(feeds) != 1 {
+		t.Errorf("incorrect number of feeds, expected 1, got %d", len(feeds))
 	}
 
-	if names[0] != "New feed" {
-		t.Errorf("incorrect feed, expected New feed, got %s", names[0])
+	if feeds[0].Name != "New feed" {
+		t.Errorf("incorrect feed, expected New feed, got %s", feeds[0].Name)
 	}
 
-	if urls[0] != "https://new.feed" {
-		t.Errorf("incorrect url, expected https://new.feed, got %s", urls[0])
+	if feeds[0].URL != "https://new.feed" {
+		t.Errorf("incorrect url, expected https://new.feed, got %s", feeds[0].URL)
 	}
 
 	// Check if we can update a feed to have the name AllFeedsName
@@ -336,17 +323,17 @@ func TestRssFeedUpdate(t *testing.T) {
 	}
 
 	// Check if we can get the updated feed
-	names, urls, err = myRss.GetFeeds("News")
+	feeds, err = myRss.GetFeeds("News")
 	if err != nil {
 		t.Errorf("failed to get feeds, %s", err)
 	}
 
-	if len(names) != 1 {
-		t.Errorf("incorrect number of feeds, expected 1, got %d", len(names))
+	if len(feeds) != 1 {
+		t.Errorf("incorrect number of feeds, expected 1, got %d", len(feeds))
 	}
 
-	if urls[0] != "https://new.feed2" {
-		t.Errorf("incorrect url, expected https://new.feed2, got %s", urls[0])
+	if feeds[0].URL != "https://new.feed2" {
+		t.Errorf("incorrect url, expected https://new.feed2, got %s", feeds[0].URL)
 	}
 }
 
@@ -357,13 +344,13 @@ func TestRssFeedRemove(t *testing.T) {
 		t.Errorf("failed to remove feed, %s", err)
 	}
 
-	names, _, err := myRss.GetFeeds("News")
+	feeds, err := myRss.GetFeeds("News")
 	if err != nil {
 		t.Errorf("failed to get feeds, %s", err)
 	}
 
-	if len(names) != 0 {
-		t.Errorf("incorrect number of feeds, expected 0, got %d", len(names))
+	if len(feeds) != 0 {
+		t.Errorf("incorrect number of feeds, expected 0, got %d", len(feeds))
 	}
 
 	if err = myRss.RemoveFeed("News", "Non-existent"); err == nil || err != ErrNotFound {
@@ -377,36 +364,36 @@ func TestRssFeedRemove(t *testing.T) {
 
 // TestOPMLImport if we get an error importing an OPML file doesn't work
 func TestRssOPMLImport(t *testing.T) {
-	rss := &Rss{}
-	if err := rss.LoadOPML("../../test/data/opml_flat.xml"); err != nil {
+	myRss := &Rss{}
+	if err := myRss.LoadOPML("../../test/data/opml_flat.xml"); err != nil {
 		t.Errorf("failed to import OPML, %s", err)
 	}
 
-	names, urls, err := rss.GetFeeds(DefaultCategoryName)
+	feeds, err := myRss.GetFeeds(DefaultCategoryName)
 	if err != nil {
 		t.Errorf("failed to get feeds, %s", err)
 	}
 
-	if len(names) != 3 || len(urls) != 3 {
-		t.Errorf("incorrect number of feeds, expected 3, got %d", len(names))
+	if len(feeds) != 3 {
+		t.Errorf("incorrect number of feeds, expected 3, got %d", len(feeds))
 	}
 
-	rss = getRss(t)
-	if err := rss.LoadOPML("../../test/data/opml_nested.xml"); err != nil {
+	myRss = getRss(t)
+	if err := myRss.LoadOPML("../../test/data/opml_nested.xml"); err != nil {
 		t.Errorf("failed to import OPML, %s", err)
 	}
 
-	for _, cat := range rss.Categories {
+	for _, cat := range myRss.Categories {
 		log.Println(cat.Name)
 	}
 
-	names, urls, err = rss.GetFeeds("test")
+	feeds, err = myRss.GetFeeds("test")
 	if err != nil {
 		t.Errorf("failed to get feeds, %s", err)
 	}
 
-	if len(names) != 10 || len(urls) != 10 {
-		t.Errorf("incorrect number of feeds, expected 3, got %d", len(names))
+	if len(feeds) != 10 {
+		t.Errorf("incorrect number of feeds, expected 3, got %d", len(feeds))
 	}
 }
 

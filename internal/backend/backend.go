@@ -57,11 +57,9 @@ func New(urlPath, cachePath string, resetCache bool) (*Backend, error) {
 // FetchCategories gets the categories.
 func (b Backend) FetchCategories(_ string) tea.Cmd {
 	return func() tea.Msg {
-		names, descs := b.Rss.GetCategories()
-
-		items := make([]list.Item, len(names))
-		for i := range names {
-			items[i] = simplelist.NewItem(names[i], descs[i])
+		items := make([]list.Item, len(b.Rss.Categories))
+		for i, cat := range b.Rss.Categories {
+			items[i] = simplelist.NewItem(cat.Name, cat.Description)
 		}
 
 		return FetchSuccessMsg{Items: items}
@@ -71,14 +69,14 @@ func (b Backend) FetchCategories(_ string) tea.Cmd {
 // FetchFeeds gets the feeds from a category.
 func (b Backend) FetchFeeds(catname string) tea.Cmd {
 	return func() tea.Msg {
-		names, urls, err := b.Rss.GetFeeds(catname)
+		feeds, err := b.Rss.GetFeeds(catname)
 		if err != nil {
 			return FetchErrorMsg{err, "Error while trying to get feeds"}
 		}
 
-		items := make([]list.Item, len(names))
-		for i := range names {
-			items[i] = simplelist.NewItem(names[i], urls[i])
+		items := make([]list.Item, len(feeds))
+		for i, feed := range feeds {
+			items[i] = simplelist.NewItem(feed.Name, feed.URL)
 		}
 
 		return FetchSuccessMsg{items}

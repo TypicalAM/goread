@@ -140,37 +140,15 @@ func (rss Rss) Save() error {
 	return nil
 }
 
-// GetCategories will return a list of all the names and descriptions of the categories
-func (rss Rss) GetCategories() (names []string, descs []string) {
-	names = make([]string, len(rss.Categories))
-	descs = make([]string, len(rss.Categories))
-
-	for i, cat := range rss.Categories {
-		names[i] = cat.Name
-		descs[i] = cat.Description
-	}
-
-	return names, descs
-}
-
-// GetFeeds will return a list of all the names and descriptions of the feeds
-// in a category denoted by the name
-func (rss Rss) GetFeeds(categoryName string) (names []string, urls []string, err error) {
+// GetFeeds will return a list of all subscriptions in a category
+func (rss Rss) GetFeeds(categoryName string) ([]Feed, error) {
 	for _, cat := range rss.Categories {
 		if cat.Name == categoryName {
-			feeds := make([]string, len(cat.Subscriptions))
-			urls = make([]string, len(cat.Subscriptions))
-
-			for i, feed := range cat.Subscriptions {
-				feeds[i] = feed.Name
-				urls[i] = feed.URL
-			}
-
-			return feeds, urls, nil
+			return cat.Subscriptions, nil
 		}
 	}
 
-	return nil, nil, ErrNotFound
+	return nil, ErrNotFound
 }
 
 // GetFeedURL will return the url of a feed denoted by the name
@@ -317,7 +295,7 @@ func (rss *Rss) ExportOPML(path string) error {
 			Text:  cat.Description,
 		})
 
-		elem := &result.Body.Outlines[len(result.Body.Outlines) - 1]
+		elem := &result.Body.Outlines[len(result.Body.Outlines)-1]
 		for _, feed := range cat.Subscriptions {
 			elem.Outlines = append(elem.Outlines, opml.Outline{
 				Type:   "rss",
