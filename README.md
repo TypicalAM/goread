@@ -8,7 +8,8 @@
 - Downloading articles for later use
 - Offline mode
 - Customizable colorschemes
-- Stunning TUI
+- OPML file support
+- A nice and simple TUI
 
 ## ❤️ Getting started
 
@@ -122,7 +123,12 @@ If something doesn't work feel free to create an issue:
 
 ### Libraries
 
-The demo was made using [vhs](https://github.com/charmbracelet/vhs/), which is an amazing tool, and you should definitely check it out. The entirety of [charm.sh](https://charm.sh) libraries was essential to the development of this project. The [cobra](https://github.com/spf13/cobra/) library helped to make the cli flags and settings.
+The demo was made using [vhs](https://github.com/charmbracelet/vhs/), which is an amazing tool, and you should definitely check it out. Other libraries included are:
+
+- [bubbletea](https://github.com/charmbracelet/bubbletea/) for runtime
+- [lipgloss](https://github.com/charmbracelet/lipgloss/) for styling
+- [cobra](https://github.com/spf13/cobra/) for flags
+- [gofeed](https://github.com/mmcdole/gofeed) for parsing xml feeds
 
 ### Fonts & logo
 
