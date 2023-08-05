@@ -19,7 +19,7 @@ import (
 
 // options denote the flags that can be given to the program
 type options struct {
-	cachePath       string
+	cacheDir       string
 	colorschemePath string
 	urlsPath        string
 	getColors       string
@@ -50,7 +50,7 @@ var (
 )
 
 func init() {
-	rootCmd.Flags().StringVarP(&opts.cachePath, "cache_path", "", "", "The path to the cache file")
+	rootCmd.Flags().StringVarP(&opts.cacheDir, "cache_dir", "", "", "The path to the cache directory")
 	rootCmd.Flags().StringVarP(&opts.colorschemePath, "colorscheme_path", "c", "", "The path to the colorscheme file")
 	rootCmd.Flags().StringVarP(&opts.urlsPath, "urls_path", "u", "", "The path to the urls file")
 	rootCmd.Flags().BoolVarP(&opts.testColors, "test_colors", "", false, "Test the colorscheme")
@@ -146,7 +146,7 @@ func Run() error {
 	}
 
 	// Initialize the backend
-	backend, err := backend.New(opts.urlsPath, opts.cachePath, opts.resetCache)
+	backend, err := backend.New(opts.urlsPath, opts.cacheDir, opts.resetCache)
 	if err != nil {
 		log.Println("Failed to initialize backend: ", err)
 		return err

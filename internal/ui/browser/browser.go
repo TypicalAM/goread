@@ -299,7 +299,6 @@ func (m Model) View() string {
 		return m.popup.View()
 	}
 
-	// TODO: refactor
 	var b strings.Builder
 	b.WriteString(m.renderTabBar())
 	b.WriteRune('\n')

@@ -55,19 +55,19 @@ type Entry struct {
 }
 
 // New creates a new cache store.
-func New(path string) (*Cache, error) {
+func New(dir string) (*Cache, error) {
 	log.Println("Creating new cache store")
-	if path == "" {
-		defaultPath, err := getDefaultPath()
+	if dir == "" {
+		defaultDir, err := getDefaultDir()
 		if err != nil {
 			return nil, err
 		}
 
-		path = defaultPath
+		dir = defaultDir
 	}
 
 	return &Cache{
-		filePath:   path,
+		filePath:   filepath.Join(dir, "cache.json"),
 		Content:    make(map[string]Entry),
 		Downloaded: make(SortableArticles, 0),
 	}, nil
@@ -260,12 +260,12 @@ func parseFeed(url string) (*gofeed.Feed, error) {
 	return feed, nil
 }
 
-// getDefaultPath returns the default path to the cache file
-func getDefaultPath() (string, error) {
+// getDefaultDir returns the default cache directory
+func getDefaultDir() (string, error) {
 	dir, err := os.UserCacheDir()
 	if err != nil {
 		return "", err
 	}
 
-	return filepath.Join(dir, "goread", "cache.json"), nil
+	return filepath.Join(dir, "goread"), nil
 }

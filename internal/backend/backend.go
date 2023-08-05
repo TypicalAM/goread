@@ -20,14 +20,14 @@ type Backend struct {
 }
 
 // New creates a new backend and its components.
-func New(urlPath, cachePath string, resetCache bool) (*Backend, error) {
+func New(urlPath, cacheDir string, resetCache bool) (*Backend, error) {
 	log.Println("Creating new backend")
-	store, err := cache.New(cachePath)
+	store, err := cache.New(cacheDir)
 	if err != nil {
 		return nil, err
 	}
 
-	readStatus, err := cache.NewReadStatus("") // TODO: Make this configurable
+	readStatus, err := cache.NewReadStatus(cacheDir)
 	if err != nil {
 		return nil, err
 	}

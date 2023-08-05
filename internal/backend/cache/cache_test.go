@@ -7,7 +7,7 @@ import (
 
 // getCache returns a new cache with the fake data
 func getCache() (*Cache, error) {
-	cache, err := New("../../test/data/cache.json")
+	cache, err := New("../../test/data")
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +23,7 @@ func getCache() (*Cache, error) {
 // TestCacheLoadNoFile if we get an error then there's no cache file
 func TestCacheLoadNoFile(t *testing.T) {
 	// Create a cache with no file
-	cache, err := New("../test/data/no-file")
+	cache, err := New("../test/no-data")
 	if err != nil {
 		t.Fatalf("couldn't get default path: %v", err)
 	}

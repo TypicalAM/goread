@@ -20,19 +20,19 @@ type ReadStatus struct {
 }
 
 // New creates a new ReadStatus set.
-func NewReadStatus(path string) (*ReadStatus, error) {
+func NewReadStatus(dir string) (*ReadStatus, error) {
 	log.Println("Creating new read status")
-	if path == "" {
-		defaultPath, err := getDefaultReadStatusPath()
+	if dir == "" {
+		defaultDir, err := getDefaultDir()
 		if err != nil {
 			return nil, err
 		}
 
-		path = defaultPath
+		dir = defaultDir
 	}
 
 	return &ReadStatus{
-		filePath: path,
+		filePath: filepath.Join(dir, "read_status"),
 		set:      make(map[uint32]struct{}),
 	}, nil
 }
@@ -123,14 +123,4 @@ func hashArticle(item gofeed.Item) uint32 {
 	h.Write([]byte(item.Link))
 	h.Write([]byte(item.GUID))
 	return h.Sum32()
-}
-
-// getDefaultReadStatusPath returns the default path to the cache file
-func getDefaultReadStatusPath() (string, error) {
-	dir, err := os.UserCacheDir()
-	if err != nil {
-		return "", err
-	}
-
-	return filepath.Join(dir, "goread", "read_articles"), nil
 }
