@@ -2,6 +2,7 @@ package simplelist
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/charmbracelet/bubbles/key"
@@ -144,13 +145,16 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 
 // View returns the view of the list
 func (m Model) View() string {
-	sections := make([]string, 1)
+	var b strings.Builder
 
-	sections = append(sections, m.style.titleStyle.Render(m.title))
+	b.WriteRune('\n')
+	b.WriteString(m.style.titleStyle.Render(m.title))
+	b.WriteRune('\n')
 
 	if len(m.items) == 0 {
-		sections = append(sections, m.style.noItemsStyle.Render("<no items>"))
-		return lipgloss.JoinVertical(lipgloss.Top, sections...)
+		b.WriteString(m.style.noItemsStyle.Render("<no items>"))
+		b.WriteRune('\n')
+		return b.String()
 	}
 
 	for i := m.itemsPerPage * m.page; i < m.itemsPerPage*(m.page+1); i++ {
@@ -158,26 +162,26 @@ func (m Model) View() string {
 			break
 		}
 
-		isSelected := i == m.selected
-		sections = append(sections, lipgloss.JoinHorizontal(
+		b.WriteString(lipgloss.JoinHorizontal(
 			lipgloss.Left,
-			m.style.styleIndex(i, isSelected),
+			m.style.styleIndex(i, i == m.selected),
 			m.style.itemStyle.Render(m.items[i].FilterValue()),
 		))
+		b.WriteRune('\n')
 
 		if m.showDesc {
 			if item, ok := m.items[i].(list.DefaultItem); ok {
 				if len(item.Description()) != 0 {
-					sections = append(sections, m.style.styleDescription(item.Description()))
-				} else {
-					sections = append(sections, "")
+					b.WriteString(m.style.styleDescription(item.Description()))
 				}
+
+				b.WriteRune('\n')
 			}
 		}
 	}
 
-	sections = append(sections, "")
-	return lipgloss.JoinVertical(lipgloss.Top, sections...)
+	b.WriteRune('\n')
+	return b.String()
 }
 
 // SetHeight sets the height of the list

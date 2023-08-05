@@ -300,19 +300,22 @@ func (m Model) View() string {
 	}
 
 	// TODO: refactor
-	var sections []string
-	sections = append(sections, m.renderTabBar())
+	var b strings.Builder
+	b.WriteString(m.renderTabBar())
+	b.WriteRune('\n')
 	constrainHeight := lipgloss.NewStyle().Height(m.height - 3).MaxHeight(m.height - 3)
-	sections = append(sections, constrainHeight.Render(m.tabs[m.activeTab].View()))
-	sections = append(sections, m.renderStatusBar())
+	b.WriteString(constrainHeight.Render(m.tabs[m.activeTab].View()))
+	b.WriteRune('\n')
+	b.WriteString(m.renderStatusBar())
+	b.WriteRune('\n')
 
 	if strings.Contains(m.msg, "Error") {
-		sections = append(sections, m.style.errMsg.Render(m.msg))
+		b.WriteString(m.style.errMsg.Render(m.msg))
 	} else {
-		sections = append(sections, m.msg)
+		b.WriteString(m.msg)
 	}
 
-	return strings.Join(sections, "\n")
+	return b.String()
 }
 
 // ShortHelp returns the short help for the browser.
