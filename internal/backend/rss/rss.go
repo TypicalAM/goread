@@ -303,6 +303,43 @@ func (rss *Rss) LoadOPML(path string) error {
 	return nil
 }
 
+// ExportOPML will export the urls to an opml file.
+func (rss *Rss) ExportOPML(path string) error {
+	result := opml.OPML{
+		Version: "1.0",
+		Head:    opml.Head{Title: "goread - Exported feeds"},
+		Body:    opml.Body{},
+	}
+
+	for _, cat := range rss.Categories {
+		result.Body.Outlines = append(result.Body.Outlines, opml.Outline{
+			Title: cat.Name,
+			Text:  cat.Description,
+		})
+
+		elem := &result.Body.Outlines[len(result.Body.Outlines) - 1]
+		for _, feed := range cat.Subscriptions {
+			elem.Outlines = append(elem.Outlines, opml.Outline{
+				Type:   "rss",
+				Text:   feed.Description,
+				Title:  feed.Name,
+				XMLURL: feed.URL,
+			})
+		}
+	}
+
+	data, err := result.XML()
+	if err != nil {
+		return err
+	}
+
+	if err = os.WriteFile(path, []byte(data), 0644); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // HTMLToText converts html to text using the goquery library
 func HTMLToText(content string) (string, error) {
 	// Create a new document

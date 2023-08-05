@@ -165,6 +165,19 @@ func Run() error {
 		return backend.Close()
 	}
 
+	// Export the OPML file
+	if opts.exportOPMLTo != "" {
+		log.Println("Exporting OPML file to: ", opts.exportOPMLTo)
+
+		if err := backend.Rss.ExportOPML(opts.exportOPMLTo); err != nil {
+			fmt.Println(errStyle.Render("Exporting OPML file failed"))
+			return err
+		}
+
+		fmt.Println(msgStyle.Render("Exported OPML file successfully"))
+		return backend.Close()
+	}
+
 	// Create the browser
 	browser := browser.New(colors, backend)
 

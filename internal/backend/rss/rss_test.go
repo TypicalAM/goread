@@ -406,3 +406,6 @@ func TestRssOPMLImport(t *testing.T) {
 		t.Errorf("incorrect number of feeds, expected 3, got %d", len(names))
 	}
 }
+
+// TestOPMLExport if we get an error exporting an OPML file doesn't work
+func TestOPMLExport(t *testing.T) {}
