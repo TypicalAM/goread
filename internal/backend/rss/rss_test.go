@@ -1,6 +1,7 @@
 package rss
 
 import (
+	"log"
 	"strconv"
 	"testing"
 )
@@ -373,8 +374,35 @@ func TestRssFeedRemove(t *testing.T) {
 
 // TestOPMLImport if we get an error importing an OPML file doesn't work
 func TestRssOPMLImport(t *testing.T) {
-	rss := getRss(t)
-	if err := rss.LoadOPML("../../test/data/opml.xml"); err != nil {
+	rss := &Rss{}
+	if err := rss.LoadOPML("../../test/data/opml_flat.xml"); err != nil {
 		t.Errorf("failed to import OPML, %s", err)
+	}
+
+	names, urls, err := rss.GetFeeds(DefaultCategoryName)
+	if err != nil {
+		t.Errorf("failed to get feeds, %s", err)
+	}
+
+	if len(names) != 3 || len(urls) != 3 {
+		t.Errorf("incorrect number of feeds, expected 3, got %d", len(names))
+	}
+
+	rss = getRss(t)
+	if err := rss.LoadOPML("../../test/data/opml_nested.xml"); err != nil {
+		t.Errorf("failed to import OPML, %s", err)
+	}
+
+	for _, cat := range rss.Categories {
+		log.Println(cat.Name)
+	}
+
+	names, urls, err = rss.GetFeeds("test")
+	if err != nil {
+		t.Errorf("failed to get feeds, %s", err)
+	}
+
+	if len(names) != 10 || len(urls) != 10 {
+		t.Errorf("incorrect number of feeds, expected 3, got %d", len(names))
 	}
 }

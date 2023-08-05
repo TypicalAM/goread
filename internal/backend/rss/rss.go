@@ -20,6 +20,12 @@ var AllFeedsName = "All Feeds"
 // DownloadedFeedsName is the name of the downloaded feeds category
 var DownloadedFeedsName = "Saved"
 
+// DefaultCategoryName is the name of the default category
+var DefaultCategoryName = "News"
+
+// DefaultCategoryDescription is the description of the default category
+var DefaultCategoryDescription = "News from around the world"
+
 // ErrNotFound is returned when a feed or category is not found
 var ErrNotFound = errors.New("not found")
 
@@ -259,13 +265,41 @@ func HTMLToMarkdown(content string) (string, error) {
 }
 
 // LoadOPML will load the urls from an opml file.
-func (r *Rss) LoadOPML(path string) error {
-	data, err := opml.NewOPMLFromFile(path)
+func (rss *Rss) LoadOPML(path string) error {
+	parsed, err := opml.NewOPMLFromFile(path)
 	if err != nil {
 		return err
 	}
 
-	log.Println(data)
+	for _, o := range parsed.Outlines() {
+		catName := DefaultCategoryName
+		catDesc := DefaultCategoryDescription
+
+		if o.Type != "rss" {
+			catName = o.Title
+			catDesc = o.Text
+		}
+
+		if err = rss.AddCategory(catName, catDesc); err != nil && err != ErrAlreadyExists {
+			return err
+		}
+
+		if len(o.Outlines) == 0 {
+			if err = rss.AddFeed(DefaultCategoryName, o.Title, o.XMLURL); err != nil && err != ErrAlreadyExists {
+				return err
+			}
+
+			continue
+		}
+
+		for _, so := range o.Outlines {
+			log.Println("Adding feed:", so.Title)
+			if err = rss.AddFeed(catName, so.Title, so.XMLURL); err != nil && err != ErrAlreadyExists {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 

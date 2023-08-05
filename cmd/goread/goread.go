@@ -155,15 +155,14 @@ func Run() error {
 	// Load the OPML file
 	if opts.loadOPMLFrom != "" {
 		log.Println("Loading OPML file: ", opts.loadOPMLFrom)
-		err := backend.LoadOPML(opts.loadOPMLFrom)
 
-		if err != nil {
+		if err := backend.LoadOPML(opts.loadOPMLFrom); err != nil {
 			fmt.Println(errStyle.Render("Loaded OPML file failed"))
-		} else {
-			fmt.Println(msgStyle.Render("Loaded OPML file successfully"))
+			return err
 		}
 
-		return err
+		fmt.Println(msgStyle.Render("Loaded OPML file successfully"))
+		return backend.Close()
 	}
 
 	// Create the browser
