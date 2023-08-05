@@ -129,11 +129,6 @@ func (b Backend) DownloadItem(feedName string, index int) tea.Cmd {
 	}
 }
 
-// RemoveDownload removes a downloaded article.
-func (b Backend) RemoveDownload(index int) error {
-	return b.Cache.RemoveFromDownloaded(index)
-}
-
 // MarkAsRead marks an article as read.
 func (b Backend) MarkAsRead(feedName string, index int) tea.Cmd {
 	return func() tea.Msg {
@@ -160,11 +155,6 @@ func (b Backend) MarkAsUnread(feedName string, index int) tea.Cmd {
 		b.ReadStatus.MarkAsUnread(*item)
 		return nil
 	}
-}
-
-// SetOfflineMode sets the offline mode of the backend.
-func (b *Backend) SetOfflineMode(mode bool) {
-	b.Cache.OfflineMode = mode
 }
 
 // Close closes the backend and saves its components.

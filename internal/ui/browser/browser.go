@@ -409,7 +409,7 @@ func (m Model) deleteItem(msg backend.DeleteItemMsg) (tea.Model, tea.Cmd) {
 				m.msg = fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, err.Error())
 			}
 
-			if err := m.backend.RemoveDownload(index); err != nil {
+			if err := m.backend.Cache.RemoveFromDownloaded(index); err != nil {
 				m.msg = fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, err.Error())
 			}
 		}
@@ -440,7 +440,7 @@ func (m Model) showHelp() (tea.Model, tea.Cmd) {
 // toggleOffline toggles the offline mode
 func (m Model) toggleOffline() (tea.Model, tea.Cmd) {
 	m.offline = !m.offline
-	m.backend.SetOfflineMode(m.offline)
+	m.backend.Cache.OfflineMode = m.offline
 
 	if m.offline {
 		m.msg = "Offline mode enabled"
