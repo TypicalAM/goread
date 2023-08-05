@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<opml version="1.0">
+    <head>
+        <title>Sample OPML file</title>
+    </head>
+    <body>
+        <outline text="this is test 2" title="test2">
+            <outline type="rss" text="MedCity News - Medical Devices" title="MedCity News - Medical Devices" xmlUrl="http://www.medcitynews.com/tag/medical-devices/feed/rss/" htmlUrl="https://medcitynews.com/tag/medical-devices/"/>
+        </outline>
+        <outline text="this is test" title="test">
+            <outline type="rss" text="Packet Storm Security" title="Packet Storm Security" xmlUrl="http://packetstormsecurity.org/headlines.xml" htmlUrl="https://packetstormsecurity.com/"/>
+            <outline type="rss" text="CyberScoop" title="CyberScoop" xmlUrl="https://www.cyberscoop.com/feed/" htmlUrl="https://cyberscoop.com/"/>
+            <outline type="rss" text="SecurityWeek" title="SecurityWeek" xmlUrl="http://feeds.feedburner.com/Securityweek" htmlUrl="https://www.securityweek.com/"/>
+            <outline type="rss" text="Gizmodo Security" title="Gizmodo Security" xmlUrl="http://gizmodo.com/tag/security/rss" htmlUrl="https://gizmodo.com"/>
+            <outline type="rss" text="Threatpost" title="Threatpost" xmlUrl="http://threatpost.com/feed" htmlUrl="https://threatpost.com"/>
+            <outline type="rss" text="The Register – Security" title="The Register – Security" xmlUrl="http://www.theregister.co.uk/security/headlines.atom" htmlUrl="https://www.theregister.com/security/"/>
+            <outline type="rss" text="Softpedia News / Security" title="Softpedia News / Security" xmlUrl="http://news.softpedia.com/newsRSS/Security-5.xml" htmlUrl="https://news.softpedia.com/"/>
+            <outline type="rss" text="IT Security Guru " title="IT Security Guru " xmlUrl="http://itsecurityguru.org/feed/" htmlUrl="https://www.itsecurityguru.org/"/>
+            <outline type="rss" text="BleepingComputer" title="BleepingComputer" xmlUrl="http://www.bleepingcomputer.com/feed/" htmlUrl="https://www.bleepingcomputer.com/"/>
+            <outline type="rss" text="Dark Reading" title="Dark Reading" xmlUrl="http://www.darkreading.com/rss/all.xml" htmlUrl="https://www.darkreading.com"/>
+        </outline>
+    </body>
+</opml>

@@ -9,6 +9,7 @@ import (
 
 	md "github.com/JohannesKaufmann/html-to-markdown"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/gilliek/go-opml/opml"
 	"github.com/mmcdole/gofeed"
 	"gopkg.in/yaml.v3"
 )
@@ -18,6 +19,12 @@ var AllFeedsName = "All Feeds"
 
 // DownloadedFeedsName is the name of the downloaded feeds category
 var DownloadedFeedsName = "Saved"
+
+// DefaultCategoryName is the name of the default category
+var DefaultCategoryName = "News"
+
+// DefaultCategoryDescription is the description of the default category
+var DefaultCategoryDescription = "News from around the world"
 
 // ErrNotFound is returned when a feed or category is not found
 var ErrNotFound = errors.New("not found")
@@ -255,6 +262,82 @@ func HTMLToMarkdown(content string) (string, error) {
 
 	// Return the markdown
 	return markdown, nil
+}
+
+// LoadOPML will load the urls from an opml file.
+func (rss *Rss) LoadOPML(path string) error {
+	parsed, err := opml.NewOPMLFromFile(path)
+	if err != nil {
+		return err
+	}
+
+	for _, o := range parsed.Outlines() {
+		catName := DefaultCategoryName
+		catDesc := DefaultCategoryDescription
+
+		if o.Type != "rss" {
+			catName = o.Title
+			catDesc = o.Text
+		}
+
+		if err = rss.AddCategory(catName, catDesc); err != nil && err != ErrAlreadyExists {
+			return err
+		}
+
+		if len(o.Outlines) == 0 {
+			if err = rss.AddFeed(DefaultCategoryName, o.Title, o.XMLURL); err != nil && err != ErrAlreadyExists {
+				return err
+			}
+
+			continue
+		}
+
+		for _, so := range o.Outlines {
+			log.Println("Adding feed:", so.Title)
+			if err = rss.AddFeed(catName, so.Title, so.XMLURL); err != nil && err != ErrAlreadyExists {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// ExportOPML will export the urls to an opml file.
+func (rss *Rss) ExportOPML(path string) error {
+	result := opml.OPML{
+		Version: "1.0",
+		Head:    opml.Head{Title: "goread - Exported feeds"},
+		Body:    opml.Body{},
+	}
+
+	for _, cat := range rss.Categories {
+		result.Body.Outlines = append(result.Body.Outlines, opml.Outline{
+			Title: cat.Name,
+			Text:  cat.Description,
+		})
+
+		elem := &result.Body.Outlines[len(result.Body.Outlines) - 1]
+		for _, feed := range cat.Subscriptions {
+			elem.Outlines = append(elem.Outlines, opml.Outline{
+				Type:   "rss",
+				Text:   feed.Name,
+				Title:  feed.Name,
+				XMLURL: feed.URL,
+			})
+		}
+	}
+
+	data, err := result.XML()
+	if err != nil {
+		return err
+	}
+
+	if err = os.WriteFile(path, []byte(data), 0644); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // HTMLToText converts html to text using the goquery library

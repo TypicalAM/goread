@@ -1,8 +1,12 @@
 package rss
 
 import (
+	"log"
+	"os"
 	"strconv"
 	"testing"
+
+	"github.com/gilliek/go-opml/opml"
 )
 
 func getRss(t *testing.T) *Rss {
@@ -368,5 +372,65 @@ func TestRssFeedRemove(t *testing.T) {
 
 	if err = myRss.RemoveFeed("Non-existent", "Primordial soup"); err == nil || err != ErrNotFound {
 		t.Errorf("expected ErrNotFound got %s", err)
+	}
+}
+
+// TestOPMLImport if we get an error importing an OPML file doesn't work
+func TestRssOPMLImport(t *testing.T) {
+	rss := &Rss{}
+	if err := rss.LoadOPML("../../test/data/opml_flat.xml"); err != nil {
+		t.Errorf("failed to import OPML, %s", err)
+	}
+
+	names, urls, err := rss.GetFeeds(DefaultCategoryName)
+	if err != nil {
+		t.Errorf("failed to get feeds, %s", err)
+	}
+
+	if len(names) != 3 || len(urls) != 3 {
+		t.Errorf("incorrect number of feeds, expected 3, got %d", len(names))
+	}
+
+	rss = getRss(t)
+	if err := rss.LoadOPML("../../test/data/opml_nested.xml"); err != nil {
+		t.Errorf("failed to import OPML, %s", err)
+	}
+
+	for _, cat := range rss.Categories {
+		log.Println(cat.Name)
+	}
+
+	names, urls, err = rss.GetFeeds("test")
+	if err != nil {
+		t.Errorf("failed to get feeds, %s", err)
+	}
+
+	if len(names) != 10 || len(urls) != 10 {
+		t.Errorf("incorrect number of feeds, expected 3, got %d", len(names))
+	}
+}
+
+// TestOPMLExport if we get an error exporting an OPML file doesn't work
+func TestOPMLExport(t *testing.T) {
+	rss := getRss(t)
+	if err := rss.ExportOPML("test.xml"); err != nil {
+		t.Errorf("failed to export OPML, %s", err)
+	}
+
+	parsed, err := opml.NewOPMLFromFile("test.xml")
+	if err != nil {
+		t.Errorf("failed to parse the exported xml into a struct, %s", err)
+	}
+
+	if len(parsed.Body.Outlines) != 2 {
+		t.Errorf("")
+	}
+
+	if len(parsed.Body.Outlines[0].Outlines) != 1 {
+		t.Errorf("incorrect number of feeds, expected 1, got %d", len(parsed.Body.Outlines[0].Outlines))
+	}
+
+	if err := os.Remove("test.xml"); err != nil {
+		t.Errorf("cannot remove the fake file, %s", err)
 	}
 }

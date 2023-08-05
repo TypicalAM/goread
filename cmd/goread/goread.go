@@ -23,11 +23,13 @@ type options struct {
 	colorschemePath string
 	urlsPath        string
 	getColors       string
+	loadOPMLFrom    string
+	exportOPMLTo    string
+	cacheSize       int
+	cacheDuration   int
 	dumpColors      bool
 	testColors      bool
 	resetCache      bool
-	cacheSize       int
-	cacheDuration   int
 }
 
 var (
@@ -57,6 +59,8 @@ func init() {
 	rootCmd.Flags().BoolVarP(&opts.resetCache, "reset_cache", "", false, "Reset the cache")
 	rootCmd.Flags().IntVarP(&opts.cacheSize, "cache_size", "", 0, "The size of the cache")
 	rootCmd.Flags().IntVarP(&opts.cacheDuration, "cache_duration", "", 0, "The duration of the cache in hours")
+	rootCmd.Flags().StringVarP(&opts.loadOPMLFrom, "load_opml", "i", "", "Import the feeds from an OPML file")
+	rootCmd.Flags().StringVarP(&opts.exportOPMLTo, "export_opml", "e", "", "Export the feeds to an OPML file")
 }
 
 // SetVersion sets the version of the program
@@ -146,6 +150,32 @@ func Run() error {
 	if err != nil {
 		log.Println("Failed to initialize backend: ", err)
 		return err
+	}
+
+	// Load the OPML file
+	if opts.loadOPMLFrom != "" {
+		log.Println("Loading OPML file: ", opts.loadOPMLFrom)
+
+		if err := backend.Rss.LoadOPML(opts.loadOPMLFrom); err != nil {
+			fmt.Println(errStyle.Render("Loaded OPML file failed"))
+			return err
+		}
+
+		fmt.Println(msgStyle.Render("Loaded OPML file successfully"))
+		return backend.Close()
+	}
+
+	// Export the OPML file
+	if opts.exportOPMLTo != "" {
+		log.Println("Exporting OPML file to: ", opts.exportOPMLTo)
+
+		if err := backend.Rss.ExportOPML(opts.exportOPMLTo); err != nil {
+			fmt.Println(errStyle.Render("Exporting OPML file failed"))
+			return err
+		}
+
+		fmt.Println(msgStyle.Render("Exported OPML file successfully"))
+		return backend.Close()
 	}
 
 	// Create the browser
