@@ -13,7 +13,7 @@ import (
 	"github.com/TypicalAM/goread/internal/ui/tab"
 	"github.com/TypicalAM/goread/internal/ui/tab/category"
 	"github.com/TypicalAM/goread/internal/ui/tab/feed"
-	"github.com/TypicalAM/goread/internal/ui/tab/welcome"
+	"github.com/TypicalAM/goread/internal/ui/tab/overview"
 
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
@@ -162,7 +162,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		height := 17
 
 		switch msg.Sender.(type) {
-		case welcome.Model:
+		case overview.Model:
 			m.popup = category.NewPopup(m.style.colors, bg, width, height, "", "")
 		case category.Model:
 			m.popup = feed.NewPopup(m.style.colors, bg, width, height, "", "", msg.Sender.Title())
@@ -179,7 +179,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		oldName, oldDesc := msg.OldFields[0], msg.OldFields[1]
 
 		switch msg.Sender.(type) {
-		case welcome.Model:
+		case overview.Model:
 			m.popup = category.NewPopup(m.style.colors, bg, width, height, oldName, oldDesc)
 		case category.Model:
 			m.popup = feed.NewPopup(m.style.colors, bg, width, height, oldName, oldDesc, msg.Sender.Title())
@@ -340,7 +340,7 @@ func (m Model) waitForSize(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.height = sizeMsg.Height
 	m.waitingForSize = false
 
-	m.tabs = append(m.tabs, welcome.New(
+	m.tabs = append(m.tabs, overview.New(
 		m.style.colors,
 		m.width,
 		m.height-5,
@@ -357,7 +357,7 @@ func (m Model) createNewTab(msg tab.NewTabMsg) (Model, tea.Cmd) {
 	height := m.height - 5
 
 	switch msg.Sender.(type) {
-	case welcome.Model:
+	case overview.Model:
 		switch msg.Title {
 		case rss.AllFeedsName:
 			newTab = feed.New(m.style.colors, m.width, height, msg.Title, m.backend.FetchAllArticles).
@@ -391,7 +391,7 @@ func (m Model) deleteItem(msg backend.DeleteItemMsg) (tea.Model, tea.Cmd) {
 
 	// Check the type of the item
 	switch msg.Sender.(type) {
-	case welcome.Model:
+	case overview.Model:
 		cmd = m.backend.FetchCategories("")
 		if err := m.backend.Rss.RemoveCategory(msg.ItemName); err != nil {
 			m.msg = fmt.Sprintf("Error deleting category %s: %s", msg.ItemName, err.Error())
