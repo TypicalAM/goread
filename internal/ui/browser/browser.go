@@ -111,7 +111,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.msg = fmt.Sprintf("%s: %s", msg.Description, msg.Err.Error())
 		return m, nil
 
-	case category.ChosenCategoryMsg:
+	case overview.ChosenCategoryMsg:
 		m.popup = nil
 		m.keymap.SetEnabled(true)
 
@@ -132,7 +132,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		log.Println(m.msg)
 		return m, m.backend.FetchCategories("")
 
-	case feed.ChosenFeedMsg:
+	case category.ChosenFeedMsg:
 		m.popup = nil
 		m.keymap.SetEnabled(true)
 
@@ -163,9 +163,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch msg.Sender.(type) {
 		case overview.Model:
-			m.popup = category.NewPopup(m.style.colors, bg, width, height, "", "")
+			m.popup = overview.NewPopup(m.style.colors, bg, width, height, "", "")
 		case category.Model:
-			m.popup = feed.NewPopup(m.style.colors, bg, width, height, "", "", msg.Sender.Title())
+			m.popup = category.NewPopup(m.style.colors, bg, width, height, "", "", msg.Sender.Title())
 		case feed.Model:
 		}
 
@@ -180,9 +180,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch msg.Sender.(type) {
 		case overview.Model:
-			m.popup = category.NewPopup(m.style.colors, bg, width, height, oldName, oldDesc)
+			m.popup = overview.NewPopup(m.style.colors, bg, width, height, oldName, oldDesc)
 		case category.Model:
-			m.popup = feed.NewPopup(m.style.colors, bg, width, height, oldName, oldDesc, msg.Sender.Title())
+			m.popup = category.NewPopup(m.style.colors, bg, width, height, oldName, oldDesc, msg.Sender.Title())
 		case feed.Model:
 		}
 

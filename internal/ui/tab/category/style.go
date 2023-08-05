@@ -7,15 +7,11 @@ import (
 
 // popupStyle is the style of the popup window.
 type popupStyle struct {
-	general             lipgloss.Style
-	heading             lipgloss.Style
-	list                lipgloss.Style
-	choice              lipgloss.Style
-	choiceTitle         lipgloss.Style
-	choiceDesc          lipgloss.Style
-	selectedChoice      lipgloss.Style
-	selectedChoiceTitle lipgloss.Style
-	selectedChoiceDesc  lipgloss.Style
+	general   lipgloss.Style
+	heading   lipgloss.Style
+	item      lipgloss.Style
+	itemTitle lipgloss.Style
+	itemField lipgloss.Style
 }
 
 // newPopupStyle creates a new popup style.
@@ -33,41 +29,24 @@ func newPopupStyle(colors *theme.Colors, width, height int) popupStyle {
 		Align(lipgloss.Center).
 		Italic(true)
 
-	list := lipgloss.NewStyle().
+	item := lipgloss.NewStyle().
 		Margin(0, 4).
-		Width(width - 2).
-		Height(10)
-
-	choice := lipgloss.NewStyle().
 		PaddingLeft(1).
-		MarginBottom(1).
-		Border(lipgloss.RoundedBorder(), false, false, false, true)
+		Border(lipgloss.RoundedBorder(), false, false, false, true).
+		BorderForeground(colors.Color3).
+		Italic(true)
 
-	choiceTitle := lipgloss.NewStyle().
-		Foreground(colors.Text)
-
-	choiceDesc := lipgloss.NewStyle().
-		Foreground(colors.TextDark)
-
-	selectedChoice := choice.Copy().
-		Italic(true).
-		BorderForeground(colors.Color3)
-
-	selectedChoiceTitle := lipgloss.NewStyle().
+	itemTitle := lipgloss.NewStyle().
 		Foreground(colors.Color3)
 
-	selectedChoiceDesc := lipgloss.NewStyle().
+	itemField := lipgloss.NewStyle().
 		Foreground(colors.Color2)
 
 	return popupStyle{
-		general:             general,
-		heading:             heading,
-		list:                list,
-		choice:              choice,
-		choiceTitle:         choiceTitle,
-		choiceDesc:          choiceDesc,
-		selectedChoice:      selectedChoice,
-		selectedChoiceTitle: selectedChoiceTitle,
-		selectedChoiceDesc:  selectedChoiceDesc,
+		general:   general,
+		heading:   heading,
+		item:      item,
+		itemTitle: itemTitle,
+		itemField: itemField,
 	}
 }

@@ -1,7 +1,6 @@
 package category
 
 import (
-	"github.com/TypicalAM/goread/internal/backend/rss"
 	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/TypicalAM/goread/internal/ui/popup"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -9,11 +8,12 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// ChosenCategoryMsg is the message displayed when a category is successfully chosen.
-type ChosenCategoryMsg struct {
+// ChosenFeedMsg is the message displayed when a category is successfully chosen.
+type ChosenFeedMsg struct {
 	Name    string
-	Desc    string
+	URL     string
 	OldName string
+	Parent  string
 	IsEdit  bool
 }
 
@@ -21,107 +21,87 @@ type ChosenCategoryMsg struct {
 type focusedField int
 
 const (
-	allField focusedField = iota
-	downloadedField
-	nameField
-	descField
+	nameField focusedField = iota
+	urlField
 )
 
-// Popup is the category popup where a user can create a category.
+// Popup is the feed popup where a user can create/edit a feed.
 type Popup struct {
 	nameInput textinput.Model
-	descInput textinput.Model
+	urlInput  textinput.Model
 	style     popupStyle
 	oldName   string
+	oldURL    string
+	parent    string
 	overlay   popup.Overlay
 	focused   focusedField
 }
 
-// NewPopup creates a new popup window in which the user can choose a new category.
-func NewPopup(colors *theme.Colors, bgRaw string, width, height int, oldName, oldDesc string) Popup {
-	overlay := popup.NewOverlay(bgRaw, width, height)
+// NewPopup returns a new feed popup.
+func NewPopup(colors *theme.Colors, bgRaw string, width, height int,
+	oldName, oldURL, parent string) Popup {
+
 	style := newPopupStyle(colors, width, height)
+	overlay := popup.NewOverlay(bgRaw, width, height)
 	nameInput := textinput.New()
 	nameInput.CharLimit = 30
-	nameInput.Width = width - 15
 	nameInput.Prompt = "Name: "
-	descInput := textinput.New()
-	descInput.CharLimit = 30
-	descInput.Width = width - 22
-	descInput.Prompt = "Description: "
-	focusedField := allField
+	nameInput.Width = width - 20
+	urlInput := textinput.New()
+	urlInput.CharLimit = 150
+	urlInput.Width = width - 20
+	urlInput.Prompt = "URL: "
 
-	if oldName != "" || oldDesc != "" {
+	if oldName != "" || oldURL != "" {
 		nameInput.SetValue(oldName)
-		descInput.SetValue(oldDesc)
-		focusedField = nameField
-		nameInput.Focus()
+		urlInput.SetValue(oldURL)
 	}
+
+	nameInput.Focus()
 
 	return Popup{
 		overlay:   overlay,
 		style:     style,
 		nameInput: nameInput,
-		descInput: descInput,
+		urlInput:  urlInput,
 		oldName:   oldName,
-		focused:   focusedField,
+		oldURL:    oldURL,
+		parent:    parent,
 	}
 }
 
-// Init the popup window.
+// Init initializes the popup.
 func (p Popup) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-// Update the popup window.
+// Update updates the popup.
 func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		switch msg.String() {
-		case "down", "tab":
+		case "down", "up", "tab":
 			switch p.focused {
-			case allField:
-				p.focused = downloadedField
-			case downloadedField:
-				p.focused = nameField
-				cmds = append(cmds, p.nameInput.Focus())
 			case nameField:
-				p.focused = descField
+				p.focused = urlField
 				p.nameInput.Blur()
-				cmds = append(cmds, p.descInput.Focus())
-			case descField:
-				p.focused = allField
-				p.descInput.Blur()
-			}
+				cmds = append(cmds, p.urlInput.Focus())
 
-		case "up":
-			switch p.focused {
-			case allField:
-				p.focused = descField
-				cmds = append(cmds, p.descInput.Focus())
-			case downloadedField:
-				p.focused = allField
-			case nameField:
-				p.focused = downloadedField
-				p.nameInput.Blur()
-			case descField:
+			case urlField:
 				p.focused = nameField
-				p.descInput.Blur()
+				p.urlInput.Blur()
 				cmds = append(cmds, p.nameInput.Focus())
 			}
 
 		case "enter":
-			switch p.focused {
-			case allField:
-				return p, confirm(rss.AllFeedsName, "", "", false)
-
-			case downloadedField:
-				return p, confirm(rss.DownloadedFeedsName, "", "", false)
-
-			case nameField, descField:
-				return p, confirm(p.nameInput.Value(), p.descInput.Value(), p.oldName, p.oldName != "")
-			}
+			return p, confirm(
+				p.nameInput.Value(),
+				p.urlInput.Value(),
+				p.oldName,
+				p.parent,
+				p.oldName != "",
+			)
 		}
 	}
 
@@ -131,55 +111,27 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, cmd)
 	}
 
-	if p.descInput.Focused() {
+	if p.urlInput.Focused() {
 		var cmd tea.Cmd
-		p.descInput, cmd = p.descInput.Update(msg)
+		p.urlInput, cmd = p.urlInput.Update(msg)
 		cmds = append(cmds, cmd)
 	}
 
 	return p, tea.Batch(cmds...)
 }
 
-// View renders the popup window.
+// View renders the popup.
 func (p Popup) View() string {
-	question := p.style.heading.Render("Choose a category")
-	renderedChoices := make([]string, 3)
-
-	titles := []string{rss.AllFeedsName, rss.DownloadedFeedsName, "New category"}
-	descs := []string{"All the feeds", "Saved Feeds", p.nameInput.View() + "\n" + p.descInput.View()}
-
-	var focused int
-	switch p.focused {
-	case allField:
-		focused = 0
-	case downloadedField:
-		focused = 1
-	case nameField, descField:
-		focused = 2
-	}
-
-	for i := 0; i < 3; i++ {
-		if i == focused {
-			renderedChoices[i] = p.style.selectedChoice.Render(lipgloss.JoinVertical(
-				lipgloss.Top,
-				p.style.selectedChoiceTitle.Render(titles[i]),
-				p.style.selectedChoiceDesc.Render(descs[i]),
-			))
-		} else {
-			renderedChoices[i] = p.style.choice.Render(lipgloss.JoinVertical(
-				lipgloss.Top,
-				p.style.choiceTitle.Render(titles[i]),
-				p.style.choiceDesc.Render(descs[i]),
-			))
-		}
-	}
-
-	toList := p.style.list.Render(lipgloss.JoinVertical(lipgloss.Top, renderedChoices...))
-	popup := lipgloss.JoinVertical(lipgloss.Top, question, toList)
+	question := p.style.heading.Render("Choose a feed")
+	title := p.style.itemTitle.Render("New Feed")
+	name := p.style.itemField.Render(p.nameInput.View())
+	url := p.style.itemField.Render(p.urlInput.View())
+	item := p.style.item.Render(lipgloss.JoinVertical(lipgloss.Left, title, name, url))
+	popup := lipgloss.JoinVertical(lipgloss.Left, question, item)
 	return p.overlay.WrapView(p.style.general.Render(popup))
 }
 
 // confirm creates a message that confirms the user's choice.
-func confirm(name, desc, oldName string, edit bool) tea.Cmd {
-	return func() tea.Msg { return ChosenCategoryMsg{name, desc, oldName, edit} }
+func confirm(name, url, oldName, parent string, edit bool) tea.Cmd {
+	return func() tea.Msg { return ChosenFeedMsg{name, url, oldName, parent, edit} }
 }

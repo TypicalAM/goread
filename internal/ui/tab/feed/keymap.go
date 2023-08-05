@@ -55,5 +55,3 @@ func (m *Keymap) SetEnabled(enabled bool) {
 	m.CycleSelection.SetEnabled(enabled)
 	m.MarkAsUnread.SetEnabled(enabled)
 }
-
-
