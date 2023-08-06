@@ -97,7 +97,7 @@ func TestBackendGetArticles(t *testing.T) {
 	}
 
 	// Try to fetch the articles for a feed
-	result := b.FetchArticles("Primordial soup")()
+	result := b.FetchArticles("Primordial soup", false)()
 	switch msg := result.(type) {
 	case FetchArticleSuccessMsg:
 		if len(msg.Items) != 9 {
@@ -116,7 +116,7 @@ func TestBackendGetArticles(t *testing.T) {
 	}
 
 	// Try to fetch the articles for a non-existent feed
-	result = b.FetchArticles("No Feed")()
+	result = b.FetchArticles("No Feed", false)()
 	switch msg := result.(type) {
 	case FetchSuccessMsg:
 		t.Errorf("expected FetchErrorMessage, got a FetchSuccessMessage with %v items", len(msg.Items))

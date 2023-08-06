@@ -60,7 +60,7 @@ func TestCacheGetArticles(t *testing.T) {
 	}
 
 	// Check if the cache hit works
-	_, err = cache.GetArticles("https://primordialsoup.info/feed")
+	_, err = cache.GetArticles("https://primordialsoup.info/feed", false)
 	if err != nil {
 		t.Fatalf("couldn't get article: %v", err)
 	}
@@ -70,7 +70,7 @@ func TestCacheGetArticles(t *testing.T) {
 	}
 
 	// Check if the cache miss retrieves the item and puts it inside the cache
-	_, err = cache.GetArticles("https://christitus.com/categories/virtualization/index.xml")
+	_, err = cache.GetArticles("https://christitus.com/categories/virtualization/index.xml", false)
 	if err != nil {
 		t.Fatalf("couldn't get article: %v", err)
 	}
@@ -102,7 +102,7 @@ func TestCacheGetArticleExpired(t *testing.T) {
 	oldItem.Expire = time.Now().Add(-2 * DefaultCacheDuration)
 	cache.Content["https://primordialsoup.info/feed"] = oldItem
 
-	_, err = cache.GetArticles("https://primordialsoup.info/feed")
+	_, err = cache.GetArticles("https://primordialsoup.info/feed", false)
 	if err != nil {
 		t.Fatalf("couldn't get article: %v", err)
 	}
