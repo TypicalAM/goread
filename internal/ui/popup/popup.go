@@ -22,6 +22,13 @@ func NewOverlay(bgRaw string, width, height int) Overlay {
 	bgWidth := ansi.PrintableRuneWidth(bg[0])
 	bgHeight := len(bg)
 
+	if height > bgHeight {
+		height = bgHeight
+	}
+	if width > bgWidth {
+		width = bgWidth
+	}
+
 	startRow := (bgHeight - height) / 2
 	startCol := (bgWidth - width) / 2
 
@@ -67,7 +74,7 @@ func (p Overlay) WrapView(view string) string {
 	b.WriteRune('\n')
 
 	lines := strings.Split(view, "\n")
-	for i := 0; i < len(lines); i++ {
+	for i := 0; i < len(lines) && i < p.height; i++ {
 		b.WriteString(p.rowPrefix[i])
 		b.WriteString(lines[i])
 		b.WriteString(p.rowSuffix[i])
