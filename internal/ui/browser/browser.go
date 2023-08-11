@@ -23,7 +23,8 @@ import (
 // Keymap contains the key bindings for the browser
 type Keymap struct {
 	CloseTab          key.Binding
-	CycleTabs         key.Binding
+	NextTab           key.Binding
+	PrevTab           key.Binding
 	ShowHelp          key.Binding
 	ToggleOfflineMode key.Binding
 }
@@ -34,9 +35,13 @@ var DefaultKeymap = Keymap{
 		key.WithKeys("c", "ctrl+w"),
 		key.WithHelp("c", "Close tab"),
 	),
-	CycleTabs: key.NewBinding(
+	NextTab: key.NewBinding(
 		key.WithKeys("tab"),
-		key.WithHelp("Tab", "Cycle tabs"),
+		key.WithHelp("Tab", "Next tab"),
+	),
+	PrevTab: key.NewBinding(
+		key.WithKeys("shift+tab"),
+		key.WithHelp("Shift+Tab", "Previous tab"),
 	),
 	ShowHelp: key.NewBinding(
 		key.WithKeys("h", "ctrl+h"),
@@ -51,7 +56,8 @@ var DefaultKeymap = Keymap{
 // SetEnabled allows to disable/enable shortcuts
 func (k *Keymap) SetEnabled(enabled bool) {
 	k.CloseTab.SetEnabled(enabled)
-	k.CycleTabs.SetEnabled(enabled)
+	k.NextTab.SetEnabled(enabled)
+	k.PrevTab.SetEnabled(enabled)
 	k.ShowHelp.SetEnabled(enabled)
 	k.ToggleOfflineMode.SetEnabled(enabled)
 }
@@ -257,10 +263,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.msg = fmt.Sprintf("Closed tab - %s", m.tabs[m.activeTab].Title())
 			return m, nil
 
-		case key.Matches(msg, m.keymap.CycleTabs):
+		case key.Matches(msg, m.keymap.NextTab):
 			m.activeTab++
 			if m.activeTab > len(m.tabs)-1 {
 				m.activeTab = 0
+			}
+
+			m.msg = ""
+			return m, nil
+
+		case key.Matches(msg, m.keymap.PrevTab):
+			m.activeTab--
+			if m.activeTab < 0 {
+				m.activeTab = len(m.tabs) - 1
 			}
 
 			m.msg = ""
@@ -319,7 +334,7 @@ func (m Model) View() string {
 
 // ShortHelp returns the short help for the browser.
 func (m Model) ShortHelp() []key.Binding {
-	return []key.Binding{m.keymap.CloseTab, m.keymap.CycleTabs, m.keymap.ToggleOfflineMode}
+	return []key.Binding{m.keymap.CloseTab, m.keymap.NextTab, m.keymap.PrevTab, m.keymap.ToggleOfflineMode}
 }
 
 // FullHelp returns the full help for the browser.
