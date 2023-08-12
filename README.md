@@ -26,13 +26,17 @@ go install github.com/TypicalAM/goread@latest
 Add repository
 
 ```
-brew tap TypicalAM/goread
+brew tap TypicalAM/goread && brew install goread
 ```
 
-Install
+### Installing from AUR (yay)
 
 ```
-brew install goread
+yay -S goread
+```
+
+```
+yay -S goread-bin # Release binary
 ```
 
 ## 📸 What does it look like?
