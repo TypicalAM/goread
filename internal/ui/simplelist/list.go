@@ -13,9 +13,10 @@ import (
 
 // Keymap is the Keymap for the list
 type Keymap struct {
-	Open key.Binding
-	Up   key.Binding
-	Down key.Binding
+	Open        key.Binding
+	Up          key.Binding
+	Down        key.Binding
+	QuickSelect key.Binding
 }
 
 // DefaultKeymap is the default keymap for the list
@@ -31,6 +32,10 @@ var DefaultKeymap = Keymap{
 	Down: key.NewBinding(
 		key.WithKeys("down", "j"),
 		key.WithHelp("↓/j", "Move down"),
+	),
+	QuickSelect: key.NewBinding(
+		key.WithKeys("0", "1", "2", "3", "4", "5", "6", "7", "8", "9"),
+		key.WithHelp("0-9", "Quick select"),
 	),
 }
 
@@ -245,7 +250,7 @@ func (m *Model) SetIndex(index int) {
 
 // ShortHelp returns the short help for the list
 func (m Model) ShortHelp() []key.Binding {
-	return []key.Binding{m.Keymap.Open, m.Keymap.Up, m.Keymap.Down}
+	return []key.Binding{m.Keymap.Open, m.Keymap.Up, m.Keymap.Down, m.Keymap.QuickSelect}
 }
 
 // FullHelp returns the full help for the list
