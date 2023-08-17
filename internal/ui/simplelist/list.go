@@ -167,11 +167,7 @@ func (m Model) View() string {
 			break
 		}
 
-		b.WriteString(lipgloss.JoinHorizontal(
-			lipgloss.Left,
-			m.style.styleIndex(i, i == m.selected),
-			m.style.itemStyle.Render(m.items[i].FilterValue()),
-		))
+		b.WriteString(m.style.styleIndex(i, i == m.selected) + m.style.itemStyle.Render(m.items[i].FilterValue()))
 		b.WriteRune('\n')
 
 		if m.showDesc {
@@ -207,10 +203,6 @@ func (m Model) Items() []list.Item {
 
 // SetItems sets the items in the list
 func (m *Model) SetItems(items []list.Item) {
-	if len(items) > 36 {
-		panic("list: too many items")
-	}
-
 	m.items = items
 }
 

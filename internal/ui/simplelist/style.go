@@ -2,6 +2,7 @@ package simplelist
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/charmbracelet/lipgloss"
@@ -67,27 +68,29 @@ func (s listStyle) styleDescription(description string) string {
 
 // styleIndex will style the index of the item
 func (s listStyle) styleIndex(index int, isSelected bool) string {
+	var b strings.Builder
+	b.WriteString("   ")
+	b.WriteString(s.bracketStyle.Render("["))
+
 	// If the index is the active index render it differently
-	numberStyle := s.numberStyle.Copy()
+	style := s.numberStyle.Copy()
 	if isSelected {
-		numberStyle = numberStyle.Background(s.colors.Text)
+		style = style.Background(s.colors.Text)
 	}
 
 	// Check if the index is a digit
-	var indexString string
-	if index < 10 {
-		// Show a digit
-		indexString = fmt.Sprintf("%d", index)
-	} else {
-		// Show a letter
-		indexString = fmt.Sprintf("%c", index+87)
+	switch {
+	case index < 10:
+		b.WriteString(style.Render(fmt.Sprintf("%d", index)))
+
+	case index < 36:
+		b.WriteString(style.Render(fmt.Sprintf("%c", index+87)))
+
+	default:
+		b.WriteString(style.Render("-"))
 	}
+
 	// Render the whole index
-	return lipgloss.NewStyle().
-		MarginLeft(3).
-		Render(
-			s.bracketStyle.Render("[") +
-				numberStyle.Render(indexString) +
-				s.bracketStyle.Render("]"),
-		)
+	b.WriteString(s.bracketStyle.Render("]"))
+	return b.String()
 }
