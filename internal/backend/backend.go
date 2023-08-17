@@ -3,6 +3,7 @@ package backend
 import (
 	"errors"
 	"log"
+        "sort"
 
 	"github.com/TypicalAM/goread/internal/backend/cache"
 	"github.com/TypicalAM/goread/internal/backend/rss"
@@ -17,10 +18,11 @@ type Backend struct {
 	Rss        *rss.Rss
 	Cache      *cache.Cache
 	ReadStatus *cache.ReadStatus
+	order      bool
 }
 
 // New creates a new backend and its components.
-func New(urlPath, cacheDir string, resetCache bool) (*Backend, error) {
+func New(urlPath, cacheDir string, resetCache bool, order bool) (*Backend, error) {
 	log.Println("Creating new backend")
 	store, err := cache.New(cacheDir)
 	if err != nil {
@@ -51,7 +53,7 @@ func New(urlPath, cacheDir string, resetCache bool) (*Backend, error) {
 		log.Println("Rss load failed: ", err)
 	}
 
-	return &Backend{rss, store, readStatus}, nil
+	return &Backend{rss, store, readStatus, order}, nil
 }
 
 // FetchCategories gets the categories.
@@ -172,6 +174,10 @@ func (b Backend) Close() error {
 func (b Backend) articlesToSuccessMsg(items cache.SortableArticles) FetchArticleSuccessMsg {
 	result := make([]list.Item, len(items))
 	contents := make([]string, len(items))
+
+	if !b.order {
+		sort.Sort(sort.Reverse(cache.SortableArticles(items)))
+	}
 
 	for i, item := range items {
 		if b.ReadStatus.IsRead(item) {

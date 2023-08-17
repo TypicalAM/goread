@@ -30,6 +30,7 @@ type options struct {
 	dumpColors      bool
 	testColors      bool
 	resetCache      bool
+	order           string
 }
 
 var (
@@ -44,6 +45,10 @@ var (
 			if err := Run(); err != nil {
 				fmt.Fprintf(os.Stderr, "There has been an error executing the commands: '%s'", err)
 				os.Exit(1)
+			}
+			if opts.order != "chronological" && opts.order != "reverse-chronological" && opts.order != "reverse" {
+				opts.order = "chronological"
+				fmt.Println("Invalid order value. Use either 'chronological' or 'reverse-chronological' or 'reverse'.")
 			}
 		},
 	}
@@ -61,6 +66,7 @@ func init() {
 	rootCmd.Flags().IntVarP(&opts.cacheDuration, "cache_duration", "", 0, "The duration of the cache in hours")
 	rootCmd.Flags().StringVarP(&opts.loadOPMLFrom, "load_opml", "i", "", "Import the feeds from an OPML file")
 	rootCmd.Flags().StringVarP(&opts.exportOPMLTo, "export_opml", "e", "", "Export the feeds to an OPML file")
+        rootCmd.Flags().StringVarP(&opts.order, "order", "o", "chronological", "Set feed order to 'chronological' or 'reverse-chronological' or 'reverse'")
 }
 
 // SetVersion sets the version of the program
@@ -146,7 +152,7 @@ func Run() error {
 	}
 
 	// Initialize the backend
-	backend, err := backend.New(opts.urlsPath, opts.cacheDir, opts.resetCache)
+	backend, err := backend.New(opts.urlsPath, opts.cacheDir, opts.resetCache, opts.order != "reverse-chronological" && opts.order != "reverse")
 	if err != nil {
 		log.Println("Failed to initialize backend: ", err)
 		return err
