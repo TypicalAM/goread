@@ -3,6 +3,7 @@ package backend
 import (
 	"errors"
 	"log"
+	"sort"
 
 	"github.com/TypicalAM/goread/internal/backend/cache"
 	"github.com/TypicalAM/goread/internal/backend/rss"
@@ -170,6 +171,7 @@ func (b Backend) Close() error {
 
 // articlesToSuccessMsg converts a list of items to a FetchArticleSuccessMsg.
 func (b Backend) articlesToSuccessMsg(items cache.SortableArticles) FetchArticleSuccessMsg {
+	sort.Sort(items)
 	result := make([]list.Item, len(items))
 	contents := make([]string, len(items))
 

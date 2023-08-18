@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"sort"
 	"time"
 
 	"github.com/mmcdole/gofeed"
@@ -30,9 +29,7 @@ func (sa SortableArticles) Len() int {
 
 // Less returns true if the item at index i is less than the item at index j, needed for sorting
 func (sa SortableArticles) Less(a, b int) bool {
-	return sa[a].PublishedParsed.Before(
-		*sa[b].PublishedParsed,
-	)
+	return sa[a].PublishedParsed.After(*sa[b].PublishedParsed)
 }
 
 // Swap swaps the items at index i and j, needed for sorting
@@ -182,13 +179,11 @@ func (c *Cache) GetArticlesBulk(urls []string, ignoreCache bool) SortableArticle
 		}
 	}
 
-	sort.Sort(result)
 	return result
 }
 
 // GetDownloaded returns a list of downloaded items
 func (c *Cache) GetDownloaded() SortableArticles {
-	sort.Sort(c.Downloaded)
 	return c.Downloaded
 }
 
