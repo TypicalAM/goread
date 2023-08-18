@@ -189,24 +189,29 @@ func (b Backend) articlesToSuccessMsg(items cache.SortableArticles) FetchArticle
 
 // indexToItem resolves an index to an item.
 func (b Backend) indexToItem(feedName string, index int) (*gofeed.Item, error) {
+	var articles cache.SortableArticles
+
 	switch feedName {
 	case rss.AllFeedsName:
-		return &b.Cache.GetArticlesBulk(rss.Default.GetAllURLs(), false)[index], nil
+		articles = b.Cache.GetArticlesBulk(rss.Default.GetAllURLs(), false)
+
 	case rss.DownloadedFeedsName:
-		return &b.Cache.GetDownloaded()[index], nil
+		articles = b.Cache.GetDownloaded()
+
 	default:
 		url, err := b.Rss.GetFeedURL(feedName)
 		if err != nil {
 			return nil, errors.New("getting the article url")
 		}
 
-		items, err := b.Cache.GetArticles(url, false)
+		articles, err = b.Cache.GetArticles(url, false)
 		if err != nil {
 			return nil, errors.New("fetching the article")
 		}
-
-		return &items[index], nil
 	}
+
+	sort.Sort(articles)
+	return &articles[index], nil
 }
 
 // betterDesc returns a styled item description.
