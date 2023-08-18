@@ -4,7 +4,7 @@ import (
 	"github.com/TypicalAM/goread/cmd/goread"
 )
 
-var version = "v1.6.0"
+var version = "v1.6.1"
 
 func main() {
 	goread.SetVersion(version)
