@@ -90,8 +90,12 @@ func (c *Cache) Load() error {
 		return err
 	}
 
-	log.Println("Loaded initial cache entries: ", len(c.Content))
+	log.Println("Loaded cache entries: ", len(c.Content))
+	return nil
+}
 
+// Save writes the cache to disk
+func (c *Cache) Save() error {
 	// Iterate over the cache and remove any expired items
 	for key, value := range c.Content {
 		if value.Expire.Before(time.Now()) {
@@ -99,12 +103,6 @@ func (c *Cache) Load() error {
 		}
 	}
 
-	log.Println("Loaded cache entries after cleanup: ", len(c.Content))
-	return nil
-}
-
-// Save writes the cache to disk
-func (c *Cache) Save() error {
 	cacheData, err := json.Marshal(c)
 	if err != nil {
 		return err
@@ -146,27 +144,8 @@ func (c *Cache) GetArticles(url string, ignoreCache bool) (SortableArticles, err
 		return nil, err
 	}
 
-	// Delete oldest item if cache is full
-	if len(c.Content) >= DefaultCacheSize {
-		var oldestKey string
-		var oldestTime time.Time
-		for key, value := range c.Content {
-			if oldestTime.IsZero() || value.Expire.Before(oldestTime) {
-				oldestKey = key
-				oldestTime = value.Expire
-			}
-		}
-
-		delete(c.Content, oldestKey)
-	}
-
-	entry := Entry{
-		Expire:   time.Now().Add(DefaultCacheDuration),
-		Articles: articles,
-	}
-
-	c.Content[url] = entry
-	return entry.Articles, nil
+	c.Content[url] = Entry{time.Now().Add(DefaultCacheDuration), articles}
+	return articles, nil
 }
 
 // GetArticlesBulk returns a sorted list of articles from all the given urls, ignoring any errors
