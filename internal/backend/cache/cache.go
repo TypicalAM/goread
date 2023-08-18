@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -213,7 +214,10 @@ func parseFeed(url string) (*gofeed.Feed, error) {
 		},
 	}
 
-	resp, err := client.Do(req)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	resp, err := client.Do(req.WithContext(ctx))
 	if err != nil {
 		return nil, err
 	}
