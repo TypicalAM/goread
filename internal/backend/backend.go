@@ -193,7 +193,7 @@ func (b Backend) indexToItem(feedName string, index int) (*gofeed.Item, error) {
 
 	switch feedName {
 	case rss.AllFeedsName:
-		articles = b.Cache.GetArticlesBulk(rss.Default.GetAllURLs(), false)
+		articles = b.Cache.GetArticlesBulk(b.Rss.GetAllURLs(), false)
 
 	case rss.DownloadedFeedsName:
 		articles = b.Cache.GetDownloaded()
