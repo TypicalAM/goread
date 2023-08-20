@@ -174,19 +174,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Batch(m.spinner.Tick, m.fetcher(m.title, true))
 
 		case key.Matches(msg, m.keymap.SaveArticle):
-			return m, backend.DownloadItem(m.title, m.list.Index())
+			index := absListIndex(&m.list, m.list.SelectedItem().FilterValue())
+			return m, backend.DownloadItem(m.title, index)
 
 		case key.Matches(msg, m.keymap.DeleteFromSaved):
-			return m, backend.DeleteItem(m, fmt.Sprintf("%d", m.list.Index()))
+			index := absListIndex(&m.list, m.list.SelectedItem().FilterValue())
+			return m, backend.DeleteItem(m, fmt.Sprintf("%d", index))
 
 		case key.Matches(msg, m.keymap.MarkAsUnread):
-			item := m.list.SelectedItem().(backend.ArticleItem)
-			if strings.HasPrefix(item.ArtTitle, "✓ ") {
-				item.ArtTitle = strings.Join(strings.Split(item.ArtTitle, " ")[1:], " ")
-				m.list.SetItem(m.list.Index(), item)
+			selectedItem := m.list.SelectedItem().(backend.ArticleItem)
+			if !strings.HasPrefix(selectedItem.ArtTitle, "✓ ") {
+				// This item has not been read, no need to unread what is unread
+				return m, nil
 			}
 
-			return m, backend.MarkAsUnread(item.FeedURL)
+			index := absListIndex(&m.list, selectedItem.FilterValue())
+			selectedItem.ArtTitle = strings.Join(strings.Split(selectedItem.ArtTitle, " ")[1:], " ")
+			cmd := m.list.SetItem(index, selectedItem)
+			return m, tea.Batch(cmd, backend.MarkAsUnread(selectedItem.FeedURL))
 
 		case key.Matches(msg, m.keymap.CycleSelection):
 			if !m.viewportFocused {
@@ -308,13 +313,16 @@ func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
 	m.viewport.SetContent(styledText)
 	m.viewport.SetYOffset(0)
 
-	// Mark this item as read and prepend a ✓
-	item := m.list.SelectedItem().(backend.ArticleItem)
-	if !strings.HasPrefix(item.ArtTitle, "✓ ") {
-		item.ArtTitle = "✓ " + item.ArtTitle
-		m.list.SetItem(m.list.Index(), item)
+	selectedItem := m.list.SelectedItem().(backend.ArticleItem)
+	if strings.HasPrefix(selectedItem.ArtTitle, "✓ ") {
+		// This item has been read
+		return m, nil
 	}
-	return m, backend.MarkAsRead(item.FeedURL)
+
+	index := absListIndex(&m.list, selectedItem.FilterValue())
+	selectedItem.ArtTitle = "✓ " + selectedItem.ArtTitle
+	cmd := m.list.SetItem(index, selectedItem)
+	return m, tea.Batch(cmd, backend.MarkAsRead(selectedItem.FeedURL))
 }
 
 // View the tab
@@ -394,4 +402,19 @@ func (m Model) showLoading() string {
 	return m.style.loadingMsg.Render(
 		fmt.Sprintf("%s Loading feed %s", m.spinner.View(), m.title),
 	)
+}
+
+// absListIndex returns the absolute index of the currently selected item.
+func absListIndex(l *list.Model, target string) int {
+	if l.FilterState() == list.Unfiltered {
+		return l.Index()
+	}
+
+	for i, item := range l.Items() {
+		if item.FilterValue() == target {
+			return i
+		}
+	}
+
+	return -1
 }
