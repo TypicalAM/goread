@@ -156,6 +156,11 @@ func (c *Cache) GetArticlesBulk(urls []string, ignoreCache bool) SortableArticle
 	for _, url := range urls {
 		if items, err := c.GetArticles(url, ignoreCache); err == nil {
 			result = append(result, items...)
+		} else {
+			// NOTE: Let's say you have 50 feeds and 5 fail, we don't want to keep trying failed feeds
+			// so we just fill the cache with an empty item. That way load for bulk feeds is faster next time.
+			log.Println("Error getting articles for", url, err, "filling with empty item")
+			c.Content[url] = Entry{time.Now().Add(DefaultCacheDuration), SortableArticles{}}
 		}
 	}
 
