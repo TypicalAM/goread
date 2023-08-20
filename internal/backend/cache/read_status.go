@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mmcdole/gofeed"
 	"github.com/spaolacci/murmur3"
 )
 
@@ -78,19 +77,19 @@ func (rs ReadStatus) Save() error {
 }
 
 // MarkAsRead adds an article to the set.
-func (rs *ReadStatus) MarkAsRead(item gofeed.Item) {
-	rs.set[hashArticle(item)] = struct{}{}
+func (rs *ReadStatus) MarkAsRead(url string) {
+	rs.set[hashArticle(url)] = struct{}{}
 }
 
 // IsRead checks if an article is already in the set.
-func (rs ReadStatus) IsRead(item gofeed.Item) bool {
-	_, ok := rs.set[hashArticle(item)]
+func (rs ReadStatus) IsRead(url string) bool {
+	_, ok := rs.set[hashArticle(url)]
 	return ok
 }
 
 // MarkAsUnread removes an article from the set.
-func (rs *ReadStatus) MarkAsUnread(item gofeed.Item) {
-	delete(rs.set, hashArticle(item))
+func (rs *ReadStatus) MarkAsUnread(url string) {
+	delete(rs.set, hashArticle(url))
 }
 
 // marshal converts the set to bytes.
@@ -117,10 +116,8 @@ func unmarshal(data []byte) (map[uint32]struct{}, error) {
 }
 
 // hashArticle hashes the gofeed.Item to a uint32.
-func hashArticle(item gofeed.Item) uint32 {
+func hashArticle(url string) uint32 {
 	h := murmur3.New32()
-	h.Write([]byte(item.Title))
-	h.Write([]byte(item.Link))
-	h.Write([]byte(item.GUID))
+	h.Write([]byte(url))
 	return h.Sum32()
 }

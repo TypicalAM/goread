@@ -6,6 +6,30 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+// ArticleItem is an item that contains article data.
+type ArticleItem struct {
+	list.Item
+	ArtTitle        string
+	Desc            string
+	MarkdownContent string
+	FeedURL         string
+}
+
+// FilterValue fulfills the list.Item interface
+func (a ArticleItem) FilterValue() string {
+	return a.ArtTitle
+}
+
+// Title fulfills the list.DefaultItem interface
+func (a ArticleItem) Title() string {
+	return a.ArtTitle
+}
+
+// Description fulfills the list.DefaultItem interface
+func (a ArticleItem) Description() string {
+	return a.Desc
+}
+
 // Fetcher fetches the data, it is used by tabs to query data.
 type Fetcher func(feedname string) tea.Cmd
 
@@ -17,8 +41,7 @@ type FetchSuccessMsg struct{ Items []list.Item }
 
 // FetchArticleSuccessMsg is sent on article fetch success.
 type FetchArticleSuccessMsg struct {
-	Items           []list.Item
-	ArticleContents []string
+	Items []list.Item
 }
 
 // FetchErrorMsg is sent on fetch error.
@@ -81,25 +104,19 @@ func MakeChoice(question string, defaultChoice bool) tea.Cmd {
 }
 
 // MarkAsReadMsg contains info needed to mark an item as read.
-type MarkAsReadMsg struct {
-	FeedName string
-	Index    int
-}
+type MarkAsReadMsg string
 
 // MarkAsRead is called from a tab to tell the browser that an item needs to be marked as read.
-func MarkAsRead(feedName string, index int) tea.Cmd {
-	return func() tea.Msg { return MarkAsReadMsg{feedName, index} }
+func MarkAsRead(url string) tea.Cmd {
+	return func() tea.Msg { return MarkAsReadMsg(url) }
 }
 
 // MarkAsUnreadMsg contains info needed to mark an item as unread.
-type MarkAsUnreadMsg struct {
-	FeedName string
-	Index    int
-}
+type MarkAsUnreadMsg string
 
 // MarkAsUnread is called from a tab to tell the browser that an item needs to be marked as unread.
-func MarkAsUnread(feedName string, index int) tea.Cmd {
-	return func() tea.Msg { return MarkAsUnreadMsg{feedName, index} }
+func MarkAsUnread(url string) tea.Cmd {
+	return func() tea.Msg { return MarkAsUnreadMsg(url) }
 }
 
 // SetEnableKeybindMsg contains the desired state of the keybinds.

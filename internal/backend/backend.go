@@ -128,34 +128,6 @@ func (b Backend) DownloadItem(feedName string, index int) tea.Cmd {
 	}
 }
 
-// MarkAsRead marks an article as read.
-func (b Backend) MarkAsRead(feedName string, index int) tea.Cmd {
-	return func() tea.Msg {
-		item, err := b.indexToItem(feedName, index)
-		if err != nil {
-			return FetchErrorMsg{err, "Error while getting the article"}
-		}
-
-		log.Println("Marking as read:", item.Title)
-		b.ReadStatus.MarkAsRead(*item)
-		return nil
-	}
-}
-
-// MarkAsUnread marks an article as unread.
-func (b Backend) MarkAsUnread(feedName string, index int) tea.Cmd {
-	return func() tea.Msg {
-		item, err := b.indexToItem(feedName, index)
-		if err != nil {
-			return FetchErrorMsg{err, "Error while getting the article"}
-		}
-
-		log.Println("Marking as unread:", item.Title)
-		b.ReadStatus.MarkAsUnread(*item)
-		return nil
-	}
-}
-
 // Close closes the backend and saves its components.
 func (b Backend) Close() error {
 	if err := b.Rss.Save(); err != nil {
@@ -173,18 +145,21 @@ func (b Backend) Close() error {
 func (b Backend) articlesToSuccessMsg(items cache.SortableArticles) FetchArticleSuccessMsg {
 	sort.Sort(items)
 	result := make([]list.Item, len(items))
-	contents := make([]string, len(items))
 
 	for i, item := range items {
-		if b.ReadStatus.IsRead(item) {
+		if b.ReadStatus.IsRead(item.Link) {
 			item.Title = "✓ " + item.Title
 		}
 
-		result[i] = simplelist.NewItem(item.Title, betterDesc(item.Description))
-		contents[i] = rss.YassifyItem(&items[i])
+		result[i] = ArticleItem{
+			ArtTitle:        item.Title,
+			Desc:            betterDesc(item.Description),
+			MarkdownContent: rss.YassifyItem(&items[i]),
+			FeedURL:         item.Link,
+		}
 	}
 
-	return FetchArticleSuccessMsg{result, contents}
+	return FetchArticleSuccessMsg{result}
 }
 
 // indexToItem resolves an index to an item.

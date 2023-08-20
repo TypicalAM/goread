@@ -8,7 +8,6 @@ import (
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/TypicalAM/goread/internal/ui/popup"
-	"github.com/TypicalAM/goread/internal/ui/simplelist"
 	"github.com/TypicalAM/goread/internal/ui/tab"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
@@ -107,7 +106,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case backend.FetchArticleSuccessMsg:
-		return m.loadTab(msg.Items, msg.ArticleContents), nil
+		return m.loadTab(msg.Items), nil
 
 	case backend.SetEnableKeybindMsg:
 		m.keymap.SetEnabled(bool(msg))
@@ -174,13 +173,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, backend.DeleteItem(m, fmt.Sprintf("%d", m.list.Index()))
 
 		case key.Matches(msg, m.keymap.MarkAsUnread):
-			item := m.list.SelectedItem().(list.DefaultItem)
-			if strings.HasPrefix(item.Title(), "✓ ") {
-				title := strings.Join(strings.Split(item.Title(), " ")[1:], " ")
-				m.list.SetItem(m.list.Index(), simplelist.NewItem(title, item.Description()))
+			item := m.list.SelectedItem().(backend.ArticleItem)
+			if strings.HasPrefix(item.ArtTitle, "✓ ") {
+				item.ArtTitle = strings.Join(strings.Split(item.ArtTitle, " ")[1:], " ")
+				m.list.SetItem(m.list.Index(), item)
 			}
 
-			return m, backend.MarkAsUnread(m.title, m.list.Index())
+			return m, backend.MarkAsUnread(item.FeedURL)
 
 		case key.Matches(msg, m.keymap.CycleSelection):
 			if !m.viewportFocused {
@@ -220,7 +219,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // loadTab is fired when the items are retrieved from the backend
-func (m Model) loadTab(items []list.Item, articleContents []string) tab.Tab {
+func (m Model) loadTab(items []list.Item) tab.Tab {
 	itemDelegate := list.NewDefaultDelegate()
 	itemDelegate.ShowDescription = true
 	itemDelegate.Styles = m.style.listItems
@@ -228,8 +227,9 @@ func (m Model) loadTab(items []list.Item, articleContents []string) tab.Tab {
 
 	// Wrap the descs, it's better to do it upfront then to rely on the list pagination
 	for i := range items {
-		item := items[i].(list.DefaultItem)
-		items[i] = simplelist.NewItem(item.Title(), wrap.String(item.Description(), m.style.listWidth-4))
+		item := items[i].(backend.ArticleItem)
+		item.Desc = wrap.String(item.Desc, m.style.listWidth-4)
+		items[i] = item
 	}
 
 	m.list = list.New(items, itemDelegate, m.style.listWidth, m.height)
@@ -243,7 +243,6 @@ func (m Model) loadTab(items []list.Item, articleContents []string) tab.Tab {
 	m.list.KeyMap.CloseFullHelp.SetEnabled(false)
 
 	m.viewport = viewport.New(m.style.viewportWidth, m.height)
-	m.articleContent = articleContents
 
 	colorTr, err := glamour.NewTermRenderer(
 		glamour.WithStyles(m.colors.MarkdownStyle),
@@ -285,7 +284,7 @@ func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
 		return m, nil
 	}
 
-	rawText := m.articleContent[m.list.Index()]
+	rawText := m.list.SelectedItem().(backend.ArticleItem).MarkdownContent
 	styledText, err := m.colorTr.Render(rawText)
 	if err != nil {
 		m.viewport.SetContent(fmt.Sprintf("We have encountered an error styling the content: %s", err))
@@ -303,12 +302,12 @@ func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
 	m.viewport.SetYOffset(0)
 
 	// Mark this item as read and prepend a ✓
-	item := m.list.SelectedItem().(list.DefaultItem)
-	if !strings.HasPrefix(item.Title(), "✓ ") {
-		m.list.SetItem(m.list.Index(), simplelist.NewItem("✓ "+item.Title(), item.Description()))
+	item := m.list.SelectedItem().(backend.ArticleItem)
+	if !strings.HasPrefix(item.ArtTitle, "✓ ") {
+		item.ArtTitle = "✓ " + item.ArtTitle
+		m.list.SetItem(m.list.Index(), item)
 	}
-
-	return m, backend.MarkAsRead(m.title, m.list.Index())
+	return m, backend.MarkAsRead(item.FeedURL)
 }
 
 // View the tab

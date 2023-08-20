@@ -202,10 +202,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.downloadItem(msg)
 
 	case backend.MarkAsReadMsg:
-		return m, m.backend.MarkAsRead(msg.FeedName, msg.Index)
+		m.backend.ReadStatus.MarkAsRead(string(msg))
+		return m, nil
 
 	case backend.MarkAsUnreadMsg:
-		return m, m.backend.MarkAsUnread(msg.FeedName, msg.Index)
+		m.backend.ReadStatus.MarkAsRead(string(msg))
+		return m, nil
 
 	case backend.MakeChoiceMsg:
 		bg := m.View()
