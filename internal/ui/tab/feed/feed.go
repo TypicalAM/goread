@@ -174,12 +174,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Batch(m.spinner.Tick, m.fetcher(m.title, true))
 
 		case key.Matches(msg, m.keymap.SaveArticle):
-			index := absListIndex(&m.list, m.list.SelectedItem().FilterValue())
-			return m, backend.DownloadItem(m.title, index)
+			if item := m.list.SelectedItem(); item != nil {
+				return m, backend.DownloadItem(m.title, absListIndex(&m.list, item.FilterValue()))
+			}
 
 		case key.Matches(msg, m.keymap.DeleteFromSaved):
-			index := absListIndex(&m.list, m.list.SelectedItem().FilterValue())
-			return m, backend.DeleteItem(m, fmt.Sprintf("%d", index))
+			if item := m.list.SelectedItem(); item != nil {
+				return m, backend.DeleteItem(m, fmt.Sprintf("%d", absListIndex(&m.list, item.FilterValue())))
+			}
 
 		case key.Matches(msg, m.keymap.MarkAsUnread):
 			selectedItem := m.list.SelectedItem().(backend.ArticleItem)
