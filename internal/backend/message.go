@@ -70,7 +70,6 @@ func EditItem(sender tab.Tab, fields []string) tea.Cmd {
 }
 
 // DeleteItemMsg contains info the browser needs to know to delete an item.
-// TODO: How do we use the key????
 type DeleteItemMsg struct {
 	Sender   tab.Tab
 	ItemName string
