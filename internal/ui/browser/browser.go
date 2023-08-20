@@ -206,7 +206,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case backend.MarkAsUnreadMsg:
-		m.backend.ReadStatus.MarkAsRead(string(msg))
+		m.backend.ReadStatus.MarkAsUnread(string(msg))
 		return m, nil
 
 	case backend.MakeChoiceMsg:
