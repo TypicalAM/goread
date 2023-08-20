@@ -100,6 +100,13 @@ func (m Model) Init() tea.Cmd {
 
 // Update the variables of the tab
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	// Allow quitting when fetching failed
+	if m.errShown {
+		if keyMsg, ok := msg.(tea.KeyMsg); ok && keyMsg.String() == "esc" {
+			return m, backend.StartQuitting()
+		}
+	}
+
 	switch msg := msg.(type) {
 	case backend.FetchErrorMsg:
 		m.errShown = true
