@@ -311,11 +311,7 @@ func (rss *Rss) ExportOPML(path string) error {
 		return err
 	}
 
-	if err = os.WriteFile(path, []byte(data), 0644); err != nil {
-		return err
-	}
-
-	return nil
+	return os.WriteFile(path, []byte(data), 0600)
 }
 
 // HTMLToText converts html to text using the goquery library
