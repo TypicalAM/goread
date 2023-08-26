@@ -30,7 +30,6 @@ type Model struct {
 	title           string
 	viewport        viewport.Model
 	keymap          Keymap
-	articleContent  []string
 	spinner         spinner.Model
 	style           style
 	height          int
