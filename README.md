@@ -15,10 +15,10 @@
 
 ### Installing with `go install`
 
-Install with
+You can install goread using the `go` internal package manager
 
 ```
-go install github.com/TypicalAM/goread@latest
+$ go install github.com/TypicalAM/goread@latest
 ```
 
 ### Installing with `homebrew`
@@ -29,14 +29,16 @@ If you use [Homebrew](https://brew.sh/), you can install [goread](https://formul
 $ brew install goread
 ```
 
-### Installing from AUR (yay)
+### Installing from AUR
+
+If you use the [AUR](https://aur.archlinux.org/), you can install [goread](https://aur.archlinux.org/packages/goread) via:
 
 ```
-yay -S goread
+$ yay -S goread
 ```
 
 ```
-yay -S goread-bin # Release binary
+$ yay -S goread-bin # Release binary
 ```
 
 ## 📸 What does it look like?
@@ -106,22 +108,11 @@ pywal `colors.json` file which is usually located at `~/.cache/wal/colors.json`.
 
 ## ✨ Contributing
 
-### TODOs
-
-Here are the things that I've not yet implemented, contributions and suggestions are very welcome!
-
-- [x] URL highlighting and opening
-- [x] Automatically theming the glamour viewer
-- [ ] AI-Generated feed suggestions
-- [ ] Adding customizable keybinds
-
-### Issues
-
-If something doesn't work feel free to create an issue:
+If you have an idea or something doesn't work feel free to create an issue. If it is a bug remember to:
 
 - Update using `go install github.com/TypicalAM/goread@latest` or `homebrew upgrade`
 - Include output of `goread --version`
-- Include logs are usually located at `/tmp/goread.log` on linux and `%TMP%\goread.log` on Windows
+- Include logs which are usually located at `/tmp/goread.log` on linux and `%TMP%\goread.log` on Windows
 
 ## 💁 Credit where credit is due
 
