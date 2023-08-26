@@ -19,7 +19,7 @@ import (
 
 // options denote the flags that can be given to the program
 type options struct {
-	cacheDir       string
+	cacheDir        string
 	colorschemePath string
 	urlsPath        string
 	getColors       string
