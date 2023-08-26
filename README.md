@@ -23,10 +23,10 @@ go install github.com/TypicalAM/goread@latest
 
 ### Installing with `homebrew`
 
-Add repository
+If you use [Homebrew](https://brew.sh/), you can install [goread](https://formulae.brew.sh/formula/goread) via:
 
 ```
-brew tap TypicalAM/goread && brew install goread
+$ brew install goread
 ```
 
 ### Installing from AUR (yay)
@@ -137,6 +137,8 @@ The demo was made using [vhs](https://github.com/charmbracelet/vhs/), which is a
 ### Fonts & logo
 
 The font in use for the logo is sen-regular designed by "Philatype" and licensed under Open Font License. The icon was designed by throwaway icons.
+
+=======
 
 ### License
 
