@@ -2,6 +2,7 @@ package rss
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -84,7 +85,7 @@ func New(path string) (*Rss, error) {
 	if path == "" {
 		defaultPath, err := getDefaultPath()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("rss.New: %w", err)
 		}
 
 		// Set the path
@@ -99,21 +100,17 @@ func New(path string) (*Rss, error) {
 // Load will try to load the Rss structure from a file
 func (rss *Rss) Load() error {
 	log.Println("Loading rss from", rss.filePath)
-	if _, err := os.Stat(rss.filePath); err != nil {
+	data, err := os.ReadFile(rss.filePath)
+	if err != nil {
 		if os.IsNotExist(err) {
 			return nil
 		}
 
-		return err
-	}
-
-	data, err := os.ReadFile(rss.filePath)
-	if err != nil {
-		return err
+		return fmt.Errorf("rss.Load: %w", err)
 	}
 
 	if err = yaml.Unmarshal(data, rss); err != nil {
-		return err
+		return fmt.Errorf("rss.Load: %w", err)
 	}
 
 	log.Printf("Rss loaded with %d categories\n", len(rss.Categories))
@@ -124,16 +121,16 @@ func (rss *Rss) Load() error {
 func (rss Rss) Save() error {
 	yamlData, err := yaml.Marshal(rss)
 	if err != nil {
-		return err
+		return fmt.Errorf("rss.Save: %w", err)
 	}
 
 	if err = os.WriteFile(rss.filePath, yamlData, 0600); err != nil {
 		if err = os.MkdirAll(filepath.Dir(rss.filePath), 0755); err != nil {
-			return err
+			return fmt.Errorf("rss.Save: %w", err)
 		}
 
 		if err = os.WriteFile(rss.filePath, yamlData, 0600); err != nil {
-			return err
+			return fmt.Errorf("rss.Save: %w", err)
 		}
 	}
 
@@ -229,16 +226,11 @@ func YassifyItem(item *gofeed.Item) string {
 
 // HTMLToMarkdown converts html to markdown using the html-to-markdown library
 func HTMLToMarkdown(content string) (string, error) {
-	// Create a new converter
-	converter := md.NewConverter("", true, nil)
-
-	// Convert the html to markdown
-	markdown, err := converter.ConvertString(content)
+	markdown, err := md.NewConverter("", true, nil).ConvertString(content)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("HTMLToMarkdown: %w", err)
 	}
 
-	// Return the markdown
 	return markdown, nil
 }
 
@@ -246,7 +238,7 @@ func HTMLToMarkdown(content string) (string, error) {
 func (rss *Rss) LoadOPML(path string) error {
 	parsed, err := opml.NewOPMLFromFile(path)
 	if err != nil {
-		return err
+		return fmt.Errorf("rss.LoadOPML: %w", err)
 	}
 
 	for _, o := range parsed.Outlines() {
@@ -258,13 +250,13 @@ func (rss *Rss) LoadOPML(path string) error {
 			catDesc = o.Text
 		}
 
-		if err = rss.AddCategory(catName, catDesc); err != nil && err != ErrAlreadyExists {
-			return err
+		if err = rss.AddCategory(catName, catDesc); err != nil && !errors.Is(err, ErrAlreadyExists) {
+			return fmt.Errorf("rss.LoadOPML: %w", err)
 		}
 
 		if len(o.Outlines) == 0 {
-			if err = rss.AddFeed(DefaultCategoryName, o.Title, o.XMLURL); err != nil && err != ErrAlreadyExists {
-				return err
+			if err = rss.AddFeed(DefaultCategoryName, o.Title, o.XMLURL); err != nil && !errors.Is(err, ErrAlreadyExists) {
+				return fmt.Errorf("rss.LoadOPML: %w", err)
 			}
 
 			continue
@@ -272,8 +264,8 @@ func (rss *Rss) LoadOPML(path string) error {
 
 		for _, so := range o.Outlines {
 			log.Println("Adding feed:", so.Title)
-			if err = rss.AddFeed(catName, so.Title, so.XMLURL); err != nil && err != ErrAlreadyExists {
-				return err
+			if err = rss.AddFeed(catName, so.Title, so.XMLURL); err != nil && !errors.Is(err, ErrAlreadyExists) {
+				return fmt.Errorf("rss.LoadOPML: %w", err)
 			}
 		}
 	}
@@ -308,21 +300,23 @@ func (rss *Rss) ExportOPML(path string) error {
 
 	data, err := result.XML()
 	if err != nil {
-		return err
+		return fmt.Errorf("rss.ExportOPML: %w", err)
 	}
 
-	return os.WriteFile(path, []byte(data), 0600)
+	if err = os.WriteFile(path, []byte(data), 0600); err != nil {
+		return fmt.Errorf("rss.ExportOPML: %w", err)
+	}
+
+	return nil
 }
 
 // HTMLToText converts html to text using the goquery library
 func HTMLToText(content string) (string, error) {
-	// Create a new document
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(content))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("rss.HTMLToText: %w", err)
 	}
 
-	// Return the text
 	return doc.Text(), nil
 }
 
@@ -330,7 +324,7 @@ func HTMLToText(content string) (string, error) {
 func getDefaultPath() (string, error) {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("rss.getDefaultPath: %w", err)
 	}
 
 	return filepath.Join(configDir, "goread", "urls.yml"), nil

@@ -52,7 +52,7 @@ func New(path string) (*Colors, error) {
 	if path == "" {
 		defaultPath, err := getDefaultPath()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("theme.New: %w", err)
 		}
 
 		path = defaultPath
@@ -68,11 +68,11 @@ func New(path string) (*Colors, error) {
 func (c *Colors) Load() error {
 	fileContent, err := os.ReadFile(c.FilePath)
 	if err != nil {
-		return err
+		return fmt.Errorf("theme.Load: %w", err)
 	}
 
 	if err = json.Unmarshal(fileContent, c); err != nil {
-		return err
+		return fmt.Errorf("theme.Load: %w", err)
 	}
 
 	c.genMarkdownStyle()
@@ -83,16 +83,16 @@ func (c *Colors) Load() error {
 func (c Colors) Save() error {
 	jsonData, err := json.MarshalIndent(c, "", "  ")
 	if err != nil {
-		return err
+		return fmt.Errorf("theme.Save: %w", err)
 	}
 
 	if err = os.WriteFile(c.FilePath, jsonData, 0600); err != nil {
 		if err = os.MkdirAll(filepath.Dir(c.FilePath), 0755); err != nil {
-			return err
+			return fmt.Errorf("theme.Save: %w", err)
 		}
 
 		if err = os.WriteFile(c.FilePath, jsonData, 0600); err != nil {
-			return err
+			return fmt.Errorf("theme.Save: %w", err)
 		}
 	}
 
@@ -104,7 +104,7 @@ func (c *Colors) Convert(pywalFilePath string) error {
 	if pywalFilePath == "" {
 		cacheDir, err := os.UserCacheDir()
 		if err != nil {
-			return err
+			return fmt.Errorf("theme.Convert: %w", err)
 		}
 
 		pywalFilePath = filepath.Join(cacheDir, "wal", "colors.json")
@@ -112,13 +112,12 @@ func (c *Colors) Convert(pywalFilePath string) error {
 
 	fileContent, err := os.ReadFile(pywalFilePath)
 	if err != nil {
-		return err
+		return fmt.Errorf("theme.Convert: %w", err)
 	}
 
 	var walColorscheme map[string]interface{}
-	err = json.Unmarshal(fileContent, &walColorscheme)
-	if err != nil {
-		return err
+	if err = json.Unmarshal(fileContent, &walColorscheme); err != nil {
+		return fmt.Errorf("theme.Convert: %w", err)
 	}
 
 	// Set the colors
@@ -160,7 +159,7 @@ func getDefaultPath() (string, error) {
 	// Get the default config path
 	configDir, err := os.UserConfigDir()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("theme.getDefaultPath: %w", err)
 	}
 
 	// Create the config path

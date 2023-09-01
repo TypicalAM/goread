@@ -2,6 +2,7 @@ package backend
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"sort"
 
@@ -25,12 +26,12 @@ func New(urlPath, cacheDir string, resetCache bool) (*Backend, error) {
 	log.Println("Creating new backend")
 	store, err := cache.New(cacheDir)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("backend.New: %w", err)
 	}
 
 	readStatus, err := cache.NewReadStatus(cacheDir)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("backend.New: %w", err)
 	}
 
 	if !resetCache {
@@ -45,7 +46,7 @@ func New(urlPath, cacheDir string, resetCache bool) (*Backend, error) {
 
 	rss, err := rss.New(urlPath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("backend.New: %w", err)
 	}
 
 	if err = rss.Load(); err != nil {
@@ -131,14 +132,18 @@ func (b Backend) DownloadItem(feedName string, index int) tea.Cmd {
 // Close closes the backend and saves its components.
 func (b Backend) Close() error {
 	if err := b.Rss.Save(); err != nil {
-		return err
+		return fmt.Errorf("backend.Close: %w", err)
 	}
 
 	if err := b.Cache.Save(); err != nil {
-		return err
+		return fmt.Errorf("backend.Close: %w", err)
 	}
 
-	return b.ReadStatus.Save()
+	if err := b.ReadStatus.Save(); err != nil {
+		return fmt.Errorf("backend.Close: %w", err)
+	}
+
+	return nil
 }
 
 // articlesToSuccessMsg converts a list of items to a FetchArticleSuccessMsg.

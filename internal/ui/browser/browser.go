@@ -1,6 +1,7 @@
 package browser
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -114,7 +115,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		log.Printf("Error fetching data in tab %d: %v \n", m.activeTab, msg.Err)
 		updated, _ := m.tabs[m.activeTab].Update(msg)
 		m.tabs[m.activeTab] = updated.(tab.Tab)
-		m.msg = fmt.Sprintf("%s: %s", msg.Description, msg.Err.Error())
+		m.msg = fmt.Sprintf("%s: %s", msg.Description, unwrapErrs(msg.Err))
 		return m, nil
 
 	case overview.ChosenCategoryMsg:
@@ -123,13 +124,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if msg.IsEdit {
 			if err := m.backend.Rss.UpdateCategory(msg.OldName, msg.Name, msg.Desc); err != nil {
-				m.msg = fmt.Sprintf("Error updating category: %s", err.Error())
+				m.msg = fmt.Sprintf("Error updating category: %s", unwrapErrs(err))
 			} else {
 				m.msg = fmt.Sprintf("Updated category %s", msg.Name)
 			}
 		} else {
 			if err := m.backend.Rss.AddCategory(msg.Name, msg.Desc); err != nil {
-				m.msg = fmt.Sprintf("Error adding category: %s", err.Error())
+				m.msg = fmt.Sprintf("Error adding category: %s", unwrapErrs(err))
 			} else {
 				m.msg = fmt.Sprintf("Added category %s", msg.Name)
 			}
@@ -144,13 +145,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if msg.IsEdit {
 			if err := m.backend.Rss.UpdateFeed(msg.Parent, msg.OldName, msg.Name, msg.URL); err != nil {
-				m.msg = fmt.Sprintf("Error updating feed: %s", err.Error())
+				m.msg = fmt.Sprintf("Error updating feed: %s", unwrapErrs(err))
 			} else {
 				m.msg = fmt.Sprintf("Updated feed %s", msg.Name)
 			}
 		} else {
 			if err := m.backend.Rss.AddFeed(msg.Parent, msg.Name, msg.URL); err != nil {
-				m.msg = fmt.Sprintf("Error adding feed: %s", err.Error())
+				m.msg = fmt.Sprintf("Error adding feed: %s", unwrapErrs(err))
 			} else {
 				m.msg = fmt.Sprintf("Added feed %s", msg.Name)
 			}
@@ -411,13 +412,13 @@ func (m Model) deleteItem(msg backend.DeleteItemMsg) (tea.Model, tea.Cmd) {
 	case overview.Model:
 		cmd = m.backend.FetchCategories("")
 		if err := m.backend.Rss.RemoveCategory(msg.ItemName); err != nil {
-			m.msg = fmt.Sprintf("Error deleting category %s: %s", msg.ItemName, err.Error())
+			m.msg = fmt.Sprintf("Error deleting category %s: %s", msg.ItemName, unwrapErrs(err))
 		}
 
 	case category.Model:
 		cmd = m.backend.FetchFeeds(m.tabs[m.activeTab].Title())
 		if err := m.backend.Rss.RemoveFeed(m.tabs[m.activeTab].Title(), msg.ItemName); err != nil {
-			m.msg = fmt.Sprintf("Error deleting feed %s: %s", msg.ItemName, err.Error())
+			m.msg = fmt.Sprintf("Error deleting feed %s: %s", msg.ItemName, unwrapErrs(err))
 		}
 
 	case feed.Model:
@@ -425,11 +426,11 @@ func (m Model) deleteItem(msg backend.DeleteItemMsg) (tea.Model, tea.Cmd) {
 		if msg.Sender.Title() == rss.DownloadedFeedsName {
 			index, err := strconv.Atoi(msg.ItemName)
 			if err != nil {
-				m.msg = fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, err.Error())
+				m.msg = fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, unwrapErrs(err))
 			}
 
 			if err := m.backend.Cache.RemoveFromDownloaded(index); err != nil {
-				m.msg = fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, err.Error())
+				m.msg = fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, unwrapErrs(err))
 			}
 		}
 	}
@@ -508,4 +509,16 @@ func (m Model) renderStatusBar() string {
 
 	gap := m.style.statusBarGap.Render(strings.Repeat(" ", gapAmount))
 	return lipgloss.JoinHorizontal(lipgloss.Bottom, row, gap)
+}
+
+// unwrapErrs unwraps all errors in a chain of wrapped errors for use in a status message
+func unwrapErrs(err error) error {
+	for {
+		unwrapErr := errors.Unwrap(err)
+		if unwrapErr == nil {
+			break
+		}
+		err = unwrapErr
+	}
+	return err
 }

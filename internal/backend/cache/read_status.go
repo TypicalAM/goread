@@ -3,6 +3,7 @@ package cache
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -24,7 +25,7 @@ func NewReadStatus(dir string) (*ReadStatus, error) {
 	if dir == "" {
 		defaultDir, err := getDefaultDir()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("cache.New: %w", err)
 		}
 
 		dir = defaultDir
@@ -39,21 +40,21 @@ func NewReadStatus(dir string) (*ReadStatus, error) {
 // Load reads the cache from disk
 func (rs *ReadStatus) Load() error {
 	log.Println("Loading read status from", rs.filePath)
-	if _, err := os.Stat(rs.filePath); err != nil {
+	data, err := os.ReadFile(rs.filePath)
+	if err != nil {
 		if os.IsNotExist(err) {
 			return nil
 		}
 
-		return err
-	}
-
-	data, err := os.ReadFile(rs.filePath)
-	if err != nil {
-		return err
+		return fmt.Errorf("cache.Load: %w", err)
 	}
 
 	rs.set, err = unmarshal(data)
-	return err
+	if err != nil {
+		return fmt.Errorf("cache.Load: %w", err)
+	}
+
+	return nil
 }
 
 // Save writes the cache to disk
@@ -64,11 +65,11 @@ func (rs ReadStatus) Save() error {
 	// Try to write the data to the file
 	if err := os.WriteFile(rs.filePath, data, 0600); err != nil {
 		if err = os.MkdirAll(filepath.Dir(rs.filePath), 0755); err != nil {
-			return err
+			return fmt.Errorf("cache.Save: %w", err)
 		}
 
 		if err = os.WriteFile(rs.filePath, data, 0600); err != nil {
-			return err
+			return fmt.Errorf("cache.Save: %w", err)
 		}
 	}
 

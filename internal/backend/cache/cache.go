@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -58,7 +59,7 @@ func New(dir string) (*Cache, error) {
 	if dir == "" {
 		defaultDir, err := getDefaultDir()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("cache.New: %w", err)
 		}
 
 		dir = defaultDir
@@ -74,21 +75,17 @@ func New(dir string) (*Cache, error) {
 // Load reads the cache from disk
 func (c *Cache) Load() error {
 	log.Println("Loading cache from", c.filePath)
-	if _, err := os.Stat(c.filePath); err != nil {
+	data, err := os.ReadFile(c.filePath)
+	if err != nil {
 		if os.IsNotExist(err) {
 			return nil
 		}
 
-		return err
-	}
-
-	data, err := os.ReadFile(c.filePath)
-	if err != nil {
-		return err
+		return fmt.Errorf("cache.Load: %w", err)
 	}
 
 	if err = json.Unmarshal(data, &c); err != nil {
-		return err
+		return fmt.Errorf("cache.Load: %w", err)
 	}
 
 	log.Println("Loaded cache entries: ", len(c.Content))
@@ -106,17 +103,17 @@ func (c *Cache) Save() error {
 
 	cacheData, err := json.Marshal(c)
 	if err != nil {
-		return err
+		return fmt.Errorf("cache.Save: %w", err)
 	}
 
 	// Try to write the data to the file
 	if err = os.WriteFile(c.filePath, cacheData, 0600); err != nil {
 		if err = os.MkdirAll(filepath.Dir(c.filePath), 0755); err != nil {
-			return err
+			return fmt.Errorf("cache.Save: %w", err)
 		}
 
 		if err = os.WriteFile(c.filePath, cacheData, 0600); err != nil {
-			return err
+			return fmt.Errorf("cache.Save: %w", err)
 		}
 	}
 
@@ -137,12 +134,12 @@ func (c *Cache) GetArticles(url string, ignoreCache bool) (SortableArticles, err
 	}
 
 	if c.OfflineMode {
-		return nil, fmt.Errorf("offline mode")
+		return nil, errors.New("offline mode")
 	}
 
 	articles, err := fetchArticles(url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cache.GetArticles: %w", err)
 	}
 
 	c.Content[url] = Entry{time.Now().Add(DefaultCacheDuration), articles}
@@ -180,7 +177,7 @@ func (c *Cache) AddToDownloaded(item gofeed.Item) {
 // RemoveFromDownloaded removes an item from the downloaded list
 func (c *Cache) RemoveFromDownloaded(index int) error {
 	if index < 0 || index >= len(c.Downloaded) {
-		return fmt.Errorf("index out of range")
+		return errors.New("index out of range")
 	}
 
 	c.Downloaded = append(c.Downloaded[:index], c.Downloaded[index+1:]...)
@@ -192,7 +189,7 @@ func fetchArticles(url string) (SortableArticles, error) {
 	log.Println("Fetching articles from", url)
 	feed, err := parseFeed(url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cache.fetchArticles: %w", err)
 	}
 
 	items := make(SortableArticles, len(feed.Items))
@@ -208,7 +205,7 @@ func fetchArticles(url string) (SortableArticles, error) {
 func parseFeed(url string) (*gofeed.Feed, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cache.parseFeed: %w", err)
 	}
 	req.Header.Set("User-Agent", "goread (by /u/TypicalAM)")
 
@@ -224,7 +221,7 @@ func parseFeed(url string) (*gofeed.Feed, error) {
 
 	resp, err := client.Do(req.WithContext(ctx))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cache.parseFeed: %w", err)
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
@@ -236,11 +233,11 @@ func parseFeed(url string) (*gofeed.Feed, error) {
 
 	feed, err := gofeed.NewParser().Parse(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cache.parseFeed: %w", err)
 	}
 
 	if err := resp.Body.Close(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cache.parseFeed: %w", err)
 	}
 
 	return feed, nil
@@ -250,7 +247,7 @@ func parseFeed(url string) (*gofeed.Feed, error) {
 func getDefaultDir() (string, error) {
 	dir, err := os.UserCacheDir()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("cache.getDefaultDir: %w", err)
 	}
 
 	return filepath.Join(dir, "goread"), nil
