@@ -209,6 +209,14 @@ func YassifyItem(item *gofeed.Item) string {
 		mdown += htmlMarkdown
 	}
 
+	mdown += "\n"
+	htmlMarkdown, err = HTMLToMarkdown(item.Content)
+	if err != nil {
+		mdown += item.Content
+	} else {
+		mdown += htmlMarkdown
+	}
+
 	// Add the links if there are any
 	if len(item.Links) > 0 {
 		mdown += "\n## Links\n"
