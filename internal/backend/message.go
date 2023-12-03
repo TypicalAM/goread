@@ -11,6 +11,7 @@ type ArticleItem struct {
 	list.Item
 	ArtTitle        string
 	Desc            string
+	RawDesc         string
 	MarkdownContent string
 	FeedURL         string
 }

@@ -158,7 +158,7 @@ func (b Backend) articlesToSuccessMsg(items cache.SortableArticles) FetchArticle
 
 		result[i] = ArticleItem{
 			ArtTitle:        item.Title,
-			Desc:            betterDesc(item.Description),
+			RawDesc:         betterDesc(item.Description),
 			MarkdownContent: rss.YassifyItem(&items[i]),
 			FeedURL:         item.Link,
 		}

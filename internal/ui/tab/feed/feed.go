@@ -89,6 +89,15 @@ func (m Model) SetSize(width, height int) tab.Tab {
 	m.width = width
 	m.height = height
 	newTab, _ := m.updateViewport()
+
+	// Re-Wrap the descs
+	items := m.list.Items()
+	for i := range items {
+		item := items[i].(backend.ArticleItem)
+		item.Desc = wrap.String(item.RawDesc, m.style.listWidth-4)
+		items[i] = item
+	}
+
 	return newTab
 }
 
@@ -241,7 +250,7 @@ func (m Model) loadTab(items []list.Item) tab.Tab {
 	// Wrap the descs, it's better to do it upfront then to rely on the list pagination
 	for i := range items {
 		item := items[i].(backend.ArticleItem)
-		item.Desc = wrap.String(item.Desc, m.style.listWidth-4)
+		item.Desc = wrap.String(item.RawDesc, m.style.listWidth-4)
 		items[i] = item
 	}
 
