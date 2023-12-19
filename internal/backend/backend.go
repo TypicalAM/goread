@@ -51,6 +51,7 @@ func New(urlPath, cacheDir string, resetCache bool) (*Backend, error) {
 
 	if err = rss.Load(); err != nil {
 		log.Println("Rss load failed: ", err)
+		return nil, fmt.Errorf("backend.New: %w", err)
 	}
 
 	return &Backend{rss, store, readStatus}, nil
