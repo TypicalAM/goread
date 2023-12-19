@@ -42,7 +42,7 @@ var (
 		Short: "goread - a fancy TUI for reading RSS/Atom feeds",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := Run(); err != nil {
-				fmt.Fprintf(os.Stderr, "There has been an error executing the commands: '%s'", err)
+				fmt.Fprintf(os.Stderr, errStyle.Render("There has been an error executing the commands: '%s'"), err)
 				os.Exit(1)
 			}
 		},
@@ -71,7 +71,7 @@ func SetVersion(version string) {
 // Execute executes the commands
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "There has been an error executing the commands: '%s'", err)
+		fmt.Fprintf(os.Stderr, errStyle.Render("There has been an error executing the commands: '%s'"), err)
 		os.Exit(1)
 	}
 }
@@ -106,7 +106,6 @@ func Run() error {
 	if opts.dumpColors {
 		if err := colors.Save(); err != nil {
 			log.Println("Failed to save colorscheme: ", err)
-			fmt.Println(errStyle.Render("Failed to save the colorscheme"))
 			return err
 		}
 
@@ -157,7 +156,6 @@ func Run() error {
 		log.Println("Loading OPML file: ", opts.loadOPMLFrom)
 
 		if err := backend.Rss.LoadOPML(opts.loadOPMLFrom); err != nil {
-			fmt.Println(errStyle.Render("Loaded OPML file failed"))
 			return err
 		}
 
@@ -170,7 +168,6 @@ func Run() error {
 		log.Println("Exporting OPML file to: ", opts.exportOPMLTo)
 
 		if err := backend.Rss.ExportOPML(opts.exportOPMLTo); err != nil {
-			fmt.Println(errStyle.Render("Exporting OPML file failed"))
 			return err
 		}
 
