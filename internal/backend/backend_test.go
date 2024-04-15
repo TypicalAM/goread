@@ -1,10 +1,31 @@
 package backend
 
 import (
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/TypicalAM/goread/internal/backend/rss"
 )
+
+const TEST_OFFLINE_ENV = "TEST_OFFLINE_ONLY"
+
+// testOffline checks if the tests should be in offline mode
+func testOffline() bool {
+	offline, ok := os.LookupEnv(TEST_OFFLINE_ENV)
+	if !ok {
+		return false
+	}
+
+	truthy := []string{"1", "YES", "Y", "TRUE", "ON"}
+	for _, val := range truthy {
+		if strings.ToUpper(offline) == val {
+			return true
+		}
+	}
+
+	return false
+}
 
 // getBackend creates a fake backend
 func getBackend() (*Backend, error) {
@@ -90,6 +111,12 @@ func TestBackendGetFeeds(t *testing.T) {
 
 // TestBackendGetArticles if we get an error getting items from a feed doesn't work
 func TestBackendGetArticles(t *testing.T) {
+	// This test should only run online
+	if testOffline() {
+		t.Skip()
+		return
+	}
+
 	// Create a backend with a valid file
 	b, err := getBackend()
 	if err != nil {
