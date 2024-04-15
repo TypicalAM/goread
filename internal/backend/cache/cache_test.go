@@ -1,9 +1,30 @@
 package cache
 
 import (
+	"os"
+	"strings"
 	"testing"
 	"time"
 )
+
+const TEST_OFFLINE_ENV = "TEST_OFFLINE_ONLY"
+
+// testOffline checks if the tests should be in offline mode
+func testOffline() bool {
+	offline, ok := os.LookupEnv(TEST_OFFLINE_ENV)
+	if !ok {
+		return false
+	}
+
+	truthy := []string{"1", "YES", "Y", "TRUE", "ON"}
+	for _, val := range truthy {
+		if strings.ToUpper(offline) == val {
+			return true
+		}
+	}
+
+	return false
+}
 
 // getCache returns a new cache with the fake data
 func getCache() (*Cache, error) {
@@ -53,6 +74,12 @@ func TestCacheLoadCorrectly(t *testing.T) {
 
 // TestCacheGetArticles if we get an error when there's a cache miss but the cache doesn't change
 func TestCacheGetArticles(t *testing.T) {
+	// This test should only run online
+	if testOffline() {
+		t.Skip()
+		return
+	}
+
 	// Create the cache object with a valid file
 	cache, err := getCache()
 	if err != nil {
@@ -86,6 +113,12 @@ func TestCacheGetArticles(t *testing.T) {
 
 // TestCacheGetArticleExpired if we get an error then the store doesn't delete expired cache when getting data
 func TestCacheGetArticleExpired(t *testing.T) {
+	// This test should only run online
+	if testOffline() {
+		t.Skip()
+		return
+	}
+
 	// Create the cache object with a valid file
 	cache, err := getCache()
 	if err != nil {
