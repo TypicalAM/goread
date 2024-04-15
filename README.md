@@ -114,6 +114,8 @@ If you have an idea or something doesn't work feel free to create an issue. If i
 - Include output of `goread --version`
 - Include logs which are usually located at `/tmp/goread.log` on linux and `%TMP%\goread.log` on Windows
 
+When running tests (for example when packaging) you can disable online tests by setting the env var `TEST_OFFLINE_ONLY` to a truthy value (for example "YES").
+
 ## 💁 Credit where credit is due
 
 ### Libraries
