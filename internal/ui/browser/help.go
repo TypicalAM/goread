@@ -34,13 +34,13 @@ func newHelp(colors *theme.Colors, bgRaw string, binds [][]key.Binding) *Help {
 
 	rendered := helpModel.FullHelpView(binds)
 	width := ansi.PrintableRuneWidth(rendered[:strings.IndexRune(rendered, '\n')-1]) + 6
-	height := strings.Count(rendered, "\n") + 7
+	height := strings.Count(rendered, "\n") + 5
 
 	border := popup.NewTitleBorder("Help", width, height, colors.Color1, lipgloss.NormalBorder())
 	return &Help{
 		help:     helpModel,
 		border:   border,
-		box:      lipgloss.NewStyle().Margin(2, 2),
+		box:      lipgloss.NewStyle().Margin(1, 2, 1, 4),
 		keyBinds: binds,
 		overlay:  popup.NewOverlay(bgRaw, width, height),
 	}

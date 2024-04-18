@@ -136,7 +136,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
-		log.Println(m.msg)
 		return m, m.backend.FetchCategories("")
 
 	case category.ChosenFeedMsg:
@@ -157,7 +156,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 
-		log.Println(m.msg)
 		return m, m.backend.FetchFeeds(msg.Parent)
 
 	case tab.NewTabMsg:
@@ -333,9 +331,9 @@ func (m Model) ShortHelp() []key.Binding {
 
 // FullHelp returns the full help for the browser.
 func (m Model) FullHelp() [][]key.Binding {
-	result := [][]key.Binding{m.ShortHelp()}
-	result = append(result, m.tabs[m.activeTab].FullHelp()...)
-	return result
+	browserHelp := [][]key.Binding{m.ShortHelp()}
+	childHelp := m.tabs[m.activeTab].FullHelp()
+	return prettifyHelp(browserHelp, childHelp)
 }
 
 // waitForSize waits for the window size to be set and loads the tab
@@ -508,4 +506,78 @@ func unwrapErrs(err error) error {
 		err = unwrapErr
 	}
 	return err
+}
+
+// prettifyHelp prettifies the help columns, removes the lower level bind if a higher one precedes it
+func prettifyHelp(first, second [][]key.Binding) [][]key.Binding {
+	toDelSecond := make([]int, 0)
+	toDelThird := make([]int, 0)
+
+	for _, elem := range first[0] {
+		// Second col
+		for idx2, elem2 := range second[0] {
+			if strIntersect(elem.Keys(), elem2.Keys()) {
+				toDelSecond = append(toDelSecond, idx2)
+			}
+		}
+
+		// Third col
+		for idx2, elem2 := range second[1] {
+			if strIntersect(elem.Keys(), elem2.Keys()) {
+				toDelThird = append(toDelThird, idx2)
+			}
+		}
+	}
+
+	second[0] = deleteBinds(second[0], toDelSecond)
+	second[1] = deleteBinds(second[1], toDelThird)
+
+	for _, elem := range second[0] {
+		// Third col
+		for idx2, elem2 := range second[1] {
+			if strIntersect(elem.Keys(), elem2.Keys()) {
+				toDelThird = append(toDelThird, idx2)
+			}
+		}
+	}
+
+	second[1] = deleteBinds(second[1], toDelThird)
+	return append(first, second...)
+}
+
+// deleteBinds removes items from a bind slice via a list of indices
+func deleteBinds(arr []key.Binding, indices []int) []key.Binding {
+	if len(indices) == 0 {
+		return arr
+	}
+
+	result := make([]key.Binding, 0, len(arr)-len(indices))
+	for idx, elem := range arr {
+		add := true
+		for _, toDel := range indices {
+			if idx == toDel {
+				add = false
+				break
+			}
+		}
+
+		if add {
+			result = append(result, elem)
+		}
+	}
+
+	return result
+}
+
+// strIntersect checks if two string slices have a non-empty intersection
+func strIntersect(first, second []string) bool {
+	for _, elem := range first {
+		for _, elem2 := range second {
+			if elem == elem2 {
+				return true
+			}
+		}
+	}
+
+	return false
 }
