@@ -1,31 +1,46 @@
 package browser
 
 import (
+	"strings"
+
 	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/TypicalAM/goread/internal/ui/popup"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/ansi"
 )
 
 // Help is a popup that displays the help page.
 type Help struct {
+	border   popup.TitleBorder
 	help     help.Model
-	style    helpStyle
+	box      lipgloss.Style
 	keyBinds [][]key.Binding
 	overlay  popup.Overlay
 }
 
 // newHelp returns a new Help popup.
-func newHelp(colors *theme.Colors, bgRaw string, width, height int, binds [][]key.Binding) *Help {
-	style := newHelpStyle(colors, width, height)
-	help := help.New()
-	help.Styles = style.help
+func newHelp(colors *theme.Colors, bgRaw string, binds [][]key.Binding) *Help {
+	helpModel := help.New()
+	helpModel.Styles = help.Styles{}
+	helpModel.Styles.FullDesc = lipgloss.NewStyle().
+		Foreground(colors.Text)
+	helpModel.Styles.FullKey = lipgloss.NewStyle().
+		Foreground(colors.Color2)
+	helpModel.Styles.FullSeparator = lipgloss.NewStyle().
+		Foreground(colors.TextDark)
 
+	rendered := helpModel.FullHelpView(binds)
+	width := ansi.PrintableRuneWidth(rendered[:strings.IndexRune(rendered, '\n')-1]) + 6
+	height := strings.Count(rendered, "\n") + 7
+
+	border := popup.NewTitleBorder("Help", width, height, colors.Color1, lipgloss.NormalBorder())
 	return &Help{
-		help:     help,
-		style:    style,
+		help:     helpModel,
+		border:   border,
+		box:      lipgloss.NewStyle().Margin(2, 2),
 		keyBinds: binds,
 		overlay:  popup.NewOverlay(bgRaw, width, height),
 	}
@@ -43,8 +58,6 @@ func (h Help) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders the popup.
 func (h Help) View() string {
-	return h.overlay.WrapView(h.style.box.Render(lipgloss.JoinVertical(lipgloss.Center,
-		h.style.title.Render("Help"),
-		h.help.FullHelpView(h.keyBinds),
-	)))
+	list := h.box.Render(h.help.FullHelpView(h.keyBinds))
+	return h.overlay.WrapView(h.border.Render(list))
 }

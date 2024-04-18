@@ -439,11 +439,7 @@ func (m Model) downloadItem(msg backend.DownloadItemMsg) (tea.Model, tea.Cmd) {
 
 // showHelp shows the help menu as a popup.
 func (m Model) showHelp() (tea.Model, tea.Cmd) {
-	bg := m.View()
-	width := m.width * 2 / 3
-	height := 17
-
-	m.popup = newHelp(m.style.colors, bg, width, height, m.FullHelp())
+	m.popup = newHelp(m.style.colors, m.View(), m.FullHelp())
 	m.keymap.SetEnabled(false)
 	return m, nil
 }
