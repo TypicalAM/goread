@@ -35,14 +35,17 @@ type Popup struct {
 	parent    string
 	overlay   popup.Overlay
 	focused   focusedField
+	editing   bool
 }
 
 // NewPopup returns a new feed popup.
-func NewPopup(colors *theme.Colors, bgRaw string, width, height int,
-	oldName, oldURL, parent string) Popup {
+func NewPopup(colors *theme.Colors, bgRaw string, oldName, oldURL, parent string) Popup {
+	width := 40
+	height := 7
 
-	style := newPopupStyle(colors, width, height)
 	overlay := popup.NewOverlay(bgRaw, width, height)
+	editing := oldName != "" || oldURL != ""
+
 	nameInput := textinput.New()
 	nameInput.CharLimit = 30
 	nameInput.Prompt = "Name: "
@@ -52,7 +55,14 @@ func NewPopup(colors *theme.Colors, bgRaw string, width, height int,
 	urlInput.Width = width - 20
 	urlInput.Prompt = "URL: "
 
-	if oldName != "" || oldURL != "" {
+	style := popupStyle{}
+	if editing {
+		style = newPopupStyle(colors, width, height, "Edit feed")
+	} else {
+		style = newPopupStyle(colors, width, height, "New feed")
+	}
+
+	if editing {
 		nameInput.SetValue(oldName)
 		urlInput.SetValue(oldURL)
 	}
@@ -67,6 +77,7 @@ func NewPopup(colors *theme.Colors, bgRaw string, width, height int,
 		oldName:   oldName,
 		oldURL:    oldURL,
 		parent:    parent,
+		editing:   editing,
 	}
 }
 
@@ -122,13 +133,18 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders the popup.
 func (p Popup) View() string {
-	question := p.style.heading.Render("Choose a feed")
-	title := p.style.itemTitle.Render("New Feed")
+	itemText := ""
+	if p.editing {
+		itemText = "Your feed"
+	} else {
+		itemText = "New feed"
+	}
+
+	itemTitle := p.style.itemTitle.Render(itemText)
 	name := p.style.itemField.Render(p.nameInput.View())
 	url := p.style.itemField.Render(p.urlInput.View())
-	item := p.style.item.Render(lipgloss.JoinVertical(lipgloss.Left, title, name, url))
-	popup := lipgloss.JoinVertical(lipgloss.Left, question, item)
-	return p.overlay.WrapView(p.style.general.Render(popup))
+	listItem := p.style.listItem.Render(lipgloss.JoinVertical(lipgloss.Left, itemTitle, name, url))
+	return p.overlay.WrapView(p.style.border.Render(listItem))
 }
 
 // confirm creates a message that confirms the user's choice.

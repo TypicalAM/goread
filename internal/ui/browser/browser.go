@@ -164,15 +164,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.createNewTab(msg)
 
 	case backend.NewItemMsg:
-		bg := m.View()
-		width := m.width / 2
-		height := 17
-
 		switch msg.Sender.(type) {
 		case overview.Model:
-			m.popup = overview.NewPopup(m.style.colors, bg, width, height, "", "")
+			m.popup = overview.NewPopup(m.style.colors, m.View(), "", "")
 		case category.Model:
-			m.popup = category.NewPopup(m.style.colors, bg, width, height, "", "", msg.Sender.Title())
+			m.popup = category.NewPopup(m.style.colors, m.View(), "", "", msg.Sender.Title())
 		case feed.Model:
 		}
 
@@ -180,16 +176,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.popup.Init()
 
 	case backend.EditItemMsg:
-		bg := m.View()
-		width := m.width / 2
-		height := 17
 		oldName, oldDesc := msg.OldFields[0], msg.OldFields[1]
 
 		switch msg.Sender.(type) {
 		case overview.Model:
-			m.popup = overview.NewPopup(m.style.colors, bg, width, height, oldName, oldDesc)
+			m.popup = overview.NewPopup(m.style.colors, m.View(), oldName, oldDesc)
 		case category.Model:
-			m.popup = category.NewPopup(m.style.colors, bg, width, height, oldName, oldDesc, msg.Sender.Title())
+			m.popup = category.NewPopup(m.style.colors, m.View(), oldName, oldDesc, msg.Sender.Title())
 		case feed.Model:
 		}
 
@@ -211,10 +204,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case backend.MakeChoiceMsg:
-		bg := m.View()
-		width := m.width / 2
-		m.popup = popup.NewChoice(m.style.colors, bg, width, msg.Question, msg.Default)
-
+		m.popup = popup.NewChoice(m.style.colors, m.View(), msg.Question, msg.Default)
 		m.keymap.SetEnabled(false)
 		return m, m.popup.Init()
 
@@ -222,6 +212,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.keymap.SetEnabled(true)
 		m.popup = nil
 
+	// TODO: Resize the popup if necessary
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
