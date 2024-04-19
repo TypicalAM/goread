@@ -36,6 +36,7 @@ type Popup struct {
 	editing   bool
 	width     int
 	height    int
+	reserved  bool
 }
 
 // NewPopup creates a new popup window in which the user can choose a new category.
@@ -44,6 +45,8 @@ func NewPopup(colors *theme.Colors, oldName, oldDesc string) Popup {
 	height := 14
 
 	editing := oldName != "" || oldDesc != ""
+	reserved := oldName == rss.AllFeedsName || oldName == rss.DownloadedFeedsName
+
 	nameInput := textinput.New()
 	nameInput.CharLimit = 30
 	nameInput.Width = width - 15
@@ -52,7 +55,11 @@ func NewPopup(colors *theme.Colors, oldName, oldDesc string) Popup {
 	descInput.CharLimit = 30
 	descInput.Width = width - 22
 	descInput.Prompt = "Description: "
-	focusedField := allField
+
+	focused := allField
+	if oldName == rss.DownloadedFeedsName {
+		focused = downloadedField
+	}
 
 	style := popupStyle{}
 	if editing {
@@ -61,10 +68,10 @@ func NewPopup(colors *theme.Colors, oldName, oldDesc string) Popup {
 		style = newPopupStyle(colors, width, height, "New category")
 	}
 
-	if editing {
+	if editing && !reserved {
 		nameInput.SetValue(oldName)
 		descInput.SetValue(oldDesc)
-		focusedField = nameField
+		focused = nameField
 		nameInput.Focus()
 	}
 
@@ -73,10 +80,11 @@ func NewPopup(colors *theme.Colors, oldName, oldDesc string) Popup {
 		nameInput: nameInput,
 		descInput: descInput,
 		oldName:   oldName,
-		focused:   focusedField,
+		focused:   focused,
 		editing:   editing,
 		width:     width,
 		height:    height,
+		reserved:  reserved,
 	}
 }
 
@@ -90,6 +98,10 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	if msg, ok := msg.(tea.KeyMsg); ok {
+		if p.reserved && msg.String() == "enter" {
+			return p, nil
+		}
+
 		switch msg.String() {
 		case "down", "tab":
 			switch p.focused {
