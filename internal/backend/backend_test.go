@@ -8,11 +8,11 @@ import (
 	"github.com/TypicalAM/goread/internal/backend/rss"
 )
 
-const TEST_OFFLINE_ENV = "TEST_OFFLINE_ONLY"
+const TestOfflineEnv = "TEST_OFFLINE_ONLY"
 
 // testOffline checks if the tests should be in offline mode
 func testOffline() bool {
-	offline, ok := os.LookupEnv(TEST_OFFLINE_ENV)
+	offline, ok := os.LookupEnv(TestOfflineEnv)
 	if !ok {
 		return false
 	}

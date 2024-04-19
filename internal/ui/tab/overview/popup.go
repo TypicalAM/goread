@@ -61,7 +61,7 @@ func NewPopup(colors *theme.Colors, oldName, oldDesc string) Popup {
 		focused = downloadedField
 	}
 
-	style := popupStyle{}
+	var style popupStyle
 	if editing {
 		style = newPopupStyle(colors, width, height, "Edit category")
 	} else {

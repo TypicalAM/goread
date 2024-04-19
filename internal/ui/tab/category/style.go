@@ -9,7 +9,6 @@ import (
 // popupStyle is the style of the popup window.
 type popupStyle struct {
 	border    popup.TitleBorder
-	heading   lipgloss.Style
 	listItem  lipgloss.Style
 	itemTitle lipgloss.Style
 	itemField lipgloss.Style

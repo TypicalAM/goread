@@ -54,7 +54,7 @@ func NewPopup(colors *theme.Colors, oldName, oldURL, parent string) Popup {
 	urlInput.Width = width - 20
 	urlInput.Prompt = "URL: "
 
-	style := popupStyle{}
+	var style popupStyle
 	if editing {
 		style = newPopupStyle(colors, width, height, "Edit feed")
 	} else {

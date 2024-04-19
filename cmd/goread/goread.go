@@ -40,7 +40,7 @@ var (
 	rootCmd = &cobra.Command{
 		Use:   "goread",
 		Short: "goread - a fancy TUI for reading RSS/Atom feeds",
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			if err := Run(); err != nil {
 				fmt.Fprintf(os.Stderr, errStyle.Render("There has been an error executing the commands: '%s'"), err)
 				os.Exit(1)
