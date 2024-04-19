@@ -151,6 +151,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.list.SetFilteringEnabled(true)
 			return m, nil
 
+		case key.Matches(msg, m.list.KeyMap.CursorUp), key.Matches(msg, m.list.KeyMap.CursorDown):
+			if !m.viewportFocused {
+				var cmd tea.Cmd
+				m.list, cmd = m.list.Update(msg)
+				if !m.viewportOpen {
+					m.viewportOpen = true
+				}
+
+				m, cmd2 := m.updateViewport()
+				return m, tea.Batch(cmd, cmd2)
+			}
+
 		case key.Matches(msg, m.keymap.Open):
 			if m.viewportFocused && m.selector.active {
 				return m, backend.MakeChoice("Open in browser?", true)
@@ -164,7 +176,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.viewportOpen = true
 			}
 
-			return m.updateViewport()
+			m, cmd := m.updateViewport()
+			m, cmd2 := m.(Model).markAsRead()
+			return m, tea.Batch(cmd, cmd2)
 
 		case key.Matches(msg, m.keymap.ToggleFocus):
 			if !m.viewportOpen {
@@ -182,9 +196,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Batch(m.spinner.Tick, m.fetcher(m.title, true))
 
 		case key.Matches(msg, m.keymap.SaveArticle):
-			if item := m.list.SelectedItem(); item != nil {
-				return m, backend.DownloadItem(m.title, absListIndex(&m.list, item.FilterValue()))
+			if m.list.SelectedItem() == nil {
+				return m, nil
 			}
+
+			if !m.viewportOpen {
+				m.viewportOpen = true
+			}
+
+			m, cmd := m.updateViewport()
+			m, cmd2 := m.(Model).markAsSaved()
+			return m, tea.Batch(cmd, cmd2)
 
 		case key.Matches(msg, m.keymap.DeleteFromSaved):
 			if item := m.list.SelectedItem(); item != nil {
@@ -193,7 +215,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case key.Matches(msg, m.keymap.MarkAsUnread):
 			selectedItem := m.list.SelectedItem().(backend.ArticleItem)
-			if !strings.HasPrefix(selectedItem.ArtTitle, "✓ ") {
+			if !strings.HasPrefix(selectedItem.ArtTitle, "✓ ") || strings.HasPrefix(selectedItem.ArtTitle, "↓ ") {
 				// This item has not been read, no need to unread what is unread
 				return m, nil
 			}
@@ -237,7 +259,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	keysEnabled := m.list.FilterState() != list.Filtering
 	m.lastFilterState = m.list.FilterState()
-	return m, tea.Sequence(cmd, backend.SetEnableKeybind(keysEnabled))
+	return m, tea.Batch(cmd, backend.SetEnableKeybind(keysEnabled))
 }
 
 // loadTab is fired when the items are retrieved from the backend
@@ -295,8 +317,7 @@ func (m Model) loadTab(items []list.Item) tab.Tab {
 	return m
 }
 
-// updateViewport is fired when the user presses enter, it updates the
-// viewport with the selected item
+// updateViewport displays the viewport content
 func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
 	if !m.viewportOpen {
 		return m, nil
@@ -322,9 +343,13 @@ func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
 	m.selector.newArticle(&rawText, &noColorText)
 	m.viewport.SetContent(styledText)
 	m.viewport.SetYOffset(0)
+	return m, nil
+}
 
+// markAsRead sets the selected article as read.
+func (m Model) markAsRead() (tab.Tab, tea.Cmd) {
 	selectedItem := m.list.SelectedItem().(backend.ArticleItem)
-	if strings.HasPrefix(selectedItem.ArtTitle, "✓ ") {
+	if strings.HasPrefix(selectedItem.Title(), "✓ ") || strings.HasPrefix(selectedItem.Title(), "↓ ") {
 		// This item has been read
 		return m, nil
 	}
@@ -333,6 +358,25 @@ func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
 	selectedItem.ArtTitle = "✓ " + selectedItem.ArtTitle
 	cmd := m.list.SetItem(index, selectedItem)
 	return m, tea.Batch(cmd, backend.MarkAsRead(selectedItem.FeedURL))
+}
+
+// markAsSaved sets the selected article as saved.
+func (m Model) markAsSaved() (tab.Tab, tea.Cmd) {
+	selectedItem := m.list.SelectedItem().(backend.ArticleItem)
+	if strings.HasPrefix(selectedItem.Title(), "↓ ") {
+		// This item has been already saved
+		return m, nil
+	}
+
+	if strings.HasPrefix(selectedItem.Title(), "✓ ") {
+		selectedItem.ArtTitle = "↓ " + selectedItem.ArtTitle[4:]
+	} else {
+		selectedItem.ArtTitle = "↓ " + selectedItem.ArtTitle
+	}
+
+	index := absListIndex(&m.list, selectedItem.FilterValue())
+	cmd := m.list.SetItem(index, selectedItem)
+	return m, tea.Batch(cmd, backend.DownloadItem(m.title, index))
 }
 
 // View the tab

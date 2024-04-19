@@ -152,8 +152,25 @@ func (b Backend) articlesToSuccessMsg(items cache.SortableArticles) FetchArticle
 	sort.Sort(items)
 	result := make([]list.Item, len(items))
 
+	savedArticles := b.Cache.GetDownloaded()
+	sort.Sort(savedArticles)
+
 	for i, item := range items {
-		if b.ReadStatus.IsRead(item.Link) {
+		alreadySaved := false
+		for j, saved := range savedArticles {
+			if item.Title+item.Link == item.Title+saved.Link {
+				alreadySaved = true
+				break
+			}
+
+			if j > 25 {
+				break // NOTE: We don't want to do this for long
+			}
+		}
+
+		if alreadySaved {
+			item.Title = "↓ " + item.Title
+		} else if b.ReadStatus.IsRead(item.Link) {
 			item.Title = "✓ " + item.Title
 		}
 
