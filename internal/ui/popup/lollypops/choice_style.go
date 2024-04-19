@@ -1,20 +1,21 @@
-package popup
+package lollypops
 
 import (
 	"github.com/TypicalAM/goread/internal/theme"
+	"github.com/TypicalAM/goread/internal/ui/popup"
 	"github.com/charmbracelet/lipgloss"
 )
 
-// style is the style of the choice popup
-type style struct {
-	border       TitleBorder
+// choiceStyle is the style of the choice popup
+type choiceStyle struct {
+	border       popup.TitleBorder
 	button       lipgloss.Style
 	activeButton lipgloss.Style
 	question     lipgloss.Style
 }
 
-// newStyle creates a new style for the choice popup
-func newStyle(colors *theme.Colors, width, height int) style {
+// newChoiceStyle creates a new style for the choice popup
+func newChoiceStyle(colors *theme.Colors, width, height int) choiceStyle {
 	buttonStyle := lipgloss.NewStyle().
 		Foreground(colors.TextDark).
 		Background(colors.BgDark).
@@ -31,8 +32,8 @@ func newStyle(colors *theme.Colors, width, height int) style {
 		Italic(true).
 		Align(lipgloss.Center)
 
-	return style{
-		border:       NewTitleBorder("Confirm choice", width, height, colors.Color1, lipgloss.NormalBorder()),
+	return choiceStyle{
+		border:       popup.NewTitleBorder("Confirm choice", width, height, colors.Color1, lipgloss.NormalBorder()),
 		button:       buttonStyle,
 		activeButton: activeButtonStyle,
 		question:     question,

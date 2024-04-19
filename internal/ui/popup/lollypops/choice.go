@@ -1,4 +1,4 @@
-package popup
+package lollypops
 
 import (
 	"github.com/TypicalAM/goread/internal/theme"
@@ -13,7 +13,7 @@ type ChoiceResultMsg struct {
 
 // Choice is a popup that presents a yes/no choice to the user.
 type Choice struct {
-	style    style
+	style    choiceStyle
 	question string
 	selected bool
 	width    int
@@ -26,7 +26,7 @@ func NewChoice(colors *theme.Colors, question string, defaultChoice bool) Choice
 	height := 7
 
 	return Choice{
-		style:    newStyle(colors, width, height),
+		style:    newChoiceStyle(colors, width, height),
 		question: question,
 		selected: defaultChoice,
 		width:    width,

@@ -5,7 +5,7 @@ import (
 
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/theme"
-	"github.com/TypicalAM/goread/internal/ui/popup"
+	"github.com/TypicalAM/goread/internal/ui/popup/lollypops"
 	"github.com/TypicalAM/goread/internal/ui/simplelist"
 	"github.com/TypicalAM/goread/internal/ui/tab"
 	"github.com/charmbracelet/bubbles/key"
@@ -89,7 +89,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.keymap.SetEnabled(bool(msg))
 		return m, nil
 
-	case popup.ChoiceResultMsg:
+	case lollypops.ChoiceResultMsg:
 		if !msg.Result {
 			return m, nil
 		}

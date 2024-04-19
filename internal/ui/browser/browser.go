@@ -11,6 +11,7 @@ import (
 	"github.com/TypicalAM/goread/internal/backend/rss"
 	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/TypicalAM/goread/internal/ui/popup"
+	"github.com/TypicalAM/goread/internal/ui/popup/lollypops"
 	"github.com/TypicalAM/goread/internal/ui/tab"
 	"github.com/TypicalAM/goread/internal/ui/tab/category"
 	"github.com/TypicalAM/goread/internal/ui/tab/feed"
@@ -116,8 +117,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		log.Printf("Error fetching data in tab %d: %v \n", m.activeTab, msg.Err)
 		updated, _ := m.tabs[m.activeTab].Update(msg)
 		m.tabs[m.activeTab] = updated.(tab.Tab)
-		m.msg = fmt.Sprintf("%s: %s", msg.Description, unwrapErrs(msg.Err))
-		return m, nil
+		return m.displayError(fmt.Sprintf("%s: %s", msg.Description, unwrapErrs(msg.Err)))
 
 	case overview.ChosenCategoryMsg:
 		m.popup = nil
@@ -125,18 +125,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if msg.IsEdit {
 			if err := m.backend.Rss.UpdateCategory(msg.OldName, msg.Name, msg.Desc); err != nil {
-				m.msg = fmt.Sprintf("Error updating category: %s", unwrapErrs(err))
-			} else {
-				m.msg = fmt.Sprintf("Updated category %s", msg.Name)
+				m, cmd := m.displayError(fmt.Sprintf("Error updating category: %s", unwrapErrs(err)))
+				return m, tea.Sequence(cmd, m.backend.FetchCategories(""))
 			}
-		} else {
-			if err := m.backend.Rss.AddCategory(msg.Name, msg.Desc); err != nil {
-				m.msg = fmt.Sprintf("Error adding category: %s", unwrapErrs(err))
-			} else {
-				m.msg = fmt.Sprintf("Added category %s", msg.Name)
-			}
+
+			m.msg = fmt.Sprintf("Updated category %s", msg.Name)
+			return m, m.backend.FetchCategories("")
 		}
 
+		if err := m.backend.Rss.AddCategory(msg.Name, msg.Desc); err != nil {
+			m, cmd := m.displayError(fmt.Sprintf("Error adding category: %s", unwrapErrs(err)))
+			return m, tea.Sequence(cmd, m.backend.FetchCategories(""))
+		}
+
+		m.msg = fmt.Sprintf("Added category %s", msg.Name)
 		return m, m.backend.FetchCategories("")
 
 	case category.ChosenFeedMsg:
@@ -145,13 +147,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if msg.IsEdit {
 			if err := m.backend.Rss.UpdateFeed(msg.Parent, msg.OldName, msg.Name, msg.URL); err != nil {
-				m.msg = fmt.Sprintf("Error updating feed: %s", unwrapErrs(err))
+				m.displayError(fmt.Sprintf("Error updating feed: %s", unwrapErrs(err)))
 			} else {
 				m.msg = fmt.Sprintf("Updated feed %s", msg.Name)
 			}
 		} else {
 			if err := m.backend.Rss.AddFeed(msg.Parent, msg.Name, msg.URL); err != nil {
-				m.msg = fmt.Sprintf("Error adding feed: %s", unwrapErrs(err))
+				m.displayError(fmt.Sprintf("Error adding feed: %s", unwrapErrs(err)))
 			} else {
 				m.msg = fmt.Sprintf("Added feed %s", msg.Name)
 			}
@@ -163,34 +165,31 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.createNewTab(msg)
 
 	case backend.NewItemMsg:
-		background := m.View()
+		m.keymap.SetEnabled(false)
 
 		switch msg.Sender.(type) {
 		case overview.Model:
-			m.popup = overview.NewPopup(m.style.colors, "", "")
+			return m.showPopup(overview.NewPopup(m.style.colors, "", ""))
 		case category.Model:
-			m.popup = category.NewPopup(m.style.colors, "", "", msg.Sender.Title())
+			return m.showPopup(category.NewPopup(m.style.colors, "", "", msg.Sender.Title()))
 		case feed.Model:
 		}
 
-		width, height := m.popup.GetSize()
-		m.overlay = popup.NewOverlay(background, width, height)
-		m.keymap.SetEnabled(false)
-		return m, m.popup.Init()
+		return m, nil
 
 	case backend.EditItemMsg:
 		oldName, oldDesc := msg.OldFields[0], msg.OldFields[1]
+		m.keymap.SetEnabled(false)
 
 		switch msg.Sender.(type) {
 		case overview.Model:
-			m.popup = overview.NewPopup(m.style.colors, oldName, oldDesc)
+			return m.showPopup(overview.NewPopup(m.style.colors, oldName, oldDesc))
 		case category.Model:
-			m.popup = category.NewPopup(m.style.colors, oldName, oldDesc, msg.Sender.Title())
+			return m.showPopup(category.NewPopup(m.style.colors, oldName, oldDesc, msg.Sender.Title()))
 		case feed.Model:
 		}
 
-		m.keymap.SetEnabled(false)
-		return m, m.popup.Init()
+		return m, nil
 
 	case backend.DeleteItemMsg:
 		return m.deleteItem(msg)
@@ -207,14 +206,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case backend.MakeChoiceMsg:
-		background := m.View()
-		m.popup = popup.NewChoice(m.style.colors, msg.Question, msg.Default)
-		width, height := m.popup.GetSize()
-		m.overlay = popup.NewOverlay(background, width, height)
-		m.keymap.SetEnabled(false)
-		return m, m.popup.Init()
+		return m.showPopup(lollypops.NewChoice(m.style.colors, msg.Question, msg.Default))
 
-	case popup.ChoiceResultMsg:
+	case lollypops.ChoiceResultMsg, lollypops.ErrorResultMsg:
 		m.keymap.SetEnabled(true)
 		m.popup = nil
 
@@ -229,12 +223,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Delete the popup, update the overlay and rerender
 		if m.popup != nil {
-			popupBackup := m.popup
-			m.popup = nil
-			background := m.View()
-			m.popup = popupBackup
-			width, height := m.popup.GetSize()
-			m.overlay = popup.NewOverlay(background, width, height)
+			return m.showPopup(m.popup)
 		}
 
 	case backend.SetEnableKeybindMsg:
@@ -291,7 +280,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		case key.Matches(msg, m.keymap.ShowHelp):
-			return m.showHelp()
+			return m.showPopup(newHelp(m.style.colors, m.FullHelp()))
 
 		case key.Matches(msg, m.keymap.ToggleOfflineMode):
 			return m.toggleOffline()
@@ -419,13 +408,13 @@ func (m Model) deleteItem(msg backend.DeleteItemMsg) (tea.Model, tea.Cmd) {
 	case overview.Model:
 		cmd = m.backend.FetchCategories("")
 		if err := m.backend.Rss.RemoveCategory(msg.ItemName); err != nil {
-			m.msg = fmt.Sprintf("Error deleting category %s: %s", msg.ItemName, unwrapErrs(err))
+			m.displayError(fmt.Sprintf("Error deleting category %s: %s", msg.ItemName, unwrapErrs(err)))
 		}
 
 	case category.Model:
 		cmd = m.backend.FetchFeeds(m.tabs[m.activeTab].Title())
 		if err := m.backend.Rss.RemoveFeed(m.tabs[m.activeTab].Title(), msg.ItemName); err != nil {
-			m.msg = fmt.Sprintf("Error deleting feed %s: %s", msg.ItemName, unwrapErrs(err))
+			m.displayError(fmt.Sprintf("Error deleting feed %s: %s", msg.ItemName, unwrapErrs(err)))
 		}
 
 	case feed.Model:
@@ -433,11 +422,11 @@ func (m Model) deleteItem(msg backend.DeleteItemMsg) (tea.Model, tea.Cmd) {
 		if msg.Sender.Title() == rss.DownloadedFeedsName {
 			index, err := strconv.Atoi(msg.ItemName)
 			if err != nil {
-				m.msg = fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, unwrapErrs(err))
+				m.displayError(fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, unwrapErrs(err)))
 			}
 
 			if err := m.backend.Cache.RemoveFromDownloaded(index); err != nil {
-				m.msg = fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, unwrapErrs(err))
+				m.displayError(fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, unwrapErrs(err)))
 			}
 		}
 	}
@@ -453,16 +442,6 @@ func (m Model) downloadItem(msg backend.DownloadItemMsg) (tea.Model, tea.Cmd) {
 	return m, m.backend.DownloadItem(msg.FeedName, msg.Index)
 }
 
-// showHelp shows the help menu as a popup.
-func (m Model) showHelp() (tea.Model, tea.Cmd) {
-	background := m.View()
-	m.popup = newHelp(m.style.colors, m.FullHelp())
-	width, height := m.popup.GetSize()
-	m.overlay = popup.NewOverlay(background, width, height)
-	m.keymap.SetEnabled(false)
-	return m, nil
-}
-
 // toggleOffline toggles the offline mode
 func (m Model) toggleOffline() (tea.Model, tea.Cmd) {
 	m.offline = !m.offline
@@ -476,6 +455,22 @@ func (m Model) toggleOffline() (tea.Model, tea.Cmd) {
 
 	log.Println(m.msg)
 	return m, nil
+}
+
+// displayError shows a popup which displays the error
+func (m Model) displayError(msg string) (Model, tea.Cmd) {
+	m.msg = msg
+	return m.showPopup(lollypops.NewError(m.style.colors, msg))
+}
+
+// showPopup tells the model to show the popup
+func (m Model) showPopup(window popup.Window) (Model, tea.Cmd) {
+	m.popup = nil
+	background := m.View()
+	m.popup = window
+	width, height := m.popup.GetSize()
+	m.overlay = popup.NewOverlay(background, width, height)
+	return m, m.popup.Init() // TODO: Maybe don't call this while resizing
 }
 
 // renderTabBar renders the tab bar at the top of the screen
