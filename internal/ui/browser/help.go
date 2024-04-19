@@ -12,6 +12,9 @@ import (
 	"github.com/muesli/ansi"
 )
 
+// closeHelpMsg is the message sent when the user presses a button to close the help
+type closeHelpMsg struct{}
+
 // Help is a popup that displays the help page.
 type Help struct {
 	border   popup.TitleBorder
@@ -59,7 +62,11 @@ func (h Help) Init() tea.Cmd {
 }
 
 // Update updates the popup, in this case it's just static text.
-func (h Help) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
+func (h Help) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if _, ok := msg.(tea.KeyMsg); ok {
+		return h, h.confirm()
+	}
+
 	return h, nil
 }
 
@@ -67,4 +74,9 @@ func (h Help) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
 func (h Help) View() string {
 	list := h.box.Render(h.help.FullHelpView(h.keyBinds))
 	return h.border.Render(list)
+}
+
+// confirm returns a tea.Cmd that tells the parent model about the confirmation.
+func (h Help) confirm() tea.Cmd {
+	return func() tea.Msg { return closeHelpMsg{} }
 }
