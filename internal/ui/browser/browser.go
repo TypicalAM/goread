@@ -218,7 +218,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.keymap.SetEnabled(true)
 		m.popup = nil
 
-	// TODO: Resize the popup if necessary
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -226,6 +225,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		for i := range m.tabs {
 			m.tabs[i] = m.tabs[i].SetSize(m.width, m.height-5)
+		}
+
+		// Delete the popup, update the overlay and rerender
+		if m.popup != nil {
+			popupBackup := m.popup
+			m.popup = nil
+			background := m.View()
+			m.popup = popupBackup
+			width, height := m.popup.GetSize()
+			m.overlay = popup.NewOverlay(background, width, height)
 		}
 
 	case backend.SetEnableKeybindMsg:
