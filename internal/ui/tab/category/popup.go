@@ -2,7 +2,6 @@ package category
 
 import (
 	"github.com/TypicalAM/goread/internal/theme"
-	"github.com/TypicalAM/goread/internal/ui/popup"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -33,17 +32,17 @@ type Popup struct {
 	oldName   string
 	oldURL    string
 	parent    string
-	overlay   popup.Overlay
 	focused   focusedField
 	editing   bool
+	width     int
+	height    int
 }
 
 // NewPopup returns a new feed popup.
-func NewPopup(colors *theme.Colors, bgRaw string, oldName, oldURL, parent string) Popup {
+func NewPopup(colors *theme.Colors, oldName, oldURL, parent string) Popup {
 	width := 40
 	height := 7
 
-	overlay := popup.NewOverlay(bgRaw, width, height)
 	editing := oldName != "" || oldURL != ""
 
 	nameInput := textinput.New()
@@ -70,7 +69,6 @@ func NewPopup(colors *theme.Colors, bgRaw string, oldName, oldURL, parent string
 	nameInput.Focus()
 
 	return Popup{
-		overlay:   overlay,
 		style:     style,
 		nameInput: nameInput,
 		urlInput:  urlInput,
@@ -78,6 +76,8 @@ func NewPopup(colors *theme.Colors, bgRaw string, oldName, oldURL, parent string
 		oldURL:    oldURL,
 		parent:    parent,
 		editing:   editing,
+		width:     width,
+		height:    height,
 	}
 }
 
@@ -144,7 +144,12 @@ func (p Popup) View() string {
 	name := p.style.itemField.Render(p.nameInput.View())
 	url := p.style.itemField.Render(p.urlInput.View())
 	listItem := p.style.listItem.Render(lipgloss.JoinVertical(lipgloss.Left, itemTitle, name, url))
-	return p.overlay.WrapView(p.style.border.Render(listItem))
+	return p.style.border.Render(listItem)
+}
+
+// GetSize returns the size of the popup.
+func (p Popup) GetSize() (width, height int) {
+	return p.width, p.height
 }
 
 // confirm creates a message that confirms the user's choice.

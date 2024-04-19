@@ -3,7 +3,6 @@ package overview
 import (
 	"github.com/TypicalAM/goread/internal/backend/rss"
 	"github.com/TypicalAM/goread/internal/theme"
-	"github.com/TypicalAM/goread/internal/ui/popup"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -33,19 +32,18 @@ type Popup struct {
 	descInput textinput.Model
 	style     popupStyle
 	oldName   string
-	overlay   popup.Overlay
 	focused   focusedField
 	editing   bool
+	width     int
+	height    int
 }
 
 // NewPopup creates a new popup window in which the user can choose a new category.
-func NewPopup(colors *theme.Colors, bgRaw string, oldName, oldDesc string) Popup {
+func NewPopup(colors *theme.Colors, oldName, oldDesc string) Popup {
 	width := 46
 	height := 14
 
-	overlay := popup.NewOverlay(bgRaw, width, height)
 	editing := oldName != "" || oldDesc != ""
-
 	nameInput := textinput.New()
 	nameInput.CharLimit = 30
 	nameInput.Width = width - 15
@@ -71,13 +69,14 @@ func NewPopup(colors *theme.Colors, bgRaw string, oldName, oldDesc string) Popup
 	}
 
 	return Popup{
-		overlay:   overlay,
 		style:     style,
 		nameInput: nameInput,
 		descInput: descInput,
 		oldName:   oldName,
 		focused:   focusedField,
 		editing:   editing,
+		width:     width,
+		height:    height,
 	}
 }
 
@@ -195,7 +194,12 @@ func (p Popup) View() string {
 	}
 
 	toList := p.style.list.Render(lipgloss.JoinVertical(lipgloss.Top, renderedChoices...))
-	return p.overlay.WrapView(p.style.border.Render(toList))
+	return p.style.border.Render(toList)
+}
+
+// GetSize returns the size of the popup.
+func (p Popup) GetSize() (width, height int) {
+	return p.width, p.height
 }
 
 // confirm creates a message that confirms the user's choice.

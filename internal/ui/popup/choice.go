@@ -15,20 +15,22 @@ type ChoiceResultMsg struct {
 type Choice struct {
 	style    style
 	question string
-	overlay  Overlay
 	selected bool
+	width    int
+	height   int
 }
 
 // NewChoice creates a new Choice popup.
-func NewChoice(colors *theme.Colors, bgRaw string, question string, defaultChoice bool) Choice {
+func NewChoice(colors *theme.Colors, question string, defaultChoice bool) Choice {
 	width := len(question) + 16
 	height := 7
 
 	return Choice{
 		style:    newStyle(colors, width, height),
-		overlay:  NewOverlay(bgRaw, width, height),
 		question: question,
 		selected: defaultChoice,
+		width:    width,
+		height:   height,
 	}
 }
 
@@ -75,8 +77,13 @@ func (c Choice) View() string {
 	question := c.style.question.Render(c.question)
 	buttons := lipgloss.JoinHorizontal(lipgloss.Top, okButton, cancelButton)
 	ui := lipgloss.JoinVertical(lipgloss.Center, question, buttons)
-	dialog := lipgloss.Place(c.overlay.width-2, c.overlay.height-2, lipgloss.Center, lipgloss.Center, ui)
-	return c.overlay.WrapView(c.style.border.Render(dialog))
+	dialog := lipgloss.Place(c.width-2, c.height-2, lipgloss.Center, lipgloss.Center, ui)
+	return c.style.border.Render(dialog)
+}
+
+// GetSize returns the size of the popup.
+func (c Choice) GetSize() (width, height int) {
+	return c.width, c.height
 }
 
 // makeChoice returns a tea.Cmd that tells the parent model about the choice.

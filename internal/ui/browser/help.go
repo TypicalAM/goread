@@ -18,11 +18,12 @@ type Help struct {
 	help     help.Model
 	box      lipgloss.Style
 	keyBinds [][]key.Binding
-	overlay  popup.Overlay
+	width    int
+	height   int
 }
 
 // newHelp returns a new Help popup.
-func newHelp(colors *theme.Colors, bgRaw string, binds [][]key.Binding) *Help {
+func newHelp(colors *theme.Colors, binds [][]key.Binding) *Help {
 	helpModel := help.New()
 	helpModel.Styles = help.Styles{}
 	helpModel.Styles.FullDesc = lipgloss.NewStyle().
@@ -42,8 +43,14 @@ func newHelp(colors *theme.Colors, bgRaw string, binds [][]key.Binding) *Help {
 		border:   border,
 		box:      lipgloss.NewStyle().Margin(1, 2, 1, 4),
 		keyBinds: binds,
-		overlay:  popup.NewOverlay(bgRaw, width, height),
+		width:    width,
+		height:   height,
 	}
+}
+
+// GetSize returns the size of the popup.
+func (h Help) GetSize() (width int, height int) {
+	return h.width, h.height
 }
 
 // Init initializes the popup.
@@ -59,5 +66,5 @@ func (h Help) Update(_ tea.Msg) (tea.Model, tea.Cmd) {
 // View renders the popup.
 func (h Help) View() string {
 	list := h.box.Render(h.help.FullHelpView(h.keyBinds))
-	return h.overlay.WrapView(h.border.Render(list))
+	return h.border.Render(list)
 }

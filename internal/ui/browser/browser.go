@@ -65,7 +65,8 @@ func (k *Keymap) SetEnabled(enabled bool) {
 
 // Model is used to store the state of the application
 type Model struct {
-	popup          tea.Model
+	popup          popup.Window
+	overlay        popup.Overlay
 	backend        *backend.Backend
 	style          style
 	msg            string
@@ -162,14 +163,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.createNewTab(msg)
 
 	case backend.NewItemMsg:
+		background := m.View()
+
 		switch msg.Sender.(type) {
 		case overview.Model:
-			m.popup = overview.NewPopup(m.style.colors, m.View(), "", "")
+			m.popup = overview.NewPopup(m.style.colors, "", "")
 		case category.Model:
-			m.popup = category.NewPopup(m.style.colors, m.View(), "", "", msg.Sender.Title())
+			m.popup = category.NewPopup(m.style.colors, "", "", msg.Sender.Title())
 		case feed.Model:
 		}
 
+		width, height := m.popup.GetSize()
+		m.overlay = popup.NewOverlay(background, width, height)
 		m.keymap.SetEnabled(false)
 		return m, m.popup.Init()
 
@@ -178,9 +183,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch msg.Sender.(type) {
 		case overview.Model:
-			m.popup = overview.NewPopup(m.style.colors, m.View(), oldName, oldDesc)
+			m.popup = overview.NewPopup(m.style.colors, oldName, oldDesc)
 		case category.Model:
-			m.popup = category.NewPopup(m.style.colors, m.View(), oldName, oldDesc, msg.Sender.Title())
+			m.popup = category.NewPopup(m.style.colors, oldName, oldDesc, msg.Sender.Title())
 		case feed.Model:
 		}
 
@@ -202,7 +207,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case backend.MakeChoiceMsg:
-		m.popup = popup.NewChoice(m.style.colors, m.View(), msg.Question, msg.Default)
+		background := m.View()
+		m.popup = popup.NewChoice(m.style.colors, msg.Question, msg.Default)
+		width, height := m.popup.GetSize()
+		m.overlay = popup.NewOverlay(background, width, height)
 		m.keymap.SetEnabled(false)
 		return m, m.popup.Init()
 
@@ -283,7 +291,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// If we are showing a popup, we need to update the popup
 	if m.popup != nil {
-		m.popup, cmd = m.popup.Update(msg)
+		newPopup, cmd := m.popup.Update(msg)
+		m.popup = newPopup.(popup.Window)
 		return m, cmd
 	}
 
@@ -303,7 +312,7 @@ func (m Model) View() string {
 	}
 
 	if m.popup != nil {
-		return m.popup.View()
+		return m.overlay.WrapView(m.popup.View())
 	}
 
 	var b strings.Builder
@@ -437,7 +446,10 @@ func (m Model) downloadItem(msg backend.DownloadItemMsg) (tea.Model, tea.Cmd) {
 
 // showHelp shows the help menu as a popup.
 func (m Model) showHelp() (tea.Model, tea.Cmd) {
-	m.popup = newHelp(m.style.colors, m.View(), m.FullHelp())
+	background := m.View()
+	m.popup = newHelp(m.style.colors, m.FullHelp())
+	width, height := m.popup.GetSize()
+	m.overlay = popup.NewOverlay(background, width, height)
 	m.keymap.SetEnabled(false)
 	return m, nil
 }
