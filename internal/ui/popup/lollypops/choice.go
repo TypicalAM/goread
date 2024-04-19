@@ -1,4 +1,4 @@
-package popup
+package lollypops
 
 import (
 	"github.com/TypicalAM/goread/internal/theme"
@@ -13,26 +13,24 @@ type ChoiceResultMsg struct {
 
 // Choice is a popup that presents a yes/no choice to the user.
 type Choice struct {
-	style    style
+	style    choiceStyle
 	question string
-	overlay  Overlay
 	selected bool
+	width    int
+	height   int
 }
 
 // NewChoice creates a new Choice popup.
-func NewChoice(colors *theme.Colors, bgRaw string, width int, question string, defaultChoice bool) Choice {
-	optWidth := len(question) + 16
-	if optWidth > width {
-		optWidth = width
-	}
-
+func NewChoice(colors *theme.Colors, question string, defaultChoice bool) Choice {
+	width := len(question) + 16
 	height := 7
 
 	return Choice{
-		style:    newStyle(colors, optWidth, height),
-		overlay:  NewOverlay(bgRaw, optWidth, height),
+		style:    newChoiceStyle(colors, width, height),
 		question: question,
 		selected: defaultChoice,
+		width:    width,
+		height:   height,
 	}
 }
 
@@ -79,9 +77,13 @@ func (c Choice) View() string {
 	question := c.style.question.Render(c.question)
 	buttons := lipgloss.JoinHorizontal(lipgloss.Top, okButton, cancelButton)
 	ui := lipgloss.JoinVertical(lipgloss.Center, question, buttons)
-	dialog := lipgloss.Place(c.overlay.width-2, c.overlay.height-2, lipgloss.Center, lipgloss.Center, ui)
+	dialog := lipgloss.Place(c.width-2, c.height-2, lipgloss.Center, lipgloss.Center, ui)
+	return c.style.border.Render(dialog)
+}
 
-	return c.overlay.WrapView(c.style.general.Render(dialog))
+// GetSize returns the size of the popup.
+func (c Choice) GetSize() (width, height int) {
+	return c.width, c.height
 }
 
 // makeChoice returns a tea.Cmd that tells the parent model about the choice.

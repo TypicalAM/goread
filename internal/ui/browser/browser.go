@@ -11,6 +11,7 @@ import (
 	"github.com/TypicalAM/goread/internal/backend/rss"
 	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/TypicalAM/goread/internal/ui/popup"
+	"github.com/TypicalAM/goread/internal/ui/popup/lollypops"
 	"github.com/TypicalAM/goread/internal/ui/tab"
 	"github.com/TypicalAM/goread/internal/ui/tab/category"
 	"github.com/TypicalAM/goread/internal/ui/tab/feed"
@@ -65,7 +66,8 @@ func (k *Keymap) SetEnabled(enabled bool) {
 
 // Model is used to store the state of the application
 type Model struct {
-	popup          tea.Model
+	popup          popup.Window
+	overlay        popup.Overlay
 	backend        *backend.Backend
 	style          style
 	msg            string
@@ -115,8 +117,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		log.Printf("Error fetching data in tab %d: %v \n", m.activeTab, msg.Err)
 		updated, _ := m.tabs[m.activeTab].Update(msg)
 		m.tabs[m.activeTab] = updated.(tab.Tab)
-		m.msg = fmt.Sprintf("%s: %s", msg.Description, unwrapErrs(msg.Err))
-		return m, nil
+		errMsg := fmt.Sprintf("%s: %s", msg.Description, unwrapErrs(msg.Err))
+		return m.showPopup(lollypops.NewError(m.style.colors, errMsg))
 
 	case overview.ChosenCategoryMsg:
 		m.popup = nil
@@ -124,19 +126,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if msg.IsEdit {
 			if err := m.backend.Rss.UpdateCategory(msg.OldName, msg.Name, msg.Desc); err != nil {
-				m.msg = fmt.Sprintf("Error updating category: %s", unwrapErrs(err))
-			} else {
-				m.msg = fmt.Sprintf("Updated category %s", msg.Name)
+				errMsg := fmt.Sprintf("Error updating category: %s", unwrapErrs(err))
+				m, cmd := m.showPopup(lollypops.NewError(m.style.colors, errMsg))
+				return m, tea.Sequence(cmd, m.backend.FetchCategories(""))
 			}
-		} else {
-			if err := m.backend.Rss.AddCategory(msg.Name, msg.Desc); err != nil {
-				m.msg = fmt.Sprintf("Error adding category: %s", unwrapErrs(err))
-			} else {
-				m.msg = fmt.Sprintf("Added category %s", msg.Name)
-			}
+
+			m.msg = fmt.Sprintf("Updated category %s", msg.Name)
+			return m, m.backend.FetchCategories("")
 		}
 
-		log.Println(m.msg)
+		if err := m.backend.Rss.AddCategory(msg.Name, msg.Desc); err != nil {
+			errMsg := fmt.Sprintf("Error adding category: %s", unwrapErrs(err))
+			m, cmd := m.showPopup(lollypops.NewError(m.style.colors, errMsg))
+			return m, tea.Sequence(cmd, m.backend.FetchCategories(""))
+		}
+
+		m.msg = fmt.Sprintf("Added category %s", msg.Name)
 		return m, m.backend.FetchCategories("")
 
 	case category.ChosenFeedMsg:
@@ -145,56 +150,53 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if msg.IsEdit {
 			if err := m.backend.Rss.UpdateFeed(msg.Parent, msg.OldName, msg.Name, msg.URL); err != nil {
-				m.msg = fmt.Sprintf("Error updating feed: %s", unwrapErrs(err))
-			} else {
-				m.msg = fmt.Sprintf("Updated feed %s", msg.Name)
+				errMsg := fmt.Sprintf("Error updating feed: %s", unwrapErrs(err))
+				m, cmd := m.showPopup(lollypops.NewError(m.style.colors, errMsg))
+				return m, tea.Batch(cmd, m.backend.FetchFeeds(msg.Parent))
 			}
-		} else {
-			if err := m.backend.Rss.AddFeed(msg.Parent, msg.Name, msg.URL); err != nil {
-				m.msg = fmt.Sprintf("Error adding feed: %s", unwrapErrs(err))
-			} else {
-				m.msg = fmt.Sprintf("Added feed %s", msg.Name)
-			}
+
+			m.msg = fmt.Sprintf("Updated feed %s", msg.Name)
+			return m, m.backend.FetchFeeds(msg.Parent)
 		}
 
-		log.Println(m.msg)
+		if err := m.backend.Rss.AddFeed(msg.Parent, msg.Name, msg.URL); err != nil {
+			errMsg := fmt.Sprintf("Error adding feed: %s", unwrapErrs(err))
+			m, cmd := m.showPopup(lollypops.NewError(m.style.colors, errMsg))
+			return m, tea.Batch(cmd, m.backend.FetchFeeds(msg.Parent))
+		}
+
+		m.msg = fmt.Sprintf("Added feed %s", msg.Name)
 		return m, m.backend.FetchFeeds(msg.Parent)
 
 	case tab.NewTabMsg:
 		return m.createNewTab(msg)
 
 	case backend.NewItemMsg:
-		bg := m.View()
-		width := m.width / 2
-		height := 17
+		m.keymap.SetEnabled(false)
 
 		switch msg.Sender.(type) {
 		case overview.Model:
-			m.popup = overview.NewPopup(m.style.colors, bg, width, height, "", "")
+			return m.showPopup(overview.NewPopup(m.style.colors, "", ""))
 		case category.Model:
-			m.popup = category.NewPopup(m.style.colors, bg, width, height, "", "", msg.Sender.Title())
+			return m.showPopup(category.NewPopup(m.style.colors, "", "", msg.Sender.Title()))
 		case feed.Model:
 		}
 
-		m.keymap.SetEnabled(false)
-		return m, m.popup.Init()
+		return m, nil
 
 	case backend.EditItemMsg:
-		bg := m.View()
-		width := m.width / 2
-		height := 17
 		oldName, oldDesc := msg.OldFields[0], msg.OldFields[1]
+		m.keymap.SetEnabled(false)
 
 		switch msg.Sender.(type) {
 		case overview.Model:
-			m.popup = overview.NewPopup(m.style.colors, bg, width, height, oldName, oldDesc)
+			return m.showPopup(overview.NewPopup(m.style.colors, oldName, oldDesc))
 		case category.Model:
-			m.popup = category.NewPopup(m.style.colors, bg, width, height, oldName, oldDesc, msg.Sender.Title())
+			return m.showPopup(category.NewPopup(m.style.colors, oldName, oldDesc, msg.Sender.Title()))
 		case feed.Model:
 		}
 
-		m.keymap.SetEnabled(false)
-		return m, m.popup.Init()
+		return m, nil
 
 	case backend.DeleteItemMsg:
 		return m.deleteItem(msg)
@@ -211,14 +213,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case backend.MakeChoiceMsg:
-		bg := m.View()
-		width := m.width / 2
-		m.popup = popup.NewChoice(m.style.colors, bg, width, msg.Question, msg.Default)
+		return m.showPopup(lollypops.NewChoice(m.style.colors, msg.Question, msg.Default))
 
-		m.keymap.SetEnabled(false)
-		return m, m.popup.Init()
-
-	case popup.ChoiceResultMsg:
+	case lollypops.ChoiceResultMsg, lollypops.ErrorResultMsg:
 		m.keymap.SetEnabled(true)
 		m.popup = nil
 
@@ -229,6 +226,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		for i := range m.tabs {
 			m.tabs[i] = m.tabs[i].SetSize(m.width, m.height-5)
+		}
+
+		// Delete the popup, update the overlay and rerender
+		if m.popup != nil {
+			return m.showPopup(m.popup)
 		}
 
 	case backend.SetEnableKeybindMsg:
@@ -285,7 +287,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		case key.Matches(msg, m.keymap.ShowHelp):
-			return m.showHelp()
+			return m.showPopup(newHelp(m.style.colors, m.FullHelp()))
 
 		case key.Matches(msg, m.keymap.ToggleOfflineMode):
 			return m.toggleOffline()
@@ -294,7 +296,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// If we are showing a popup, we need to update the popup
 	if m.popup != nil {
-		m.popup, cmd = m.popup.Update(msg)
+		newPopup, cmd := m.popup.Update(msg)
+		m.popup = newPopup.(popup.Window)
 		return m, cmd
 	}
 
@@ -314,7 +317,7 @@ func (m Model) View() string {
 	}
 
 	if m.popup != nil {
-		return m.popup.View()
+		return m.overlay.WrapView(m.popup.View())
 	}
 
 	var b strings.Builder
@@ -342,9 +345,9 @@ func (m Model) ShortHelp() []key.Binding {
 
 // FullHelp returns the full help for the browser.
 func (m Model) FullHelp() [][]key.Binding {
-	result := [][]key.Binding{m.ShortHelp()}
-	result = append(result, m.tabs[m.activeTab].FullHelp()...)
-	return result
+	browserHelp := [][]key.Binding{m.ShortHelp()}
+	childHelp := m.tabs[m.activeTab].FullHelp()
+	return prettifyHelp(browserHelp, childHelp)
 }
 
 // waitForSize waits for the window size to be set and loads the tab
@@ -412,13 +415,15 @@ func (m Model) deleteItem(msg backend.DeleteItemMsg) (tea.Model, tea.Cmd) {
 	case overview.Model:
 		cmd = m.backend.FetchCategories("")
 		if err := m.backend.Rss.RemoveCategory(msg.ItemName); err != nil {
-			m.msg = fmt.Sprintf("Error deleting category %s: %s", msg.ItemName, unwrapErrs(err))
+			errMsg := fmt.Sprintf("Error deleting category %s: %s", msg.ItemName, unwrapErrs(err))
+			return m.showPopup(lollypops.NewError(m.style.colors, errMsg))
 		}
 
 	case category.Model:
 		cmd = m.backend.FetchFeeds(m.tabs[m.activeTab].Title())
 		if err := m.backend.Rss.RemoveFeed(m.tabs[m.activeTab].Title(), msg.ItemName); err != nil {
-			m.msg = fmt.Sprintf("Error deleting feed %s: %s", msg.ItemName, unwrapErrs(err))
+			errMsg := fmt.Sprintf("Error deleting feed %s: %s", msg.ItemName, unwrapErrs(err))
+			return m.showPopup(lollypops.NewError(m.style.colors, errMsg))
 		}
 
 	case feed.Model:
@@ -426,11 +431,13 @@ func (m Model) deleteItem(msg backend.DeleteItemMsg) (tea.Model, tea.Cmd) {
 		if msg.Sender.Title() == rss.DownloadedFeedsName {
 			index, err := strconv.Atoi(msg.ItemName)
 			if err != nil {
-				m.msg = fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, unwrapErrs(err))
+				errMsg := fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, unwrapErrs(err))
+				return m.showPopup(lollypops.NewError(m.style.colors, errMsg))
 			}
 
 			if err := m.backend.Cache.RemoveFromDownloaded(index); err != nil {
-				m.msg = fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, unwrapErrs(err))
+				errMsg := fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, unwrapErrs(err))
+				return m.showPopup(lollypops.NewError(m.style.colors, errMsg))
 			}
 		}
 	}
@@ -446,17 +453,6 @@ func (m Model) downloadItem(msg backend.DownloadItemMsg) (tea.Model, tea.Cmd) {
 	return m, m.backend.DownloadItem(msg.FeedName, msg.Index)
 }
 
-// showHelp shows the help menu as a popup.
-func (m Model) showHelp() (tea.Model, tea.Cmd) {
-	bg := m.View()
-	width := m.width * 2 / 3
-	height := 17
-
-	m.popup = newHelp(m.style.colors, bg, width, height, m.FullHelp())
-	m.keymap.SetEnabled(false)
-	return m, nil
-}
-
 // toggleOffline toggles the offline mode
 func (m Model) toggleOffline() (tea.Model, tea.Cmd) {
 	m.offline = !m.offline
@@ -470,6 +466,16 @@ func (m Model) toggleOffline() (tea.Model, tea.Cmd) {
 
 	log.Println(m.msg)
 	return m, nil
+}
+
+// showPopup tells the model to show the popup
+func (m Model) showPopup(window popup.Window) (Model, tea.Cmd) {
+	m.popup = nil
+	background := m.View()
+	m.popup = window
+	width, height := m.popup.GetSize()
+	m.overlay = popup.NewOverlay(background, width, height)
+	return m, m.popup.Init() // TODO: Maybe don't call this while resizing
 }
 
 // renderTabBar renders the tab bar at the top of the screen
@@ -521,4 +527,78 @@ func unwrapErrs(err error) error {
 		err = unwrapErr
 	}
 	return err
+}
+
+// prettifyHelp prettifies the help columns, removes the lower level bind if a higher one precedes it
+func prettifyHelp(first, second [][]key.Binding) [][]key.Binding {
+	toDelSecond := make([]int, 0)
+	toDelThird := make([]int, 0)
+
+	for _, elem := range first[0] {
+		// Second col
+		for idx2, elem2 := range second[0] {
+			if strIntersect(elem.Keys(), elem2.Keys()) {
+				toDelSecond = append(toDelSecond, idx2)
+			}
+		}
+
+		// Third col
+		for idx2, elem2 := range second[1] {
+			if strIntersect(elem.Keys(), elem2.Keys()) {
+				toDelThird = append(toDelThird, idx2)
+			}
+		}
+	}
+
+	second[0] = deleteBinds(second[0], toDelSecond)
+	second[1] = deleteBinds(second[1], toDelThird)
+
+	for _, elem := range second[0] {
+		// Third col
+		for idx2, elem2 := range second[1] {
+			if strIntersect(elem.Keys(), elem2.Keys()) {
+				toDelThird = append(toDelThird, idx2)
+			}
+		}
+	}
+
+	second[1] = deleteBinds(second[1], toDelThird)
+	return append(first, second...)
+}
+
+// deleteBinds removes items from a bind slice via a list of indices
+func deleteBinds(arr []key.Binding, indices []int) []key.Binding {
+	if len(indices) == 0 {
+		return arr
+	}
+
+	result := make([]key.Binding, 0, len(arr)-len(indices))
+	for idx, elem := range arr {
+		add := true
+		for _, toDel := range indices {
+			if idx == toDel {
+				add = false
+				break
+			}
+		}
+
+		if add {
+			result = append(result, elem)
+		}
+	}
+
+	return result
+}
+
+// strIntersect checks if two string slices have a non-empty intersection
+func strIntersect(first, second []string) bool {
+	for _, elem := range first {
+		for _, elem2 := range second {
+			if elem == elem2 {
+				return true
+			}
+		}
+	}
+
+	return false
 }

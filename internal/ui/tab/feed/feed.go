@@ -7,7 +7,7 @@ import (
 
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/theme"
-	"github.com/TypicalAM/goread/internal/ui/popup"
+	"github.com/TypicalAM/goread/internal/ui/popup/lollypops"
 	"github.com/TypicalAM/goread/internal/ui/tab"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
@@ -127,7 +127,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.keymap.SetEnabled(bool(msg))
 		return m, nil
 
-	case popup.ChoiceResultMsg:
+	case lollypops.ChoiceResultMsg:
 		if !msg.Result {
 			return m, nil
 		}
@@ -383,10 +383,22 @@ func (m Model) ShortHelp() []key.Binding {
 
 // FullHelp returns the full help for the tab
 func (m Model) FullHelp() [][]key.Binding {
-	if !m.viewportOpen && m.viewportFocused {
-		result := [][]key.Binding{m.ShortHelp()}
-		result = append(result, m.list.FullHelp()...)
-		return result
+	if !m.viewportFocused {
+		listHelp := make([]key.Binding, 0)
+		for _, bind := range m.list.ShortHelp() {
+			shouldAdd := true
+			for _, key := range bind.Keys() {
+				if key == "?" {
+					shouldAdd = false
+				}
+			}
+
+			if shouldAdd {
+				listHelp = append(listHelp, bind)
+			}
+		}
+
+		return [][]key.Binding{m.ShortHelp(), listHelp}
 	}
 
 	return [][]key.Binding{m.ShortHelp(), {

@@ -3,7 +3,6 @@ package overview
 import (
 	"github.com/TypicalAM/goread/internal/backend/rss"
 	"github.com/TypicalAM/goread/internal/theme"
-	"github.com/TypicalAM/goread/internal/ui/popup"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -33,14 +32,21 @@ type Popup struct {
 	descInput textinput.Model
 	style     popupStyle
 	oldName   string
-	overlay   popup.Overlay
 	focused   focusedField
+	editing   bool
+	width     int
+	height    int
+	reserved  bool
 }
 
 // NewPopup creates a new popup window in which the user can choose a new category.
-func NewPopup(colors *theme.Colors, bgRaw string, width, height int, oldName, oldDesc string) Popup {
-	overlay := popup.NewOverlay(bgRaw, width, height)
-	style := newPopupStyle(colors, width, height)
+func NewPopup(colors *theme.Colors, oldName, oldDesc string) Popup {
+	width := 46
+	height := 14
+
+	editing := oldName != "" || oldDesc != ""
+	reserved := oldName == rss.AllFeedsName || oldName == rss.DownloadedFeedsName
+
 	nameInput := textinput.New()
 	nameInput.CharLimit = 30
 	nameInput.Width = width - 15
@@ -49,22 +55,36 @@ func NewPopup(colors *theme.Colors, bgRaw string, width, height int, oldName, ol
 	descInput.CharLimit = 30
 	descInput.Width = width - 22
 	descInput.Prompt = "Description: "
-	focusedField := allField
 
-	if oldName != "" || oldDesc != "" {
+	focused := allField
+	if oldName == rss.DownloadedFeedsName {
+		focused = downloadedField
+	}
+
+	style := popupStyle{}
+	if editing {
+		style = newPopupStyle(colors, width, height, "Edit category")
+	} else {
+		style = newPopupStyle(colors, width, height, "New category")
+	}
+
+	if editing && !reserved {
 		nameInput.SetValue(oldName)
 		descInput.SetValue(oldDesc)
-		focusedField = nameField
+		focused = nameField
 		nameInput.Focus()
 	}
 
 	return Popup{
-		overlay:   overlay,
 		style:     style,
 		nameInput: nameInput,
 		descInput: descInput,
 		oldName:   oldName,
-		focused:   focusedField,
+		focused:   focused,
+		editing:   editing,
+		width:     width,
+		height:    height,
+		reserved:  reserved,
 	}
 }
 
@@ -78,6 +98,10 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	if msg, ok := msg.(tea.KeyMsg); ok {
+		if p.reserved {
+			return p, nil
+		}
+
 		switch msg.String() {
 		case "down", "tab":
 			switch p.focused {
@@ -91,6 +115,10 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				p.nameInput.Blur()
 				cmds = append(cmds, p.descInput.Focus())
 			case descField:
+				if p.editing {
+					return p, nil
+				}
+
 				p.focused = allField
 				p.descInput.Blur()
 			}
@@ -103,6 +131,10 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case downloadedField:
 				p.focused = allField
 			case nameField:
+				if p.editing {
+					return p, nil
+				}
+
 				p.focused = downloadedField
 				p.nameInput.Blur()
 			case descField:
@@ -142,11 +174,10 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders the popup window.
 func (p Popup) View() string {
-	question := p.style.heading.Render("Choose a category")
 	renderedChoices := make([]string, 3)
 
 	titles := []string{rss.AllFeedsName, rss.DownloadedFeedsName, "New category"}
-	descs := []string{"All the feeds", "Saved Feeds", p.nameInput.View() + "\n" + p.descInput.View()}
+	descs := []string{"All available articles", "Downloaded articles", p.nameInput.View() + "\n" + p.descInput.View()}
 
 	var focused int
 	switch p.focused {
@@ -175,8 +206,12 @@ func (p Popup) View() string {
 	}
 
 	toList := p.style.list.Render(lipgloss.JoinVertical(lipgloss.Top, renderedChoices...))
-	popup := lipgloss.JoinVertical(lipgloss.Top, question, toList)
-	return p.overlay.WrapView(p.style.general.Render(popup))
+	return p.style.border.Render(toList)
+}
+
+// GetSize returns the size of the popup.
+func (p Popup) GetSize() (width, height int) {
+	return p.width, p.height
 }
 
 // confirm creates a message that confirms the user's choice.

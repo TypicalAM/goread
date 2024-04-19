@@ -2,35 +2,25 @@ package category
 
 import (
 	"github.com/TypicalAM/goread/internal/theme"
+	"github.com/TypicalAM/goread/internal/ui/popup"
 	"github.com/charmbracelet/lipgloss"
 )
 
 // popupStyle is the style of the popup window.
 type popupStyle struct {
-	general   lipgloss.Style
+	border    popup.TitleBorder
 	heading   lipgloss.Style
-	item      lipgloss.Style
+	listItem  lipgloss.Style
 	itemTitle lipgloss.Style
 	itemField lipgloss.Style
 }
 
 // newPopupStyle creates a new popup style.
-func newPopupStyle(colors *theme.Colors, width, height int) popupStyle {
-	general := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FFFFFF")).
-		Width(width - 2).
-		Height(height - 2).
-		Border(lipgloss.NormalBorder()).
-		BorderForeground(colors.Color1)
-
-	heading := lipgloss.NewStyle().
-		Margin(1, 0, 1, 0).
-		Width(width - 2).
-		Align(lipgloss.Center).
-		Italic(true)
+func newPopupStyle(colors *theme.Colors, width, height int, headingText string) popupStyle {
+	border := popup.NewTitleBorder(headingText, width, height, colors.Color1, lipgloss.NormalBorder())
 
 	item := lipgloss.NewStyle().
-		Margin(0, 4).
+		Margin(1, 4).
 		PaddingLeft(1).
 		Border(lipgloss.RoundedBorder(), false, false, false, true).
 		BorderForeground(colors.Color3).
@@ -43,9 +33,8 @@ func newPopupStyle(colors *theme.Colors, width, height int) popupStyle {
 		Foreground(colors.Color2)
 
 	return popupStyle{
-		general:   general,
-		heading:   heading,
-		item:      item,
+		border:    border,
+		listItem:  item,
 		itemTitle: itemTitle,
 		itemField: itemField,
 	}
