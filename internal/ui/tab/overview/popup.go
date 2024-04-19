@@ -98,7 +98,7 @@ func (p Popup) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	if msg, ok := msg.(tea.KeyMsg); ok {
-		if p.reserved && msg.String() == "enter" {
+		if p.reserved {
 			return p, nil
 		}
 

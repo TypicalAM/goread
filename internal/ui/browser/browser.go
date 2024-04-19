@@ -117,7 +117,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		log.Printf("Error fetching data in tab %d: %v \n", m.activeTab, msg.Err)
 		updated, _ := m.tabs[m.activeTab].Update(msg)
 		m.tabs[m.activeTab] = updated.(tab.Tab)
-		return m.displayError(fmt.Sprintf("%s: %s", msg.Description, unwrapErrs(msg.Err)))
+		errMsg := fmt.Sprintf("%s: %s", msg.Description, unwrapErrs(msg.Err))
+		return m.showPopup(lollypops.NewError(m.style.colors, errMsg))
 
 	case overview.ChosenCategoryMsg:
 		m.popup = nil
@@ -125,7 +126,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if msg.IsEdit {
 			if err := m.backend.Rss.UpdateCategory(msg.OldName, msg.Name, msg.Desc); err != nil {
-				m, cmd := m.displayError(fmt.Sprintf("Error updating category: %s", unwrapErrs(err)))
+				errMsg := fmt.Sprintf("Error updating category: %s", unwrapErrs(err))
+				m, cmd := m.showPopup(lollypops.NewError(m.style.colors, errMsg))
 				return m, tea.Sequence(cmd, m.backend.FetchCategories(""))
 			}
 
@@ -134,7 +136,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if err := m.backend.Rss.AddCategory(msg.Name, msg.Desc); err != nil {
-			m, cmd := m.displayError(fmt.Sprintf("Error adding category: %s", unwrapErrs(err)))
+			errMsg := fmt.Sprintf("Error adding category: %s", unwrapErrs(err))
+			m, cmd := m.showPopup(lollypops.NewError(m.style.colors, errMsg))
 			return m, tea.Sequence(cmd, m.backend.FetchCategories(""))
 		}
 
@@ -147,18 +150,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		if msg.IsEdit {
 			if err := m.backend.Rss.UpdateFeed(msg.Parent, msg.OldName, msg.Name, msg.URL); err != nil {
-				m.displayError(fmt.Sprintf("Error updating feed: %s", unwrapErrs(err)))
-			} else {
-				m.msg = fmt.Sprintf("Updated feed %s", msg.Name)
+				errMsg := fmt.Sprintf("Error updating feed: %s", unwrapErrs(err))
+				m, cmd := m.showPopup(lollypops.NewError(m.style.colors, errMsg))
+				return m, tea.Batch(cmd, m.backend.FetchFeeds(msg.Parent))
 			}
-		} else {
-			if err := m.backend.Rss.AddFeed(msg.Parent, msg.Name, msg.URL); err != nil {
-				m.displayError(fmt.Sprintf("Error adding feed: %s", unwrapErrs(err)))
-			} else {
-				m.msg = fmt.Sprintf("Added feed %s", msg.Name)
-			}
+
+			m.msg = fmt.Sprintf("Updated feed %s", msg.Name)
+			return m, m.backend.FetchFeeds(msg.Parent)
 		}
 
+		if err := m.backend.Rss.AddFeed(msg.Parent, msg.Name, msg.URL); err != nil {
+			errMsg := fmt.Sprintf("Error adding feed: %s", unwrapErrs(err))
+			m, cmd := m.showPopup(lollypops.NewError(m.style.colors, errMsg))
+			return m, tea.Batch(cmd, m.backend.FetchFeeds(msg.Parent))
+		}
+
+		m.msg = fmt.Sprintf("Added feed %s", msg.Name)
 		return m, m.backend.FetchFeeds(msg.Parent)
 
 	case tab.NewTabMsg:
@@ -408,13 +415,15 @@ func (m Model) deleteItem(msg backend.DeleteItemMsg) (tea.Model, tea.Cmd) {
 	case overview.Model:
 		cmd = m.backend.FetchCategories("")
 		if err := m.backend.Rss.RemoveCategory(msg.ItemName); err != nil {
-			m.displayError(fmt.Sprintf("Error deleting category %s: %s", msg.ItemName, unwrapErrs(err)))
+			errMsg := fmt.Sprintf("Error deleting category %s: %s", msg.ItemName, unwrapErrs(err))
+			return m.showPopup(lollypops.NewError(m.style.colors, errMsg))
 		}
 
 	case category.Model:
 		cmd = m.backend.FetchFeeds(m.tabs[m.activeTab].Title())
 		if err := m.backend.Rss.RemoveFeed(m.tabs[m.activeTab].Title(), msg.ItemName); err != nil {
-			m.displayError(fmt.Sprintf("Error deleting feed %s: %s", msg.ItemName, unwrapErrs(err)))
+			errMsg := fmt.Sprintf("Error deleting feed %s: %s", msg.ItemName, unwrapErrs(err))
+			return m.showPopup(lollypops.NewError(m.style.colors, errMsg))
 		}
 
 	case feed.Model:
@@ -422,11 +431,13 @@ func (m Model) deleteItem(msg backend.DeleteItemMsg) (tea.Model, tea.Cmd) {
 		if msg.Sender.Title() == rss.DownloadedFeedsName {
 			index, err := strconv.Atoi(msg.ItemName)
 			if err != nil {
-				m.displayError(fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, unwrapErrs(err)))
+				errMsg := fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, unwrapErrs(err))
+				return m.showPopup(lollypops.NewError(m.style.colors, errMsg))
 			}
 
 			if err := m.backend.Cache.RemoveFromDownloaded(index); err != nil {
-				m.displayError(fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, unwrapErrs(err)))
+				errMsg := fmt.Sprintf("Error deleting download %s: %s", msg.ItemName, unwrapErrs(err))
+				return m.showPopup(lollypops.NewError(m.style.colors, errMsg))
 			}
 		}
 	}
@@ -455,12 +466,6 @@ func (m Model) toggleOffline() (tea.Model, tea.Cmd) {
 
 	log.Println(m.msg)
 	return m, nil
-}
-
-// displayError shows a popup which displays the error
-func (m Model) displayError(msg string) (Model, tea.Cmd) {
-	m.msg = msg
-	return m.showPopup(lollypops.NewError(m.style.colors, msg))
 }
 
 // showPopup tells the model to show the popup
