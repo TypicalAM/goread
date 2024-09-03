@@ -6,12 +6,13 @@ import (
 	"log"
 	"sort"
 
-	"github.com/TypicalAM/goread/internal/backend/cache"
-	"github.com/TypicalAM/goread/internal/backend/rss"
-	"github.com/TypicalAM/goread/internal/ui/simplelist"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/mmcdole/gofeed"
+
+	"github.com/TypicalAM/goread/internal/backend/cache"
+	"github.com/TypicalAM/goread/internal/backend/rss"
+	"github.com/TypicalAM/goread/internal/ui/simplelist"
 )
 
 // Backend provides a way of fetching data from the cache and the RSS feed.
@@ -131,11 +132,12 @@ func (b Backend) DownloadItem(feedName string, index int) tea.Cmd {
 }
 
 // Close closes the backend and saves its components.
-func (b Backend) Close() error {
-	if err := b.Rss.Save(); err != nil {
-		return fmt.Errorf("backend.Close: %w", err)
+func (b Backend) Close(urlsReadOnly bool) error {
+	if !urlsReadOnly {
+		if err := b.Rss.Save(); err != nil {
+			return fmt.Errorf("backend.Close: %w", err)
+		}
 	}
-
 	if err := b.Cache.Save(); err != nil {
 		return fmt.Errorf("backend.Close: %w", err)
 	}
