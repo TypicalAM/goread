@@ -8,13 +8,14 @@ import (
 	"path/filepath"
 	"time"
 
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/spf13/cobra"
+
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/backend/cache"
 	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/TypicalAM/goread/internal/ui/browser"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/spf13/cobra"
 )
 
 // options denote the flags that can be given to the program
@@ -30,6 +31,7 @@ type options struct {
 	dumpColors      bool
 	testColors      bool
 	resetCache      bool
+	urlsReadOnly    bool
 }
 
 var (
@@ -42,7 +44,11 @@ var (
 		Short: "goread - a fancy TUI for reading RSS/Atom feeds",
 		Run: func(_ *cobra.Command, _ []string) {
 			if err := Run(); err != nil {
-				fmt.Fprintf(os.Stderr, errStyle.Render("There has been an error executing the commands: '%s'"), err)
+				fmt.Fprintf(
+					os.Stderr,
+					errStyle.Render("There has been an error executing the commands: '%s'"),
+					err,
+				)
 				os.Exit(1)
 			}
 		},
@@ -50,17 +56,26 @@ var (
 )
 
 func init() {
-	rootCmd.Flags().StringVarP(&opts.cacheDir, "cache_dir", "", "", "The path to the cache directory")
-	rootCmd.Flags().StringVarP(&opts.colorschemePath, "colorscheme_path", "c", "", "The path to the colorscheme file")
+	rootCmd.Flags().
+		StringVarP(&opts.cacheDir, "cache_dir", "", "", "The path to the cache directory")
+	rootCmd.Flags().
+		StringVarP(&opts.colorschemePath, "colorscheme_path", "c", "", "The path to the colorscheme file")
 	rootCmd.Flags().StringVarP(&opts.urlsPath, "urls_path", "u", "", "The path to the urls file")
 	rootCmd.Flags().BoolVarP(&opts.testColors, "test_colors", "", false, "Test the colorscheme")
-	rootCmd.Flags().BoolVarP(&opts.dumpColors, "dump_colors", "", false, "Dump the colors to the colorscheme file")
-	rootCmd.Flags().StringVarP(&opts.getColors, "get_colors", "", "", "Get the colors from pywal and save them to the colorscheme file")
+	rootCmd.Flags().
+		BoolVarP(&opts.dumpColors, "dump_colors", "", false, "Dump the colors to the colorscheme file")
+	rootCmd.Flags().
+		StringVarP(&opts.getColors, "get_colors", "", "", "Get the colors from pywal and save them to the colorscheme file")
 	rootCmd.Flags().BoolVarP(&opts.resetCache, "reset_cache", "", false, "Reset the cache")
 	rootCmd.Flags().IntVarP(&opts.cacheSize, "cache_size", "", 0, "The size of the cache")
-	rootCmd.Flags().IntVarP(&opts.cacheDuration, "cache_duration", "", 0, "The duration of the cache in hours")
-	rootCmd.Flags().StringVarP(&opts.loadOPMLFrom, "load_opml", "i", "", "Import the feeds from an OPML file")
-	rootCmd.Flags().StringVarP(&opts.exportOPMLTo, "export_opml", "e", "", "Export the feeds to an OPML file")
+	rootCmd.Flags().
+		IntVarP(&opts.cacheDuration, "cache_duration", "", 0, "The duration of the cache in hours")
+	rootCmd.Flags().
+		StringVarP(&opts.loadOPMLFrom, "load_opml", "i", "", "Import the feeds from an OPML file")
+	rootCmd.Flags().
+		StringVarP(&opts.exportOPMLTo, "export_opml", "e", "", "Export the feeds to an OPML file")
+	rootCmd.Flags().
+		BoolVarP(&opts.urlsReadOnly, "urls_readonly", "", false, "Feed urls config is read-only, skip saving the feed urls configuration")
 }
 
 // SetVersion sets the version of the program
@@ -71,7 +86,11 @@ func SetVersion(version string) {
 // Execute executes the commands
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, errStyle.Render("There has been an error executing the commands: '%s'"), err)
+		fmt.Fprintf(
+			os.Stderr,
+			errStyle.Render("There has been an error executing the commands: '%s'"),
+			err,
+		)
 		os.Exit(1)
 	}
 }
@@ -160,7 +179,7 @@ func Run() error {
 		}
 
 		fmt.Println(msgStyle.Render("Loaded OPML file successfully"))
-		return backend.Close()
+		return backend.Close(opts.urlsReadOnly)
 	}
 
 	// Export the OPML file
@@ -172,7 +191,7 @@ func Run() error {
 		}
 
 		fmt.Println(msgStyle.Render("Exported OPML file successfully"))
-		return backend.Close()
+		return backend.Close(opts.urlsReadOnly)
 	}
 
 	// Create the browser
@@ -186,5 +205,5 @@ func Run() error {
 
 	// Clean up the backend
 	log.Println("Closing backend")
-	return backend.Close()
+	return backend.Close(opts.urlsReadOnly)
 }
