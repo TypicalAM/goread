@@ -282,7 +282,10 @@ func getDefaultDir() (string, error) {
 // includesKeywords checks if an article contains any specified keyword from a slice
 func includesKeywords(feed *gofeed.Item, keywords []string) bool {
 	for _, keyword := range keywords {
-		if strings.Contains(feed.Title, keyword) || strings.Contains(feed.Description, keyword) || strings.Contains(feed.Content, keyword) {
+		lowerKeyword := strings.ToLower(keyword)
+		if strings.Contains(strings.ToLower(feed.Title), lowerKeyword) ||
+			strings.Contains(strings.ToLower(feed.Description), lowerKeyword) ||
+			strings.Contains(strings.ToLower(feed.Content), lowerKeyword) {
 			return true
 		}
 	}

@@ -113,6 +113,94 @@ func TestCacheGetArticles(t *testing.T) {
 	}
 }
 
+// TestCacheRespectWhitelist if we get an error then the whitelist isn't being respected
+func TestCacheRespectWhitelist(t *testing.T) {
+	// This test should only run online
+	if testOffline() {
+		t.Skip()
+		return
+	}
+
+	// Create the cache object with a valid file
+	cache, err := getCache()
+	if err != nil {
+		t.Fatalf("couldn't load the cache %v", err)
+	}
+
+	// Get articles with no whitelist
+	exampleFeed := rss.Feed{URL: "https://primordialsoup.info/feed"}
+	articles, err := cache.GetArticles(exampleFeed, false)
+	if err != nil {
+		t.Fatalf("couldn't get article: %v", err)
+	}
+
+	// Refetch articles
+	exampleFeed.WhitelistWords = []string{"Samuel"}
+	whitelistedArticles, err := cache.GetArticles(exampleFeed, true)
+	if len(whitelistedArticles) == len(articles) {
+		t.Errorf("whitelisting failed to filter articles, same number of articles as initial set")
+	}
+
+	if len(whitelistedArticles) == 0 {
+		t.Errorf("whitelisting failed to filter articles, no articles with the words %v detected", exampleFeed.WhitelistWords)
+	}
+
+	// Refetch articles with lowercase filtering
+	exampleFeed.WhitelistWords = []string{"samuel"}
+	whitelistedLowerArticles, err := cache.GetArticles(exampleFeed, true)
+	if len(whitelistedLowerArticles) == len(articles) {
+		t.Errorf("whitelisting failed to filter case-sensitive articles, same number of articles as initial set")
+	}
+
+	if len(whitelistedLowerArticles) == 0 {
+		t.Errorf("whitelisting failed to filter case-sensitive articles, no articles with the words %v detected", exampleFeed.WhitelistWords)
+	}
+}
+
+// TestCacheRespectBlacklist if we get an error then the blacklist isn't being respected
+func TestCacheRespectBlacklist(t *testing.T) {
+	// This test should only run online
+	if testOffline() {
+		t.Skip()
+		return
+	}
+
+	// Create the cache object with a valid file
+	cache, err := getCache()
+	if err != nil {
+		t.Fatalf("couldn't load the cache %v", err)
+	}
+
+	// Get articles with no blacklist
+	exampleFeed := rss.Feed{URL: "https://primordialsoup.info/feed"}
+	articles, err := cache.GetArticles(exampleFeed, false)
+	if err != nil {
+		t.Fatalf("couldn't get article: %v", err)
+	}
+
+	// Refetch articles
+	exampleFeed.BlacklistWords = []string{"Samuel"}
+	blacklistedArticles, err := cache.GetArticles(exampleFeed, true)
+	if len(blacklistedArticles) == len(articles) {
+		t.Errorf("blacklisting failed to filter articles, same number of articles as initial set")
+	}
+
+	if len(blacklistedArticles) == 0 {
+		t.Errorf("blacklisting failed to filter articles, no articles without the words %v detected", exampleFeed.BlacklistWords)
+	}
+
+	// Refetch articles with lowercase filtering
+	exampleFeed.BlacklistWords = []string{"samuel"}
+	blacklistedLowerArticles, err := cache.GetArticles(exampleFeed, true)
+	if len(blacklistedLowerArticles) == len(articles) {
+		t.Errorf("blacklisting failed to filter case-sensitive articles, same number of articles as initial set")
+	}
+
+	if len(blacklistedLowerArticles) == 0 {
+		t.Errorf("blacklisting failed to filter case-sensitive articles, no articles without the words %v detected", exampleFeed.BlacklistWords)
+	}
+}
+
 // TestCacheGetArticleExpired if we get an error then the store doesn't delete expired cache when getting data
 func TestCacheGetArticleExpired(t *testing.T) {
 	// This test should only run online
