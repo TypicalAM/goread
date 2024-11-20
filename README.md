@@ -69,6 +69,8 @@ categories:
       - name: BBC
         desc: News from the BBC
         url: http://feeds.bbci.co.uk/news/rss.xml
+        blacklist_words:
+          - example
   - name: Tech
     desc: Tech news
     subscriptions:
@@ -78,6 +80,8 @@ categories:
       - name: Chris Titus Tech (virtualization)
         desc: Chris Titus Tech on virtualization
         url: https://christitus.com/categories/virtualization/index.xml
+        whitelist_words:
+          - qemu
 ```
 
 You can edit this file to change the app's contents in an automated manner (remember that you can also edit entries in the TUI!).

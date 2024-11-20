@@ -10,8 +10,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
+	"github.com/TypicalAM/goread/internal/backend/rss"
 	"github.com/mmcdole/gofeed"
 )
 
@@ -121,43 +123,67 @@ func (c *Cache) Save() error {
 }
 
 // GetArticles returns an article list using the cache if possible
-func (c *Cache) GetArticles(url string, ignoreCache bool) (SortableArticles, error) {
-	log.Println("Getting articles for", url, " from cache: ", !ignoreCache)
+func (c *Cache) GetArticles(feed rss.Feed, ignoreCache bool) (SortableArticles, error) {
+	log.Println("Getting articles for", feed.URL, " from cache: ", !ignoreCache)
 
 	// Delete entry if expired
-	if item, ok := c.Content[url]; ok && !ignoreCache {
+	if item, ok := c.Content[feed.URL]; ok && !ignoreCache {
 		if item.Expire.After(time.Now()) {
 			return item.Articles, nil
 		}
 
-		delete(c.Content, url)
+		delete(c.Content, feed.URL)
 	}
 
 	if c.OfflineMode {
 		return nil, errors.New("offline mode")
 	}
 
-	articles, err := fetchArticles(url)
+	articles, err := fetchArticles(feed.URL)
 	if err != nil {
 		return nil, fmt.Errorf("cache.GetArticles: %w", err)
 	}
 
-	c.Content[url] = Entry{time.Now().Add(DefaultCacheDuration), articles}
+	if len(feed.BlacklistWords) != 0 {
+		log.Println("Using keyword blacklist for feed", feed.Name, ":", feed.BlacklistWords)
+		remaining := make([]gofeed.Item, 0)
+		for _, article := range articles {
+			if !includesKeywords(&article, feed.BlacklistWords) {
+				remaining = append(remaining, article)
+			}
+		}
+
+		articles = remaining
+	}
+
+	if len(feed.WhitelistWords) != 0 {
+		log.Println("Using keyword whitelist for feed", feed.Name, ":", feed.WhitelistWords)
+		remaining := make([]gofeed.Item, 0)
+		for _, article := range articles {
+			if includesKeywords(&article, feed.WhitelistWords) {
+				remaining = append(remaining, article)
+			}
+		}
+
+		articles = remaining
+	}
+
+	c.Content[feed.URL] = Entry{time.Now().Add(DefaultCacheDuration), articles}
 	return articles, nil
 }
 
 // GetArticlesBulk returns a sorted list of articles from all the given urls, ignoring any errors
-func (c *Cache) GetArticlesBulk(urls []string, ignoreCache bool) SortableArticles {
+func (c *Cache) GetArticlesBulk(feeds []*rss.Feed, ignoreCache bool) SortableArticles {
 	var result SortableArticles
 
-	for _, url := range urls {
-		if items, err := c.GetArticles(url, ignoreCache); err == nil {
+	for _, feed := range feeds {
+		if items, err := c.GetArticles(*feed, ignoreCache); err == nil {
 			result = append(result, items...)
 		} else {
 			// NOTE: Let's say you have 50 feeds and 5 fail, we don't want to keep trying failed feeds
 			// so we just fill the cache with an empty item. That way load for bulk feeds is faster next time.
-			log.Println("Error getting articles for", url, err, "filling with empty item")
-			c.Content[url] = Entry{time.Now().Add(DefaultCacheDuration), SortableArticles{}}
+			log.Println("Error getting articles for", feed.URL, err, "filling with empty item")
+			c.Content[feed.URL] = Entry{time.Now().Add(DefaultCacheDuration), SortableArticles{}}
 		}
 	}
 
@@ -251,4 +277,15 @@ func getDefaultDir() (string, error) {
 	}
 
 	return filepath.Join(dir, "goread"), nil
+}
+
+// includesKeywords checks if an article contains any specified keyword from a slice
+func includesKeywords(feed *gofeed.Item, keywords []string) bool {
+	for _, keyword := range keywords {
+		if strings.Contains(feed.Title, keyword) || strings.Contains(feed.Description, keyword) || strings.Contains(feed.Content, keyword) {
+			return true
+		}
+	}
+
+	return false
 }

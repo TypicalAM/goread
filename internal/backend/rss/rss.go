@@ -74,9 +74,11 @@ type Category struct {
 
 // Feed is a single rss feed
 type Feed struct {
-	Name        string `yaml:"name"`
-	Description string `yaml:"desc"`
-	URL         string `yaml:"url"`
+	Name           string   `yaml:"name"`
+	Description    string   `yaml:"desc"`
+	URL            string   `yaml:"url"`
+	WhitelistWords []string `yaml:"whitelist_words,omitempty"`
+	BlacklistWords []string `yaml:"blacklist_words,omitempty"`
 }
 
 // New will create a new Rss structure
@@ -111,6 +113,14 @@ func (rss *Rss) Load() error {
 
 	if err = yaml.Unmarshal(data, rss); err != nil {
 		return fmt.Errorf("rss.Load: %w", err)
+	}
+
+	for _, cat := range rss.Categories {
+		for _, feed := range cat.Subscriptions {
+			if len(feed.WhitelistWords) != 0 && len(feed.BlacklistWords) != 0 {
+				return fmt.Errorf("rss.Load: feed %s has both a whitelist and a blacklist", feed.Name)
+			}
+		}
 	}
 
 	log.Printf("Rss loaded with %d categories\n", len(rss.Categories))
@@ -148,36 +158,36 @@ func (rss Rss) GetFeeds(categoryName string) ([]Feed, error) {
 	return nil, ErrNotFound
 }
 
-// GetFeedURL will return the url of a feed denoted by the name
-func (rss Rss) GetFeedURL(feedName string) (string, error) {
+// GetFeed will return the information about a feed using its name
+func (rss Rss) GetFeed(feedName string) (*Feed, error) {
 	if feedName == AllFeedsName || feedName == DownloadedFeedsName {
-		return "", ErrReservedName
+		return nil, ErrReservedName
 	}
 
 	for _, cat := range rss.Categories {
 		for _, feed := range cat.Subscriptions {
 			if feed.Name == feedName {
-				return feed.URL, nil
+				return &feed, nil
 			}
 		}
 	}
 
-	return "", ErrNotFound
+	return nil, ErrNotFound
 }
 
-// GetAllURLs will return a list of all the urls
-func (rss Rss) GetAllURLs() []string {
-	var urls []string
+// GetAllURLs will return a list of all the available feeds
+func (rss Rss) GetAllFeeds() []*Feed {
+	var feeds []*Feed
 
 	for _, cat := range rss.Categories {
 		for _, feed := range cat.Subscriptions {
 			if feed.URL != AllFeedsName {
-				urls = append(urls, feed.URL)
+				feeds = append(feeds, &feed)
 			}
 		}
 	}
 
-	return urls
+	return feeds
 }
 
 // YassifyItem will return a yassified string which is used in the viewport
