@@ -115,14 +115,6 @@ func (rss *Rss) Load() error {
 		return fmt.Errorf("rss.Load: %w", err)
 	}
 
-	for _, cat := range rss.Categories {
-		for _, feed := range cat.Subscriptions {
-			if len(feed.WhitelistWords) != 0 && len(feed.BlacklistWords) != 0 {
-				return fmt.Errorf("rss.Load: feed %s has both a whitelist and a blacklist", feed.Name)
-			}
-		}
-	}
-
 	log.Printf("Rss loaded with %d categories\n", len(rss.Categories))
 	return nil
 }
