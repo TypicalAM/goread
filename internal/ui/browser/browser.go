@@ -215,6 +215,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case backend.MakeChoiceMsg:
 		return m.showPopup(lollypops.NewChoice(m.style.colors, msg.Question, msg.Default))
 
+	case backend.ShowErrorMsg:
+		m.keymap.SetEnabled(true)
+		m.popup = nil
+		return m.showPopup(lollypops.NewError(m.style.colors, msg.Msg))
+
 	case lollypops.ChoiceResultMsg, lollypops.ErrorResultMsg, closeHelpMsg:
 		m.keymap.SetEnabled(true)
 		m.popup = nil

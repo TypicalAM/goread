@@ -7,6 +7,7 @@ type Keymap struct {
 	Open            key.Binding
 	ToggleFocus     key.Binding
 	RefreshArticles key.Binding
+	OpenInPager     key.Binding
 	SaveArticle     key.Binding
 	DeleteFromSaved key.Binding
 	CycleSelection  key.Binding
@@ -26,6 +27,10 @@ var DefaultKeymap = Keymap{
 	RefreshArticles: key.NewBinding(
 		key.WithKeys("r", "ctrl+r"),
 		key.WithHelp("r/ctrl+r", "Refresh"),
+	),
+	OpenInPager: key.NewBinding(
+		key.WithKeys("p", "ctrl+p"),
+		key.WithHelp("p/ctrl+p", "Open in pager"),
 	),
 	SaveArticle: key.NewBinding(
 		key.WithKeys("s", "ctrl+s"),
