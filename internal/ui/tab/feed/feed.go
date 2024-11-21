@@ -3,6 +3,8 @@ package feed
 import (
 	"fmt"
 	"log"
+	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/TypicalAM/goread/internal/backend"
@@ -194,6 +196,36 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.viewportFocused = false
 
 			return m, tea.Batch(m.spinner.Tick, m.fetcher(m.title, true))
+
+		case key.Matches(msg, m.keymap.OpenInPager):
+			if m.list.SelectedItem() == nil {
+				return m, nil
+			}
+
+			selectedItem := m.list.SelectedItem().(backend.ArticleItem)
+			styledText, err := m.colorTr.Render(selectedItem.MarkdownContent)
+			if err != nil {
+				m.viewport.SetContent(fmt.Sprintf("We have encountered an error styling the content: %s", err))
+				return m, nil
+			}
+
+			pager := os.Getenv("PAGER")
+			if pager == "" {
+				pager = "less -r"
+			}
+
+			log.Println("We are paging with", pager)
+			pa := strings.Split(pager, " ")
+			cmd := exec.Command(pa[0], pa[1:]...)
+			cmd.Stdin = strings.NewReader(styledText)
+			cmd.Stdout = os.Stdout
+
+			if err := cmd.Run(); err != nil {
+				log.Println("Pager command failed:", err)
+				return m, backend.ShowError(fmt.Sprintf("Failed to execute pager command %s: %v", pager, err))
+			}
+
+			return m, nil
 
 		case key.Matches(msg, m.keymap.SaveArticle):
 			if m.list.SelectedItem() == nil {
@@ -419,7 +451,7 @@ func (m Model) DisableDeleting() Model {
 // ShortHelp returns the short help for the tab
 func (m Model) ShortHelp() []key.Binding {
 	return []key.Binding{
-		m.keymap.Open, m.keymap.ToggleFocus, m.keymap.RefreshArticles,
+		m.keymap.Open, m.keymap.ToggleFocus, m.keymap.RefreshArticles, m.keymap.OpenInPager,
 		m.keymap.SaveArticle, m.keymap.DeleteFromSaved, m.keymap.CycleSelection,
 		m.keymap.MarkAsUnread,
 	}

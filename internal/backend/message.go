@@ -127,6 +127,16 @@ func SetEnableKeybind(enable bool) tea.Cmd {
 	return func() tea.Msg { return SetEnableKeybindMsg(enable) }
 }
 
+// ShowErrorMsg is an error message "thrown" by a tab
+type ShowErrorMsg struct {
+	Msg string
+}
+
+// ShowError is called from a tab to tell the browser to show an error msg
+func ShowError(msg string) tea.Cmd {
+	return func() tea.Msg { return ShowErrorMsg{Msg: msg} }
+}
+
 // StartQuittingMsg prompts the browser to start quitting (and perform a last browser redraw).
 type StartQuittingMsg struct{}
 
