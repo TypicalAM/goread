@@ -89,7 +89,7 @@ func TestCacheGetArticles(t *testing.T) {
 	}
 
 	// Check if the cache hit works
-	_, err = cache.GetArticles(rss.Feed{URL: "https://primordialsoup.info/feed"}, false)
+	_, err = cache.GetArticles(&rss.Feed{URL: "https://primordialsoup.info/feed"}, false)
 	if err != nil {
 		t.Fatalf("couldn't get article: %v", err)
 	}
@@ -99,7 +99,7 @@ func TestCacheGetArticles(t *testing.T) {
 	}
 
 	// Check if the cache miss retrieves the item and puts it inside the cache
-	_, err = cache.GetArticles(rss.Feed{URL: "https://christitus.com/categories/virtualization/index.xml"}, false)
+	_, err = cache.GetArticles(&rss.Feed{URL: "https://christitus.com/categories/virtualization/index.xml"}, false)
 	if err != nil {
 		t.Fatalf("couldn't get article: %v", err)
 	}
@@ -129,14 +129,14 @@ func TestCacheRespectWhitelist(t *testing.T) {
 
 	// Get articles with no whitelist
 	exampleFeed := rss.Feed{URL: "https://primordialsoup.info/feed"}
-	articles, err := cache.GetArticles(exampleFeed, false)
+	articles, err := cache.GetArticles(&exampleFeed, false)
 	if err != nil {
 		t.Fatalf("couldn't get article: %v", err)
 	}
 
 	// Refetch articles
 	exampleFeed.WhitelistWords = []string{"Samuel"}
-	whitelistedArticles, err := cache.GetArticles(exampleFeed, true)
+	whitelistedArticles, err := cache.GetArticles(&exampleFeed, true)
 	if len(whitelistedArticles) == len(articles) {
 		t.Errorf("whitelisting failed to filter articles, same number of articles as initial set")
 	}
@@ -147,7 +147,7 @@ func TestCacheRespectWhitelist(t *testing.T) {
 
 	// Refetch articles with lowercase filtering
 	exampleFeed.WhitelistWords = []string{"samuel"}
-	whitelistedLowerArticles, err := cache.GetArticles(exampleFeed, true)
+	whitelistedLowerArticles, err := cache.GetArticles(&exampleFeed, true)
 	if len(whitelistedLowerArticles) == len(articles) {
 		t.Errorf("whitelisting failed to filter case-sensitive articles, same number of articles as initial set")
 	}
@@ -173,14 +173,14 @@ func TestCacheRespectBlacklist(t *testing.T) {
 
 	// Get articles with no blacklist
 	exampleFeed := rss.Feed{URL: "https://primordialsoup.info/feed"}
-	articles, err := cache.GetArticles(exampleFeed, false)
+	articles, err := cache.GetArticles(&exampleFeed, false)
 	if err != nil {
 		t.Fatalf("couldn't get article: %v", err)
 	}
 
 	// Refetch articles
 	exampleFeed.BlacklistWords = []string{"Samuel"}
-	blacklistedArticles, err := cache.GetArticles(exampleFeed, true)
+	blacklistedArticles, err := cache.GetArticles(&exampleFeed, true)
 	if len(blacklistedArticles) == len(articles) {
 		t.Errorf("blacklisting failed to filter articles, same number of articles as initial set")
 	}
@@ -191,7 +191,7 @@ func TestCacheRespectBlacklist(t *testing.T) {
 
 	// Refetch articles with lowercase filtering
 	exampleFeed.BlacklistWords = []string{"samuel"}
-	blacklistedLowerArticles, err := cache.GetArticles(exampleFeed, true)
+	blacklistedLowerArticles, err := cache.GetArticles(&exampleFeed, true)
 	if len(blacklistedLowerArticles) == len(articles) {
 		t.Errorf("blacklisting failed to filter case-sensitive articles, same number of articles as initial set")
 	}
@@ -225,7 +225,7 @@ func TestCacheGetArticleExpired(t *testing.T) {
 	oldItem.Expire = time.Now().Add(-2 * DefaultCacheDuration)
 	cache.Content["https://primordialsoup.info/feed"] = oldItem
 
-	_, err = cache.GetArticles(rss.Feed{URL: "https://primordialsoup.info/feed"}, false)
+	_, err = cache.GetArticles(&rss.Feed{URL: "https://primordialsoup.info/feed"}, false)
 	if err != nil {
 		t.Fatalf("couldn't get article: %v", err)
 	}
