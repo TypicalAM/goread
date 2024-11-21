@@ -90,12 +90,12 @@ func (b Backend) FetchFeeds(catname string) tea.Cmd {
 // FetchArticles gets the articles from a feed.
 func (b Backend) FetchArticles(feedname string, refresh bool) tea.Cmd {
 	return func() tea.Msg {
-		url, err := b.Rss.GetFeedURL(feedname)
+		feed, err := b.Rss.GetFeed(feedname)
 		if err != nil {
 			return FetchErrorMsg{err, "Error while trying to get the article url"}
 		}
 
-		items, err := b.Cache.GetArticles(url, refresh)
+		items, err := b.Cache.GetArticles(feed, refresh)
 		if err != nil {
 			return FetchErrorMsg{err, "Error while fetching the article"}
 		}
@@ -107,7 +107,7 @@ func (b Backend) FetchArticles(feedname string, refresh bool) tea.Cmd {
 // FetchAllArticles gets all the articles from all the feeds.
 func (b Backend) FetchAllArticles(_ string, refresh bool) tea.Cmd {
 	return func() tea.Msg {
-		return b.articlesToSuccessMsg(b.Cache.GetArticlesBulk(b.Rss.GetAllURLs(), refresh))
+		return b.articlesToSuccessMsg(b.Cache.GetArticlesBulk(b.Rss.GetAllFeeds(), refresh))
 	}
 }
 
@@ -193,18 +193,18 @@ func (b Backend) indexToItem(feedName string, index int) (*gofeed.Item, error) {
 
 	switch feedName {
 	case rss.AllFeedsName:
-		articles = b.Cache.GetArticlesBulk(b.Rss.GetAllURLs(), false)
+		articles = b.Cache.GetArticlesBulk(b.Rss.GetAllFeeds(), false)
 
 	case rss.DownloadedFeedsName:
 		articles = b.Cache.GetDownloaded()
 
 	default:
-		url, err := b.Rss.GetFeedURL(feedName)
+		feed, err := b.Rss.GetFeed(feedName)
 		if err != nil {
 			return nil, errors.New("getting the article url")
 		}
 
-		articles, err = b.Cache.GetArticles(url, false)
+		articles, err = b.Cache.GetArticles(feed, false)
 		if err != nil {
 			return nil, errors.New("fetching the article")
 		}

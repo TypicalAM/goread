@@ -87,16 +87,16 @@ func TestRssGetFeeds(t *testing.T) {
 // TestRssGetFeedURL if we get an error then the rss feed url is not retrieved correctly
 func TestRssGetFeedURL(t *testing.T) {
 	myRss := getRss(t)
-	url, err := myRss.GetFeedURL(myRss.Categories[0].Subscriptions[0].Name)
+	feed, err := myRss.GetFeed(myRss.Categories[0].Subscriptions[0].Name)
 	if err != nil {
 		t.Errorf("failed to get feed url, %s", err)
 	}
 
-	if url != "https://primordialsoup.info/feed" {
-		t.Errorf("incorrect url, expected https://primordialsoup.info/feed, got %s", url)
+	if feed.URL != "https://primordialsoup.info/feed" {
+		t.Errorf("incorrect url, expected https://primordialsoup.info/feed, got %s", feed.URL)
 	}
 
-	if _, err = myRss.GetFeedURL("Non-existent"); err == nil || err != ErrNotFound {
+	if _, err = myRss.GetFeed("Non-existent"); err == nil || err != ErrNotFound {
 		t.Errorf("expected ErrNotFound, got %s", err)
 	}
 }
@@ -104,13 +104,13 @@ func TestRssGetFeedURL(t *testing.T) {
 // TestRssGetAllURLs if we get an error then all the urls are not retrieved correctly
 func TestRssGetAllURLs(t *testing.T) {
 	myRss := getRss(t)
-	urls := myRss.GetAllURLs()
+	urls := myRss.GetAllFeeds()
 
 	if len(urls) != 3 {
 		t.Errorf("incorrect number of urls, expected 2, got %d", len(urls))
 	}
 
-	if urls[0] != "https://primordialsoup.info/feed" {
+	if urls[0].URL != "https://primordialsoup.info/feed" {
 		t.Errorf("incorrect url, expected https://primordialsoup.info/feed, got %s", urls[0])
 	}
 }
