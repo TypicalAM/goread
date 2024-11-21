@@ -123,7 +123,7 @@ func (c *Cache) Save() error {
 }
 
 // GetArticles returns an article list using the cache if possible
-func (c *Cache) GetArticles(feed rss.Feed, ignoreCache bool) (SortableArticles, error) {
+func (c *Cache) GetArticles(feed *rss.Feed, ignoreCache bool) (SortableArticles, error) {
 	log.Println("Getting articles for", feed.URL, " from cache: ", !ignoreCache)
 
 	// Delete entry if expired
@@ -176,8 +176,8 @@ func (c *Cache) GetArticles(feed rss.Feed, ignoreCache bool) (SortableArticles, 
 func (c *Cache) GetArticlesBulk(feeds []*rss.Feed, ignoreCache bool) SortableArticles {
 	var result SortableArticles
 
-	for _, feed := range feeds {
-		if items, err := c.GetArticles(*feed, ignoreCache); err == nil {
+	for i, feed := range feeds {
+		if items, err := c.GetArticles(feeds[i], ignoreCache); err == nil {
 			result = append(result, items...)
 		} else {
 			// NOTE: Let's say you have 50 feeds and 5 fail, we don't want to keep trying failed feeds

@@ -95,7 +95,7 @@ func (b Backend) FetchArticles(feedname string, refresh bool) tea.Cmd {
 			return FetchErrorMsg{err, "Error while trying to get the article url"}
 		}
 
-		items, err := b.Cache.GetArticles(*feed, refresh)
+		items, err := b.Cache.GetArticles(feed, refresh)
 		if err != nil {
 			return FetchErrorMsg{err, "Error while fetching the article"}
 		}
@@ -204,7 +204,7 @@ func (b Backend) indexToItem(feedName string, index int) (*gofeed.Item, error) {
 			return nil, errors.New("getting the article url")
 		}
 
-		articles, err = b.Cache.GetArticles(*feed, false)
+		articles, err = b.Cache.GetArticles(feed, false)
 		if err != nil {
 			return nil, errors.New("fetching the article")
 		}

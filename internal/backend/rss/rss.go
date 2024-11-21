@@ -172,9 +172,9 @@ func (rss Rss) GetAllFeeds() []*Feed {
 	var feeds []*Feed
 
 	for _, cat := range rss.Categories {
-		for _, feed := range cat.Subscriptions {
+		for i, feed := range cat.Subscriptions {
 			if feed.URL != AllFeedsName {
-				feeds = append(feeds, &feed)
+				feeds = append(feeds, &cat.Subscriptions[i])
 			}
 		}
 	}
