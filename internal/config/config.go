@@ -38,7 +38,7 @@ type KeyList []string
 func New(path string) (*Config, error) {
 	log.Println("Creating new settings")
 	if path == "" {
-		defaultPath, err := getDefaultPath()
+		defaultPath, err := GetDefaultPath()
 		if err != nil {
 			return nil, fmt.Errorf("cfg.New: %w", err)
 		}
@@ -143,8 +143,8 @@ func (cfg *Config) Load() error {
 	return nil
 }
 
-// getDefaultPath will return the default path for the config file
-func getDefaultPath() (string, error) {
+// GetDefaultPath will return the default path for the config file
+func GetDefaultPath() (string, error) {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return "", fmt.Errorf("cfg.getDefaultPath: %w", err)

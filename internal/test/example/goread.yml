@@ -1,0 +1,75 @@
+keymap:
+  browser:
+    close_tab:
+      - c
+      - ctrl+w
+    next_tab:
+      - tab
+    prev_tab:
+      - shift+tab
+    show_help:
+      - h
+      - ctrl+h
+    toggle_offline_mode:
+      - o
+      - ctrl+o
+  category:
+    delete_feed:
+      - d
+      - ctrl+d
+    edit_feed:
+      - e
+      - ctrl+e
+    new_feed:
+      - n
+      - ctrl+n
+  feed:
+    cycle_selection:
+      - g
+    delete_from_saved:
+      - d
+    mark_as_unread:
+      - u
+    open:
+      - enter
+    open_in_pager:
+      - p
+      - ctrl+p
+    refresh_articles:
+      - r
+      - ctrl+r
+    save_article:
+      - s
+      - ctrl+s
+    toggle_focus:
+      - left
+      - right
+      - h
+      - l
+  list:
+    down:
+      - down
+      - j
+    open:
+      - enter
+    page_down:
+      - shift+down
+      - J
+    page_up:
+      - shift+up
+      - K
+    quick_select:
+      - 0-9
+    up:
+      - up
+      - k
+  overview:
+    delete_category:
+      - d
+      - ctrl+d
+    edit_category:
+      - e
+      - ctrl+e
+    new_category:
+      - n
+      - ctrl+n

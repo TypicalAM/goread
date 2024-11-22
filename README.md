@@ -84,7 +84,7 @@ categories:
           - qemu
 ```
 
-You can edit this file to change the app's contents in an automated manner (remember that you can also edit entries in the TUI!).
+You can edit this file with `goread edit urls` to change the app's contents in an automated manner (remember that you can also edit entries in the TUI!).
 
 ### 🌃 The colorscheme file
 
@@ -107,12 +107,11 @@ the `--dump_colors` flag. The colorscheme file is usually at `~/.config/goread/c
 }
 ```
 
-You can use the `--get_colors` flag to generate a colorscheme from pywal. For that you have to supply it with the
-pywal `colors.json` file which is usually located at `~/.cache/wal/colors.json`. To generate the `colors.json` file you can run `wal -stni ~/wallpapers/example.png`.
+You can use the `--get_colors` flag to generate a colorscheme from pywal. For that you have to supply it with the pywal `colors.json` file which is usually located at `~/.cache/wal/colors.json`. To generate the `colors.json` file you can run `wal -stni ~/wallpapers/example.png`.
 
 ### 📝 The config file
 
-You can configure custom keybindings for goread in `goread.yml` in the same directory as the urls file, for an example see: [#59](https://github.com/TypicalAM/goread/pull/59)
+You can configure custom keybindings for goread in `goread.yml` in the same directory as the urls file, for an example use `goread edit config` which will open up the configuration in your favorite `$EDITOR`.
 
 ## ✨ Contributing
 

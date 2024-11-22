@@ -1,4 +1,4 @@
-package goread
+package cmd
 
 import (
 	"fmt"
@@ -39,18 +39,13 @@ type options struct {
 var (
 	msgStyle = lipgloss.NewStyle().Italic(true).Foreground(lipgloss.Color("#6bae6c"))
 	errStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#e06c75"))
-
-	opts    = options{}
-	rootCmd = &cobra.Command{
+	opts     = options{}
+	rootCmd  = &cobra.Command{
 		Use:   "goread",
 		Short: "goread - a fancy TUI for reading RSS/Atom feeds",
-		Run: func(_ *cobra.Command, _ []string) {
+		Run: func(cmd *cobra.Command, args []string) {
 			if err := Run(); err != nil {
-				fmt.Fprintf(
-					os.Stderr,
-					errStyle.Render("There has been an error executing the commands: '%s'"),
-					err,
-				)
+				fmt.Fprintln(os.Stderr, errStyle.Render(fmt.Sprint("Encountered an error: ", err)))
 				os.Exit(1)
 			}
 		},
@@ -60,10 +55,10 @@ var (
 func init() {
 	rootCmd.Flags().
 		StringVarP(&opts.cacheDir, "cache_dir", "", "", "The path to the cache directory")
-	rootCmd.Flags().
+	rootCmd.PersistentFlags().
 		StringVarP(&opts.colorschemePath, "colorscheme_path", "c", "", "The path to the colorscheme file")
-	rootCmd.Flags().StringVarP(&opts.urlsPath, "urls_path", "u", "", "The path to the urls file")
-	rootCmd.Flags().StringVarP(&opts.configPath, "config_path", "s", "", "The path to the configuration file")
+	rootCmd.PersistentFlags().StringVarP(&opts.urlsPath, "urls_path", "u", "", "The path to the urls file")
+	rootCmd.PersistentFlags().StringVarP(&opts.configPath, "config_path", "s", "", "The path to the configuration file")
 	rootCmd.Flags().BoolVarP(&opts.testColors, "test_colors", "", false, "Test the colorscheme")
 	rootCmd.Flags().
 		BoolVarP(&opts.dumpColors, "dump_colors", "", false, "Dump the colors to the colorscheme file")
@@ -81,21 +76,13 @@ func init() {
 		BoolVarP(&opts.urlsReadOnly, "urls_readonly", "", false, "Feed urls config is read-only, skip saving the feed urls configuration")
 }
 
+func Execute() {
+	rootCmd.Execute()
+}
+
 // SetVersion sets the version of the program
 func SetVersion(version string) {
 	rootCmd.Version = version
-}
-
-// Execute executes the commands
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintf(
-			os.Stderr,
-			errStyle.Render("There has been an error executing the commands: '%s'"),
-			err,
-		)
-		os.Exit(1)
-	}
 }
 
 // Run runs the program
@@ -211,8 +198,6 @@ func Run() error {
 
 	// Create the browser
 	browser := browser.New(colors, backend)
-
-	// Start the program
 	if _, err = tea.NewProgram(browser).Run(); err != nil {
 		log.Println("Bubbletea program fail: ", err)
 		return err

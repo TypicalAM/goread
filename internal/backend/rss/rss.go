@@ -85,7 +85,7 @@ type Feed struct {
 func New(path string) (*Rss, error) {
 	log.Println("Creating new rss structure")
 	if path == "" {
-		defaultPath, err := getDefaultPath()
+		defaultPath, err := GetDefaultPath()
 		if err != nil {
 			return nil, fmt.Errorf("rss.New: %w", err)
 		}
@@ -330,8 +330,8 @@ func HTMLToText(content string) (string, error) {
 	return doc.Text(), nil
 }
 
-// getDefaultPath will return the default path for the urls file
-func getDefaultPath() (string, error) {
+// GetDefaultPath will return the default path for the urls file
+func GetDefaultPath() (string, error) {
 	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return "", fmt.Errorf("rss.getDefaultPath: %w", err)

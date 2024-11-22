@@ -50,7 +50,7 @@ type Colors struct {
 func New(path string) (*Colors, error) {
 	log.Println("Initializing colorscheme")
 	if path == "" {
-		defaultPath, err := getDefaultPath()
+		defaultPath, err := GetDefaultPath()
 		if err != nil {
 			return nil, fmt.Errorf("theme.New: %w", err)
 		}
@@ -154,8 +154,8 @@ func (c Colors) PrettyPrint() string {
 	return strings.Join(result, "\n")
 }
 
-// getDefaultPath returns the default path for the colorscheme file
-func getDefaultPath() (string, error) {
+// GetDefaultPath returns the default path for the colorscheme file
+func GetDefaultPath() (string, error) {
 	// Get the default config path
 	configDir, err := os.UserConfigDir()
 	if err != nil {

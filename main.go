@@ -1,12 +1,16 @@
 package main
 
 import (
-	"github.com/TypicalAM/goread/cmd/goread"
+	"embed"
+
+	"github.com/TypicalAM/goread/cmd"
 )
 
-var version = "v1.6.5"
+//go:embed internal/test/example
+var exampleFiles embed.FS
 
 func main() {
-	goread.SetVersion(version)
-	goread.Execute()
+	cmd.SetVersion("v1.6.5")
+	cmd.SetExampleFiles(exampleFiles)
+	cmd.Execute()
 }

@@ -1,0 +1,19 @@
+categories:
+    - name: All Feeds
+      desc: All feeds
+      subscriptions:
+        - name: BBC
+          desc: News from the BBC
+          url: http://feeds.bbci.co.uk/news/rss.xml
+    - name: News
+      desc: News from around the world
+      subscriptions:
+        - name: Wired
+          desc: News from the wired team
+          url: https://www.wired.com/feed/rss
+    - name: Tech
+      desc: Tech news
+      subscriptions:
+        - name: Chris Titus Tech (virtualization)
+          desc: Chris Titus Tech on virtualization
+          url: https://christitus.com/categories/virtualization/index.xml
