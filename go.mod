@@ -14,7 +14,7 @@ require (
 	github.com/muesli/ansi v0.0.0-20221106050444-61f0cd9a192a
 	github.com/muesli/reflow v0.3.0
 	github.com/spaolacci/murmur3 v1.1.0
-	github.com/spf13/cobra v1.6.1
+	github.com/spf13/cobra v1.8.1
 	gopkg.in/yaml.v3 v3.0.1
 	mvdan.cc/xurls/v2 v2.5.0
 )

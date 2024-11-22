@@ -1,3 +1,5 @@
+version: 2
+
 before:
   hooks:
     - go mod tidy
@@ -22,7 +24,7 @@ archives:
 brews:
 - name: goread
   homepage: https://github.com/TypicalAM/homebrew-goread 
-  tap:
+  repository:
     owner: TypicalAM
     name: homebrew-goread
     token: "{{ .Env.TAP_GITHUB_TOKEN }}"
