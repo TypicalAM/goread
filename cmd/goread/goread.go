@@ -14,6 +14,7 @@ import (
 
 	"github.com/TypicalAM/goread/internal/backend"
 	"github.com/TypicalAM/goread/internal/backend/cache"
+	"github.com/TypicalAM/goread/internal/config"
 	"github.com/TypicalAM/goread/internal/theme"
 	"github.com/TypicalAM/goread/internal/ui/browser"
 )
@@ -23,6 +24,7 @@ type options struct {
 	cacheDir        string
 	colorschemePath string
 	urlsPath        string
+	configPath      string
 	getColors       string
 	loadOPMLFrom    string
 	exportOPMLTo    string
@@ -61,6 +63,7 @@ func init() {
 	rootCmd.Flags().
 		StringVarP(&opts.colorschemePath, "colorscheme_path", "c", "", "The path to the colorscheme file")
 	rootCmd.Flags().StringVarP(&opts.urlsPath, "urls_path", "u", "", "The path to the urls file")
+	rootCmd.Flags().StringVarP(&opts.configPath, "config_path", "s", "", "The path to the configuration file")
 	rootCmd.Flags().BoolVarP(&opts.testColors, "test_colors", "", false, "Test the colorscheme")
 	rootCmd.Flags().
 		BoolVarP(&opts.dumpColors, "dump_colors", "", false, "Dump the colors to the colorscheme file")
@@ -161,6 +164,18 @@ func Run() error {
 	if opts.cacheDuration > 0 {
 		log.Println("Setting cache duration to ", opts.cacheDuration)
 		cache.DefaultCacheDuration = time.Hour * time.Duration(opts.cacheDuration)
+	}
+
+	// Get the config
+	cfg, err := config.New(opts.configPath)
+	if err != nil {
+		log.Println("Failed to initialize config: ", err)
+		return err
+	}
+
+	if err := cfg.Load(); err != nil {
+		log.Println("Failed to load config: ", err)
+		return err
 	}
 
 	// Initialize the backend
