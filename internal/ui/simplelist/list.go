@@ -11,34 +11,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// Keymap is the Keymap for the list
-type Keymap struct {
-	Open        key.Binding
-	Up          key.Binding
-	Down        key.Binding
-	QuickSelect key.Binding
-}
-
-// DefaultKeymap is the default keymap for the list
-var DefaultKeymap = Keymap{
-	Open: key.NewBinding(
-		key.WithKeys("enter"),
-		key.WithHelp("Enter", "Open"),
-	),
-	Up: key.NewBinding(
-		key.WithKeys("up", "k"),
-		key.WithHelp("↑/k", "Move up"),
-	),
-	Down: key.NewBinding(
-		key.WithKeys("down", "j"),
-		key.WithHelp("↓/j", "Move down"),
-	),
-	QuickSelect: key.NewBinding(
-		key.WithKeys("0", "1", "2", "3", "4", "5", "6", "7", "8", "9"),
-		key.WithHelp("0-9", "Quick select"),
-	),
-}
-
 // Item is an item in the list
 type Item struct {
 	title string
@@ -111,8 +83,8 @@ func (m Model) Init() tea.Cmd {
 // Update updates the model
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
-		switch msg.String() {
-		case "up", "k":
+		switch {
+		case key.Matches(msg, m.Keymap.Up):
 			m.selected--
 			if m.selected < 0 {
 				m.selected = len(m.items) - 1
@@ -124,7 +96,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 				m.page--
 			}
 
-		case "down", "j":
+		case key.Matches(msg, m.Keymap.Down):
 			m.selected++
 			if m.selected >= len(m.items) {
 				m.selected = 0
@@ -135,11 +107,11 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 				m.page++
 			}
 
-		case "shift+up", "K":
+		case key.Matches(msg, m.Keymap.PageUp):
 			m.selected = 0
 			m.page = 0
 
-		case "shift+down", "J":
+		case key.Matches(msg, m.Keymap.PageDown):
 			m.selected = len(m.items) - 1
 			m.page = len(m.items) / m.itemsPerPage
 		}

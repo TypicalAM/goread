@@ -1,0 +1,6 @@
+keymap:
+  browser:
+    close_tab_NONEXISTENT:
+      - c
+      - ctrl+w
+      - EXTRA
