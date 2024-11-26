@@ -10,7 +10,7 @@ import (
 var exampleFiles embed.FS
 
 func main() {
-	cmd.SetVersion("v1.7.0")
+	cmd.SetVersion("v1.7.1")
 	cmd.SetExampleFiles(exampleFiles)
 	cmd.Execute()
 }
