@@ -147,9 +147,9 @@ func (c *Cache) GetArticles(feed *rss.Feed, ignoreCache bool) (SortableArticles,
 	if len(feed.BlacklistWords) != 0 {
 		log.Println("Using keyword blacklist for feed", feed.Name, ":", feed.BlacklistWords)
 		remaining := make([]gofeed.Item, 0)
-		for _, article := range articles {
-			if !includesKeywords(&article, feed.BlacklistWords) {
-				remaining = append(remaining, article)
+		for i := range articles {
+			if !includesKeywords(&articles[i], feed.BlacklistWords) {
+				remaining = append(remaining, articles[i])
 			}
 		}
 
@@ -159,9 +159,9 @@ func (c *Cache) GetArticles(feed *rss.Feed, ignoreCache bool) (SortableArticles,
 	if len(feed.WhitelistWords) != 0 {
 		log.Println("Using keyword whitelist for feed", feed.Name, ":", feed.WhitelistWords)
 		remaining := make([]gofeed.Item, 0)
-		for _, article := range articles {
-			if includesKeywords(&article, feed.WhitelistWords) {
-				remaining = append(remaining, article)
+		for i := range articles {
+			if includesKeywords(&articles[i], feed.WhitelistWords) {
+				remaining = append(remaining, articles[i])
 			}
 		}
 

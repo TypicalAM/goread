@@ -216,7 +216,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			log.Println("We are paging with", pager)
 			pa := strings.Split(pager, " ")
-			cmd := exec.Command(pa[0], pa[1:]...)
+			cmd := exec.Command(pa[0], pa[1:]...) // nolint:gosec
 			cmd.Stdin = strings.NewReader(styledText)
 			cmd.Stdout = os.Stdout
 
@@ -349,6 +349,7 @@ func (m Model) loadTab(items []list.Item) tab.Tab {
 	return m
 }
 
+// nolint:unparam
 // updateViewport displays the viewport content
 func (m Model) updateViewport() (tab.Tab, tea.Cmd) {
 	if !m.viewportOpen {

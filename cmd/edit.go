@@ -21,7 +21,7 @@ var (
 		Short:     "Edit a goread configuration file",
 		ValidArgs: []string{"config", "colorscheme", "urls"},
 		Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, args []string) {
 			if err := RunEdit(args[0]); err != nil {
 				fmt.Fprintln(os.Stderr, errStyle.Render(fmt.Sprint("Encountered an error: ", err)))
 				os.Exit(1)
@@ -101,13 +101,13 @@ func RunEdit(filetype string) error {
 			}
 		}
 
-		if err := os.WriteFile(path, exampleFileData, 0644); err != nil {
+		if err := os.WriteFile(path, exampleFileData, 0600); err != nil {
 			return fmt.Errorf("failed to write data to file: %w", err)
 		}
 	}
 
 	pa := strings.Split(os.Getenv("EDITOR")+" "+path, " ")
-	cmd := exec.Command(pa[0], pa[1:]...)
+	cmd := exec.Command(pa[0], pa[1:]...) //nolint:gosec
 	cmd.Stdout = os.Stdout
 	return cmd.Run()
 }

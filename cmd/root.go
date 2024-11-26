@@ -43,7 +43,7 @@ var (
 	rootCmd  = &cobra.Command{
 		Use:   "goread",
 		Short: "goread - a fancy TUI for reading RSS/Atom feeds",
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			if err := Run(); err != nil {
 				fmt.Fprintln(os.Stderr, errStyle.Render(fmt.Sprint("Encountered an error: ", err)))
 				os.Exit(1)
@@ -77,7 +77,7 @@ func init() {
 }
 
 func Execute() {
-	rootCmd.Execute()
+	_ = rootCmd.Execute()
 }
 
 // SetVersion sets the version of the program

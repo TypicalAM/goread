@@ -136,7 +136,7 @@ func TestCacheRespectWhitelist(t *testing.T) {
 
 	// Refetch articles
 	exampleFeed.WhitelistWords = []string{"Samuel"}
-	whitelistedArticles, err := cache.GetArticles(&exampleFeed, true)
+	whitelistedArticles, _ := cache.GetArticles(&exampleFeed, true)
 	if len(whitelistedArticles) == len(articles) {
 		t.Errorf("whitelisting failed to filter articles, same number of articles as initial set")
 	}
@@ -147,7 +147,7 @@ func TestCacheRespectWhitelist(t *testing.T) {
 
 	// Refetch articles with lowercase filtering
 	exampleFeed.WhitelistWords = []string{"samuel"}
-	whitelistedLowerArticles, err := cache.GetArticles(&exampleFeed, true)
+	whitelistedLowerArticles, _ := cache.GetArticles(&exampleFeed, true)
 	if len(whitelistedLowerArticles) == len(articles) {
 		t.Errorf("whitelisting failed to filter case-sensitive articles, same number of articles as initial set")
 	}
@@ -180,7 +180,7 @@ func TestCacheRespectBlacklist(t *testing.T) {
 
 	// Refetch articles
 	exampleFeed.BlacklistWords = []string{"Samuel"}
-	blacklistedArticles, err := cache.GetArticles(&exampleFeed, true)
+	blacklistedArticles, _ := cache.GetArticles(&exampleFeed, true)
 	if len(blacklistedArticles) == len(articles) {
 		t.Errorf("blacklisting failed to filter articles, same number of articles as initial set")
 	}
@@ -191,7 +191,7 @@ func TestCacheRespectBlacklist(t *testing.T) {
 
 	// Refetch articles with lowercase filtering
 	exampleFeed.BlacklistWords = []string{"samuel"}
-	blacklistedLowerArticles, err := cache.GetArticles(&exampleFeed, true)
+	blacklistedLowerArticles, _ := cache.GetArticles(&exampleFeed, true)
 	if len(blacklistedLowerArticles) == len(articles) {
 		t.Errorf("blacklisting failed to filter case-sensitive articles, same number of articles as initial set")
 	}

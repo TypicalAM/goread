@@ -49,7 +49,7 @@ func TestConfigLoadFile(t *testing.T) {
 	}
 }
 
-// TestConfigLoadFile if we get an error then the config loader doesn't recognize non-existant categories
+// TestConfigLoadFile if we get an error then the config loader doesn't recognize non-existent categories
 func TestConfigLoadBadCategory(t *testing.T) {
 	myCfg, err := New("../test/data/goread_bad_category.yml")
 	if err != nil {
