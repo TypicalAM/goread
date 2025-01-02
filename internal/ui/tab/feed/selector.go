@@ -87,6 +87,11 @@ func (s *selector) newArticle(rawText, styledText *string) {
 			s.indices = append(s.indices, []int{start, end})
 			break
 		}
+
+		// Special case: the URL which appeared in the original raw text doesn't appear at all in the yassified markdown, for example image descriptions also being images
+		if len(s.urls) > 0 {
+			s.urls = s.urls[:len(s.urls)-1]
+		}
 	}
 }
 
