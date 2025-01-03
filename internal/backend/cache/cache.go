@@ -223,9 +223,13 @@ func fetchArticles(url string) (SortableArticles, error) {
 		return nil, fmt.Errorf("cache.fetchArticles: %w", err)
 	}
 
-	items := make(SortableArticles, len(feed.Items))
+	items := make(SortableArticles, 0, len(feed.Items))
 	for i, item := range feed.Items {
-		items[i] = *item
+		if strings.TrimSpace(item.Title) == "" {
+			continue
+		}
+
+		items = append(items, *feed.Items[i])
 	}
 
 	return items, nil
