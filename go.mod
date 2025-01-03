@@ -10,7 +10,7 @@ require (
 	github.com/charmbracelet/glamour v0.6.0
 	github.com/charmbracelet/lipgloss v0.6.0
 	github.com/gilliek/go-opml v1.0.0
-	github.com/mmcdole/gofeed v1.2.0
+	github.com/mmcdole/gofeed v1.3.1-0.20250103001757-1a928bdf4a47
 	github.com/muesli/ansi v0.0.0-20221106050444-61f0cd9a192a
 	github.com/muesli/reflow v0.3.0
 	github.com/spaolacci/murmur3 v1.1.0
@@ -35,7 +35,7 @@ require (
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.22 // indirect
-	github.com/mmcdole/goxpp v1.1.0 // indirect
+	github.com/mmcdole/goxpp v1.1.1-0.20240225020742-a0c311522b23 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect

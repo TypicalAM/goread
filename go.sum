@@ -69,8 +69,12 @@ github.com/microcosm-cc/bluemonday v1.0.22 h1:p2tT7RNzRdCi0qmwxG+HbqD6ILkmwter1Z
 github.com/microcosm-cc/bluemonday v1.0.22/go.mod h1:ytNkv4RrDrLJ2pqlsSI46O6IVXmZOBBD4SaJyDwwTkM=
 github.com/mmcdole/gofeed v1.2.0 h1:kuq7tJnDf0pnsDzF820ukuySHxFimAcizpG15gYHIns=
 github.com/mmcdole/gofeed v1.2.0/go.mod h1:TEyTG4gw4Q5Co+Hgahx/Oi3E0JHLM8BXtWC+mkJtRsw=
+github.com/mmcdole/gofeed v1.3.1-0.20250103001757-1a928bdf4a47 h1:WhK9ejmh2JghSZFCxjd59wYbcFWypGMSTRFMkidKwos=
+github.com/mmcdole/gofeed v1.3.1-0.20250103001757-1a928bdf4a47/go.mod h1:9TGv2LcJhdXePDzxiuMnukhV2/zb6VtnZt1mS+SjkLE=
 github.com/mmcdole/goxpp v1.1.0 h1:WwslZNF7KNAXTFuzRtn/OKZxFLJAAyOA9w82mDz2ZGI=
 github.com/mmcdole/goxpp v1.1.0/go.mod h1:v+25+lT2ViuQ7mVxcncQ8ch1URund48oH+jhjiwEgS8=
+github.com/mmcdole/goxpp v1.1.1-0.20240225020742-a0c311522b23 h1:Zr92CAlFhy2gL+V1F+EyIuzbQNbSgP4xhTODZtrXUtk=
+github.com/mmcdole/goxpp v1.1.1-0.20240225020742-a0c311522b23/go.mod h1:v+25+lT2ViuQ7mVxcncQ8ch1URund48oH+jhjiwEgS8=
 github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd h1:TRLaZ9cD/w8PVh93nsPXa1VrQ6jlwL5oN8l14QlcNfg=
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
