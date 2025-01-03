@@ -277,7 +277,7 @@ func parseFeed(url string) (*gofeed.Feed, error) {
 
 	if feed.PublishedParsed == nil && strings.TrimSpace(feed.Published) != "" {
 		// Fix for #64 since I don't want to bother gofeed's maintainer with date format additions
-		if t, err := time.Parse("Fri, 03 Jan 2025 17:20:38 GMT", strings.TrimSpace(feed.Published)); err == nil {
+		if t, err := time.Parse("Mon, 02 Jan 2006 15:04:05 GMT", strings.TrimSpace(feed.Published)); err == nil {
 			feed.PublishedParsed = &t
 		}
 	}
