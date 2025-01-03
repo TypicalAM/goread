@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/TypicalAM/goread/internal/backend/rss"
 	"github.com/mmcdole/gofeed"
@@ -33,6 +34,10 @@ func (sa SortableArticles) Len() int {
 
 // Less returns true if the item at index i is less than the item at index j, needed for sorting
 func (sa SortableArticles) Less(a, b int) bool {
+	if sa[a].PublishedParsed == nil || sa[b].PublishedParsed == nil {
+		return strings.Map(unicode.ToLower, sa[a].Title) < strings.Map(unicode.ToLower, sa[b].Title)
+	}
+
 	return sa[a].PublishedParsed.After(*sa[b].PublishedParsed)
 }
 
@@ -264,6 +269,13 @@ func parseFeed(url string) (*gofeed.Feed, error) {
 
 	if err := resp.Body.Close(); err != nil {
 		return nil, fmt.Errorf("cache.parseFeed: %w", err)
+	}
+
+	if feed.PublishedParsed == nil && strings.TrimSpace(feed.Published) != "" {
+		// Fix for #64 since I don't want to bother gofeed's maintainer with date format additions
+		if t, err := time.Parse("Fri, 03 Jan 2025 17:20:38 GMT", strings.TrimSpace(feed.Published)); err == nil {
+			feed.PublishedParsed = &t
+		}
 	}
 
 	return feed, nil
